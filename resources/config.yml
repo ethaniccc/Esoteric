@@ -1,0 +1,40 @@
+#  _____           _            _
+# | ____|___  ___ | |_ ___ _ __(_) ___
+# |  _| / __|/ _ \| __/ _ \ '__| |/ __|
+# | |___\__ \ (_) | ||  __/ |  | | (__
+# |_____|___/\___/ \__\___|_|  |_|\___|
+
+# A private anti-cheat for PocketMine-MP made by @ethaniccc
+# GitHub: https://www.github.com/ethaniccc
+
+#  Copyright (C) Ethaniccc - All Rights Reserved
+#  Unauthorized copying of this file, via any medium is strictly prohibited
+#  Proprietary and confidential
+#  Written by Benjamin <schooldocumentsandstuff@gmail.com>, March, 2021
+
+# Prefix for the anti-cheat when sending warnings.
+prefix: "§6Eso§fteric§7>"
+# Alert cooldown
+alert_cooldown: 5
+
+# Tags: {prefix}, {player}, {check_name}, {check_subtype}, {violations}, {data}
+alert_message: "{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]"
+
+detections:
+  # Autoclicker detections
+  Autoclicker:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 4
+      max_cps: 25
+    B:
+      enabled: true
+      punishment_type: none
+      max_vl: 10
+  # Reach detections
+  Range:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 10

@@ -1,0 +1,7 @@
+{
+  "name": "ethaniccc/mbupload-script",
+  "description": "Uploads a compiled version of Mockingbird to the test server via SFTP",
+  "require": {
+    "phpseclib/phpseclib": "^2.0"
+  }
+}
