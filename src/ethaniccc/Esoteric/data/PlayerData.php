@@ -7,14 +7,18 @@ use ethaniccc\Esoteric\check\combat\aimassist\AimAssistA;
 use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerA;
 use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerB;
 use ethaniccc\Esoteric\check\combat\range\RangeA;
+use ethaniccc\Esoteric\check\movement\fly\FlyA;
+use ethaniccc\Esoteric\check\movement\fly\FlyB;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
-use ethaniccc\Esoteric\data\sub\LocationMap;
+use ethaniccc\Esoteric\data\sub\effect\EffectData;
+use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use ethaniccc\Esoteric\handle\InboundHandle;
 use ethaniccc\Esoteric\handle\OutboundHandle;
 use ethaniccc\Esoteric\utils\AABB;
 use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
+use pocketmine\entity\Attribute;
 
 final class PlayerData{
 
@@ -26,6 +30,10 @@ final class PlayerData{
     public $hasAlerts = false;
     /** @var Check[] */
     public $checks = [];
+    /** @var array - A list of callables to happen at a certain client tick */
+    public $await = [];
+    /** @var EffectData[] - A list of effects */
+    public $effects = [];
     /** @var Vector3 - A zero vector */
     public static $zeroVector;
 
@@ -40,17 +48,39 @@ final class PlayerData{
         $this->lastLocation = clone self::$zeroVector;
         $this->directionVector = clone self::$zeroVector;
         $this->motion = clone self::$zeroVector;
+        $this->lastOnGroundLocation = clone self::$zeroVector;
         $this->entityLocationMap = new LocationMap($this);
         $this->inboundHandler = new InboundHandle();
         $this->outboundHandler = new OutboundHandle();
         // checks for the player
         $this->checks = [
+            # Combat
+
+            # Autoclicker
             new AutoClickerA(),
             new AutoClickerB(),
+
+            # Range
             new RangeA(),
+
+            # AimAssist
             new AimAssistA(),
+
+            # Movement
+
+            # Velocity
             new VelocityA(),
+
+            # Fly
+            new FlyA(),
+            new FlyB(),
         ];
+    }
+
+    public function await(callable $callable, int $future) : void{
+        $future = max($future, 1);
+        if(!isset($this->await[$this->currentTick + $future])) $this->await[$this->currentTick + $future] = [];
+        $this->await[$this->currentTick + $future][] = $callable;
     }
 
     /** @var bool - Boolean value for if the player is logged into the server. */
@@ -63,7 +93,7 @@ final class PlayerData{
     /** Movement data */
 
     /** @var Vector3 - The current and previous locations of the player */
-    public $currentLocation, $lastLocation;
+    public $currentLocation, $lastLocation, $lastOnGroundLocation;
     /** @var Vector3 - Movement deltas of the player */
     public $currentMoveDelta, $lastMoveDelta;
     /** @var float - Rotation values of the player */
@@ -82,6 +112,8 @@ final class PlayerData{
     public $motion;
     /** @var bool */
     public $isCollidedVertically = false, $isCollidedHorizontally = false, $hasBlockAbove = false;
+    /** @var int */
+    public $ticksSinceInLiquid = 0, $ticksSinceInCobweb = 0, $ticksSinceInClimbable = 0;
 
     /** Clicking data */
 
@@ -116,7 +148,15 @@ final class PlayerData{
     public $inputMode;
 
     /** Timed data */
+
     public $timeSinceAttack = 0;
     public $timeSinceMotion = 0;
+    public $timeSinceJump = 0;
+
+    /** Attribute data */
+
+    public $isSprinting = false;
+    public $movementSpeed = 0.1;
+    public $jumpVelocity = 0.42;
 
 }

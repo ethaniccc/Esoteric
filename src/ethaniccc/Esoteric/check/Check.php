@@ -4,7 +4,10 @@ namespace ethaniccc\Esoteric\check;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
+use ethaniccc\Esoteric\Settings;
+use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 
 abstract class Check{
 
@@ -59,6 +62,17 @@ abstract class Check{
                 $this->violations = 0;
             else
                 $this->punish($data);
+        }
+    }
+
+    protected function setback(PlayerData $data, string $type) : void{
+        switch($type){
+            case Settings::SETBACK_SMOOTH:
+                break;
+            case Settings::SETBACK_INSTANT:
+                $position = $data->onGround ? $data->lastLocation : $data->lastOnGroundLocation;
+                $data->player->teleport($position, $data->currentYaw, 0);
+                break;
         }
     }
 

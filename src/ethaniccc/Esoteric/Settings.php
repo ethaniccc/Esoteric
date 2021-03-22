@@ -8,6 +8,9 @@ final class Settings{
 
     private $data;
 
+    public const SETBACK_INSTANT = "instant";
+    public const SETBACK_SMOOTH = "smooth";
+
     public function __construct(array $configData){
         $this->data = $configData;
     }
@@ -30,6 +33,10 @@ final class Settings{
 
     public function getWarnMessage() : string{
         return $this->data["alert_message"];
+    }
+
+    public function getSetbackType() : string{
+        return isset($this->data["setback_type"]) ? (in_array($this->data["setback_type"], [self::SETBACK_INSTANT, self::SETBACK_SMOOTH]) ? $this->data["setback_type"] : "none") : self::SETBACK_SMOOTH;
     }
 
 }

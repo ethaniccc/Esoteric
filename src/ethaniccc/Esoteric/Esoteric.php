@@ -60,13 +60,10 @@ final class Esoteric{
         $this->getServer()->getPluginManager()->registerEvents($this->listener, $this->plugin);
         $this->dataManager = new DataManager();
         $this->plugin->getScheduler()->scheduleRepeatingTask(new ClosureTask(function(int $currentTick) : void{
-            if($currentTick % 40 === 0){
-                $this->hasAlerts = array_filter($this->dataManager->getAll(), function(PlayerData $data) : bool{
-                    return $data->player->isOnline() && $data->player->hasPermission("ac.alerts") && $data->hasAlerts;
-                });
-            }
-            // TODO: Tick processor.
-        }), 1);
+            $this->hasAlerts = array_filter($this->dataManager->getAll(), function(PlayerData $data) : bool{
+                return $data->player->isOnline() && $data->player->hasPermission("ac.alerts") && $data->hasAlerts;
+            });
+        }), 40);
     }
 
     /**

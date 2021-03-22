@@ -8,7 +8,9 @@ use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\network\mcpe\NetworkBinaryStream;
 use pocketmine\network\mcpe\protocol\BatchPacket;
+use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
@@ -44,9 +46,7 @@ final class PlayerListener implements Listener{
         $packet = $event->getPacket();
         $data = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
         if($packet instanceof BatchPacket){
-            try{
-                $gen = $packet->getPackets();
-            } catch(\UnexpectedValueException $e){return;}
+            $gen = $this->getAllInBatch($packet);
             while(($buff = $gen->current()) !== null){
                 $pk = PacketPool::getPacket($buff);
                 try{
@@ -66,6 +66,15 @@ final class PlayerListener implements Listener{
             }
         } elseif($packet instanceof StartGamePacket){
             $packet->playerMovementType = PlayerMovementType::SERVER_AUTHORITATIVE_V2_REWIND;
+        } elseif($packet instanceof MobEffectPacket){
+            $data->outboundHandler->handle($packet, $data);
+        }
+    }
+
+    private function getAllInBatch(BatchPacket $packet) : \Generator{
+        $stream = new NetworkBinaryStream($packet->payload);
+        while(!$stream->feof()){
+            yield $stream->getString();
         }
     }
 

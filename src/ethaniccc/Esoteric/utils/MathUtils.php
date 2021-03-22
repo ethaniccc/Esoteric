@@ -6,8 +6,6 @@ use pocketmine\math\Vector3;
 
 final class MathUtils{
 
-    public const GROUND_MODULO = 0.015625;
-
     public static function hypot(float $p1, float $p2) : float{
         return sqrt($p1 * $p1 + $p2 * $p2);
     }

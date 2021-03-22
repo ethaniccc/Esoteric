@@ -1,6 +1,6 @@
 <?php
 
-namespace ethaniccc\Esoteric\data\sub;
+namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;

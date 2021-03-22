@@ -3,11 +3,17 @@
 namespace ethaniccc\Esoteric\handle;
 
 use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use ethaniccc\Esoteric\listener\NetworkStackLatencyHandler;
+use pocketmine\entity\Attribute;
+use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
+use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
+use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 
 final class OutboundHandle{
 
@@ -29,6 +35,52 @@ final class OutboundHandle{
                 $data->motion = clone $packet->motion;
                 $data->timeSinceMotion = 0;
             });
+        } elseif($packet instanceof UpdateBlockPacket){
+            $blockVector = new Vector3($packet->x, $packet->y, $packet->z);
+            if($packet->blockRuntimeId !== 134 && in_array($blockVector, $data->inboundHandler->blockPlaceVectors)){
+                foreach($data->inboundHandler->blockPlaceVectors as $key => $vector){
+                    if($blockVector->equals($vector)){
+                        unset($data->inboundHandler->blockPlaceVectors[$key]);
+                    }
+                }
+            }
+        } elseif($packet instanceof MobEffectPacket){
+            if($packet->entityRuntimeId === $data->player->getId()){
+                switch($packet->eventId){
+                    case MobEffectPacket::EVENT_ADD:
+                        $effectData = new EffectData();
+                        $effectData->effectId = $packet->effectId;
+                        $effectData->amplifier = $packet->amplifier + 1;
+                        $effectData->ticksRemaining = $packet->duration * 20;
+                        NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($data, $effectData) : void{
+                            $data->effects[$effectData->effectId] = $effectData;
+                        });
+                        break;
+                    case MobEffectPacket::EVENT_MODIFY:
+                        $effectData = $data->effects[$packet->effectId] ?? null;
+                        if($effectData === null) throw new \UnexpectedValueException("WHAT THE FUCK? THE EFFECT DATA WAS NULL LOL");
+                        NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($effectData, $packet) : void{
+                            $effectData->amplifier = $packet->amplifier;
+                            $effectData->ticksRemaining = $packet->duration * 20;
+                        });
+                        break;
+                    case MobEffectPacket::EVENT_REMOVE:
+                        NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($data, $packet) : void{
+                            unset($data->effects[$packet->effectId]);
+                        });
+                        break;
+                }
+            }
+        } elseif($packet instanceof UpdateAttributesPacket && $packet->entityRuntimeId === $data->player->getId()){
+            foreach($packet->entries as $attribute){
+                switch($attribute->getId()){
+                    case Attribute::MOVEMENT_SPEED:
+                        NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($data, $attribute) : void{
+                            $data->movementSpeed = $attribute->getValue();
+                        });
+                        break;
+                }
+            }
         }
     }
 

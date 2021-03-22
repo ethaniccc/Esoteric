@@ -20,6 +20,9 @@ alert_cooldown: 5
 # Tags: {prefix}, {player}, {check_name}, {check_subtype}, {violations}, {data}
 alert_message: "{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]"
 
+# Setback types: smooth, instant
+setback_type: "instant"
+
 detections:
   # Autoclicker detections
   Autoclicker:
@@ -38,3 +41,25 @@ detections:
       enabled: true
       punishment_type: none
       max_vl: 10
+  # Fly detections
+  Fly:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 20
+      diff_max: 0.01
+      setback: true
+    B:
+      enabled: true
+      punishment_type: none
+      max_vl: 20
+      diff_max: 0.01
+      setback: true
+  # Velocity detections
+  Velocity:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 20
+      min_pct: 99.99 # minimum percentage allowed before flagging - change this if it keeps breaking on 99.99%
+      max_pct: 105.0 # maximum percentage allowed before flagging - increase this value if it keeps causing problems
