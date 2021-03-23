@@ -9,16 +9,18 @@ use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerB;
 use ethaniccc\Esoteric\check\combat\range\RangeA;
 use ethaniccc\Esoteric\check\movement\fly\FlyA;
 use ethaniccc\Esoteric\check\movement\fly\FlyB;
+use ethaniccc\Esoteric\check\movement\motion\MotionA;
+use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use ethaniccc\Esoteric\data\sub\location\LocationMap;
+use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\handle\InboundHandle;
 use ethaniccc\Esoteric\handle\OutboundHandle;
 use ethaniccc\Esoteric\utils\AABB;
 use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
-use pocketmine\entity\Attribute;
 
 final class PlayerData{
 
@@ -74,6 +76,10 @@ final class PlayerData{
             # Fly
             new FlyA(),
             new FlyB(),
+
+            # Motion
+            new MotionA(),
+            new MotionB(),
         ];
     }
 
@@ -102,6 +108,8 @@ final class PlayerData{
     public $currentYawDelta = 0.0, $lastYawDelta = 0.0, $currentPitchDelta = 0.0, $lastPitchDelta = 0.0;
     /** @var bool - The boolean value for if the player is on the ground */
     public $onGround = true;
+    /** @var bool - Boolean value for if the user is colliding with the ground. This is basically a more lenient version of onGround */
+    public $groundCollision = true;
     /** @var int */
     public $onGroundTicks = 0, $offGroundTicks = 0;
     /** @var AABB */
@@ -157,6 +165,7 @@ final class PlayerData{
 
     public $isSprinting = false;
     public $movementSpeed = 0.1;
-    public $jumpVelocity = 0.42;
+    public $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
+    public $airSpeed = MovementConstants::AIR_SPEED_NORMAL;
 
 }

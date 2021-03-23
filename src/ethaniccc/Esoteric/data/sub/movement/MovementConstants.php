@@ -19,4 +19,9 @@ final class MovementConstants{
 
     public const DEFAULT_JUMP_MOTION = 0.42;
 
+    public const STEP_CLIP_MULTIPLIER = 0.4;
+    public const STEP_HEIGHT = 0.6;
+
+    public const UNKNOWN_1 = 0.017453292;
+
 }

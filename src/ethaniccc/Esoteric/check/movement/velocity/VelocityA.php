@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\check\movement\velocity;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
@@ -33,9 +34,8 @@ class VelocityA extends Check{
                 } else {
                     $this->buffer = max($this->buffer - 0.5, 0);
                 }
-                $data->player->sendMessage("pct=$percentage%");
                 if(!$data->hasBlockAbove){
-                    $this->motionY = ($this->motionY - 0.08) * 0.980000012;
+                    $this->motionY = ($this->motionY - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
                 } else {
                     $this->motionY = 0.0;
                     $this->buffer = 0;

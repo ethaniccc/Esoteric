@@ -17,7 +17,8 @@ class FlyB extends Check{
     public function inbound(DataPacket $packet, PlayerData $data) : void{
         if($packet instanceof PlayerAuthInputPacket && $data->offGroundTicks >= 5){
             $diff = abs($data->currentMoveDelta->y - $data->lastMoveDelta->y);
-            if($diff < 0.01 && $data->ticksSinceInCobweb >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInLiquid >= 10 && $data->timeSinceMotion >= 3){
+            if($diff < 1E-4 && $data->ticksSinceInCobweb >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInLiquid >= 10 && $data->timeSinceMotion >= 3
+            && $data->currentMoveDelta->y > -3.0){
                 if(++$this->buffer >= 3){
                     $this->flag($data, ["diff" => round($diff, 3)]);
                     if($this->option("setback", false)) $this->setback($data, Esoteric::getInstance()->getSettings()->getSetbackType());

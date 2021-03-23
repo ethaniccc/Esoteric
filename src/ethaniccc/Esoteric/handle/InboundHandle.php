@@ -26,6 +26,7 @@ use pocketmine\network\mcpe\protocol\SetLocalPlayerAsInitializedPacket;
 use pocketmine\network\mcpe\protocol\types\InputMode;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
+use Generator;
 
 final class InboundHandle{
 
@@ -34,6 +35,7 @@ final class InboundHandle{
 
     public function handle(DataPacket $packet, PlayerData $data) : void{
         if($packet instanceof PlayerAuthInputPacket){
+            if(!$data->loggedIn) return;
             $location = Location::fromObject($packet->getPosition()->subtract(0, 1.62, 0), $data->player->getLevel());
             $data->boundingBox = AABB::fromPosition($location->asVector3());
             $data->lastLocation = clone $data->currentLocation;
@@ -48,9 +50,17 @@ final class InboundHandle{
             $data->directionVector = MathUtils::directionVectorFromValues($data->currentYaw, $data->currentPitch);
             $expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
             $actualMoveY = $data->currentMoveDelta->y;
-            $flag1 = abs($expectedMoveY - $actualMoveY) > 0.01;
-            $flag2 = $expectedMoveY <= 0;
-            $data->onGround = count($data->player->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.2, 0.2, 0.2)), true) !== 0 && $flag1 && $flag2;
+            $flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
+            $flag2 = $expectedMoveY < 0;
+            $data->groundCollision = count($data->player->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.1, 0.2, 0.1)), true) !== 0;
+            // this method is too sensitive
+            $data->onGround = $data->groundCollision /*&& $flag1 && $flag2*/;
+            /* if($data->currentMoveDelta->lengthSquared() > 0.0009){
+                $f1 = var_export($flag1, true);
+                $f2 = var_export($flag2, true);
+                $c = var_export($data->groundCollision, true);
+                $data->player->sendMessage("collision=$c flag1=$f1 flag2=$f2");
+            } */
             $blockVector = new Vector3((int) round($location->x), (int) round($location->y - 1), (int) round($location->z));
             $possibleGhostBlock = (fmod(round($data->currentLocation->y, 4), MovementConstants::GROUND_MODULO) === 0.0 || fmod(round($data->currentLocation->y, 6) - 0.00001, MovementConstants::GROUND_MODULO) === 0.0) && !$data->onGround && $flag1 && $flag2;
             if($possibleGhostBlock){
@@ -87,16 +97,16 @@ final class InboundHandle{
                 $data->lastOnGroundLocation = $data->currentLocation;
             }
             $data->isCollidedVertically = $flag1;
-            $data->isCollidedHorizontally = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.2, -0.1, 0.2), true)) !== 0;
+            $data->isCollidedHorizontally = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.5, 0.0, 0.5), true)) !== 0;
             $data->hasBlockAbove = $flag1 && $expectedMoveY > 0;
 
             $inset = 0.001; //Offset against floating-point errors
-            $minX = (int) floor($data->boundingBox->minX + $inset);
+            $minX = (int) floor($data->boundingBox->minX + 0.5 + $inset);
             $minY = (int) floor($data->boundingBox->minY + $inset);
-            $minZ = (int) floor($data->boundingBox->minZ + $inset);
-            $maxX = (int) floor($data->boundingBox->maxX - $inset);
+            $minZ = (int) floor($data->boundingBox->minZ + 0.5 + $inset);
+            $maxX = (int) floor($data->boundingBox->maxX - 0.5 - $inset);
             $maxY = (int) floor($data->boundingBox->maxY - $inset);
-            $maxZ = (int) floor($data->boundingBox->maxZ - $inset);
+            $maxZ = (int) floor($data->boundingBox->maxZ - 0.5 - $inset);
             $liquids = 0; $climbable = 0; $cobweb = 0;
             for($z = $minZ; $z <= $maxZ; ++$z){
                 for($x = $minX; $x <= $maxX; ++$x){
@@ -208,9 +218,11 @@ final class InboundHandle{
             switch($packet->action){
                 case PlayerActionPacket::ACTION_START_SPRINT:
                     $data->isSprinting = true;
+                    $data->airSpeed = MovementConstants::AIR_SPEED_SPRINT;
                     break;
                 case PlayerActionPacket::ACTION_STOP_SPRINT:
                     $data->isSprinting = false;
+                    $data->airSpeed = MovementConstants::AIR_SPEED_NORMAL;
                     break;
                 case PlayerActionPacket::ACTION_JUMP:
                     $data->timeSinceJump = 0;

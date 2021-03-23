@@ -43,6 +43,7 @@ final class PlayerListener implements Listener{
 
     public function send(DataPacketSendEvent $event) : void{
         $player = $event->getPlayer();
+        $player->setAllowMovementCheats(false);
         $packet = $event->getPacket();
         $data = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
         if($packet instanceof BatchPacket){

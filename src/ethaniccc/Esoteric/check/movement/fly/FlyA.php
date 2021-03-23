@@ -16,13 +16,15 @@ class FlyA extends Check{
     }
 
     public function inbound(DataPacket $packet, PlayerData $data) : void{
-        if($packet instanceof PlayerAuthInputPacket && $data->offGroundTicks >= 5){
+        if($packet instanceof PlayerAuthInputPacket && $data->offGroundTicks >= 10){
             $currentYMovement = $data->currentMoveDelta->y;
             $expectedYMovement = ($data->lastMoveDelta->y - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
             $diff = abs($currentYMovement - $expectedYMovement);
-            if($diff > $this->option("diff_max", 0.01) && $data->timeSinceMotion >= 3 && !$data->hasBlockAbove && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10){
-                if(++$this->buffer >= 3){
-                    $this->flag($data, ["diff" => round($diff, 3)]);
+            if($diff > $this->option("diff_max", 0.015) && $data->timeSinceMotion >= 3 && !$data->hasBlockAbove && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10){
+                if(++$this->buffer >= 2){
+                    $this->flag($data, [
+                        "diff" => round($diff, 3)
+                    ]);
                     if($this->option("setback", false)) $this->setback($data, Esoteric::getInstance()->getSettings()->getSetbackType());
                 }
             } else {

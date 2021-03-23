@@ -15,7 +15,7 @@
 # Prefix for the anti-cheat when sending warnings.
 prefix: "§6Eso§fteric§7>"
 # Alert cooldown
-alert_cooldown: 5
+alert_cooldown: 0
 
 # Tags: {prefix}, {player}, {check_name}, {check_subtype}, {violations}, {data}
 alert_message: "{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]"
@@ -47,13 +47,25 @@ detections:
       enabled: true
       punishment_type: none
       max_vl: 20
-      diff_max: 0.01
+      diff_max: 0.015
       setback: true
     B:
       enabled: true
       punishment_type: none
       max_vl: 20
       diff_max: 0.01
+      setback: true
+  # Motion detections
+  Motion:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 10
+      setback: true
+    B:
+      enabled: true
+      punishment_type: none
+      max_vl: 10
       setback: true
   # Velocity detections
   Velocity:
