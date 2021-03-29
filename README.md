@@ -1,6 +1,4 @@
-# ![idk](https://media.discordapp.net/attachments/727159224320131133/826094659000205322/Esoteric_11A13E3.gif?width=50&height=50) Esoteric 
-
-## About
+# ![idk](https://media.discordapp.net/attachments/727159224320131133/826094659000205322/Esoteric_11A13E3.gif?width=50&height=50) Esoteric
 Esoteric is another anti-cheat made for PocketMine-MP. Compared to Mockingbird, this has more checks
 I'm deciding to not disclose to the public.
 
