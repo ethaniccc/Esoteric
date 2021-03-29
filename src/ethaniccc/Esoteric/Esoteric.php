@@ -23,7 +23,7 @@ final class Esoteric{
      */
     public static function init(PluginBase $plugin, bool $start = false){
         if(self::$instance !== null)
-            throw new Exception("Esoteric attempting to be initialized when already initialized");
+            throw new Exception("Esoteric is already started");
         self::$instance = new self($plugin);
         if($start)
             self::$instance->start();

@@ -81,7 +81,7 @@ final class LocationMap{
                     $locationData->lastLocation = clone $locationData->currentLocation;
                 }
                 $locationData->newPosRotationIncrements--;
-                $locationData->isSynced = true;
+                $locationData->isSynced++;
             }
         }
         $await = $this->await[0] ?? null;

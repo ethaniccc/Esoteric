@@ -16,8 +16,13 @@ class AutoClickerA extends Check{
 
     public function inbound(DataPacket $packet, PlayerData $data) : void{
         if((($packet instanceof InventoryTransactionPacket && $packet->transactionType === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY) || ($packet instanceof LevelSoundEventPacket && $packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE)) && $data->runClickChecks){
-            if($data->cps > $this->option("max_cps", 25)) $this->flag($data, ["cps" => round($data->cps, 2)]);
-            else $this->reward(0.05);
+            if($data->cps > $this->option("max_cps", 25)){
+                $this->flag($data, [
+                    "cps" => round($data->cps, 2)
+                ]);
+            } else {
+                $this->reward(0.05);
+            }
         }
     }
 

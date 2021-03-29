@@ -9,9 +9,12 @@ use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerB;
 use ethaniccc\Esoteric\check\combat\range\RangeA;
 use ethaniccc\Esoteric\check\movement\fly\FlyA;
 use ethaniccc\Esoteric\check\movement\fly\FlyB;
+use ethaniccc\Esoteric\check\movement\invalid\InvalidMoveA;
 use ethaniccc\Esoteric\check\movement\motion\MotionA;
 use ethaniccc\Esoteric\check\movement\motion\MotionB;
+use ethaniccc\Esoteric\check\movement\motion\MotionC;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
+use ethaniccc\Esoteric\check\packet\badpacket\BadPacketsA;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
@@ -20,12 +23,15 @@ use ethaniccc\Esoteric\handle\OutboundHandle;
 use ethaniccc\Esoteric\utils\AABB;
 use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\Player;
 
 final class PlayerData{
 
     /** @var Player */
     public $player;
+    /** @var int - The protocol of the player. */
+    public $protocol = ProtocolInfo::CURRENT_PROTOCOL;
     /** @var string - The spl_object_hash of the player, used to prevent multiple calls of spl_object_hash(); */
     public $hash;
     /** @var bool */
@@ -80,6 +86,13 @@ final class PlayerData{
             # Motion
             new MotionA(),
             new MotionB(),
+            new MotionC(),
+
+            # Invalid movement
+            new InvalidMoveA(),
+
+            # Bad packets
+            new BadPacketsA(),
         ];
     }
 
@@ -122,6 +135,12 @@ final class PlayerData{
     public $isCollidedVertically = false, $isCollidedHorizontally = false, $hasBlockAbove = false;
     /** @var int */
     public $ticksSinceInLiquid = 0, $ticksSinceInCobweb = 0, $ticksSinceInClimbable = 0;
+    /** @var Vector3|null */
+    public $teleportPos;
+    /** @var bool */
+    public $awaitingTeleport = false;
+    /** @var bool */
+    public $hasMovementSuppressed = false;
 
     /** Clicking data */
 
@@ -160,12 +179,17 @@ final class PlayerData{
     public $timeSinceAttack = 0;
     public $timeSinceMotion = 0;
     public $timeSinceJump = 0;
+    public $timeSinceTeleport = 0;
+    public $timeSinceJoin = 0;
+    public $timeSinceFlight = 0;
 
-    /** Attribute data */
+    /** Extra movement data */
 
     public $isSprinting = false;
+    public $isFlying = false;
     public $movementSpeed = 0.1;
+    public $moveForward = 0.0, $moveStrafe = 0.0, $pressedKeys = [];
     public $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
-    public $airSpeed = MovementConstants::AIR_SPEED_NORMAL;
+    public $jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
 
 }

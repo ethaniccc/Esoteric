@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric\listener;
 
+use ethaniccc\Esoteric\data\sub\protocol\ProtocolConstants;
 use ethaniccc\Esoteric\Esoteric;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
@@ -18,15 +19,24 @@ use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
 
 final class PlayerListener implements Listener{
 
+    /**
+     * @param DataPacketReceiveEvent $event
+     * @priority HIGHEST
+     * @ignoreCancelled true
+     */
     public function receive(DataPacketReceiveEvent $event) : void{
         $player = $event->getPlayer();
         $packet = $event->getPacket();
         $data = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
+        if($packet instanceof PlayerAuthInputPacket && $data->protocol === ProtocolConstants::VERSION_1_16_210){
+            $packet = \ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket::from($packet);
+        }
         $data->inboundHandler->handle($packet, $data);
         foreach($data->checks as $check) if($check->enabled()) $check->inbound($packet, $data);
 
         // debug spam is annoying
         if($packet instanceof PlayerAuthInputPacket){
+            $packet->offset = PHP_INT_MAX;
             $event->setCancelled();
         }
     }
@@ -41,6 +51,11 @@ final class PlayerListener implements Listener{
         Esoteric::getInstance()->dataManager->remove($event->getPlayer());
     }
 
+    /**
+     * @param DataPacketSendEvent $event
+     * @priority HIGHEST
+     * @ignoreCancelled true
+     */
     public function send(DataPacketSendEvent $event) : void{
         $player = $event->getPlayer();
         $player->setAllowMovementCheats(false);

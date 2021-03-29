@@ -5,7 +5,6 @@ namespace ethaniccc\Esoteric\check\combat\aimassist;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\EvictingList;
-use ethaniccc\Esoteric\utils\Pair;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 

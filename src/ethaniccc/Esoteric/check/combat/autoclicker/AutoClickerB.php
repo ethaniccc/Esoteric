@@ -18,7 +18,9 @@ class AutoClickerB extends Check{
         if((($packet instanceof InventoryTransactionPacket && $packet->transactionType === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY) || ($packet instanceof LevelSoundEventPacket && $packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE)) && $data->runClickChecks){
             if($data->skewness <= 0 && $data->kurtosis <= 0 && $data->outliers <= 1 && $data->cps >= 10){
                 if(++$this->buffer >= 1.2){
-                    $this->flag($data, ["cps" => round($data->cps, 1)]);
+                    $this->flag($data, [
+                        "cps" => round($data->cps, 1)
+                    ]);
                 }
             } else {
                 $this->reward(0.05);

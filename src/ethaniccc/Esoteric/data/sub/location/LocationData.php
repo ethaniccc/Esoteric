@@ -16,7 +16,7 @@ final class LocationData{
     public $receivedLocation;
     /** @var int */
     public $newPosRotationIncrements = 0;
-    /** @var bool */
-    public $isSynced = false;
+    /** @var int */
+    public $isSynced = 0;
 
 }

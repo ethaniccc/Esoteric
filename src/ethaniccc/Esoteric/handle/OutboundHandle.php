@@ -5,14 +5,14 @@ namespace ethaniccc\Esoteric\handle;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use ethaniccc\Esoteric\listener\NetworkStackLatencyHandler;
-use pocketmine\entity\Attribute;
+use pocketmine\level\Position;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
-use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 
 final class OutboundHandle{
@@ -25,10 +25,21 @@ final class OutboundHandle{
                     $info = $data->entityLocationMap->get($packet->entityRuntimeId);
                     if($info !== null){
                         $info->newPosRotationIncrements = 0;
-                        $info->isSynced = false;
+                        $info->isSynced = 0;
                     }
                 }
                 $data->entityLocationMap->add($location, $packet->entityRuntimeId);
+            } else {
+                if($packet->mode === MovePlayerPacket::MODE_TELEPORT){
+                    $data->awaitingTeleport = true;
+                    $level = $data->player->getLevel();
+                    NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($packet, $data, $level) : void{
+                        // $data->player->sendMessage("received teleport");
+                        $data->awaitingTeleport = false;
+                        $data->timeSinceTeleport = 0;
+                        $data->teleportPos = Position::fromObject($packet->position->subtract(0, 1.62, 0), $level);
+                    });
+                }
             }
         } elseif($packet instanceof SetActorMotionPacket && $packet->entityRuntimeId === $data->player->getId()){
             NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($packet, $data) : void{
@@ -51,17 +62,17 @@ final class OutboundHandle{
                         $effectData = new EffectData();
                         $effectData->effectId = $packet->effectId;
                         $effectData->amplifier = $packet->amplifier + 1;
-                        $effectData->ticksRemaining = $packet->duration * 20;
+                        $effectData->ticksRemaining = $packet->duration - 1;
                         NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($data, $effectData) : void{
                             $data->effects[$effectData->effectId] = $effectData;
                         });
                         break;
                     case MobEffectPacket::EVENT_MODIFY:
                         $effectData = $data->effects[$packet->effectId] ?? null;
-                        if($effectData === null) throw new \UnexpectedValueException("WHAT THE FUCK? THE EFFECT DATA WAS NULL LOL");
+                        if($effectData === null) throw new \UnexpectedValueException("Effect data was null (unexpected), contact me on Discord @ ethaniccc#1659 if this error occurs.");
                         NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($effectData, $packet) : void{
                             $effectData->amplifier = $packet->amplifier;
-                            $effectData->ticksRemaining = $packet->duration * 20;
+                            $effectData->ticksRemaining = $packet->duration - 1;
                         });
                         break;
                     case MobEffectPacket::EVENT_REMOVE:
@@ -71,17 +82,21 @@ final class OutboundHandle{
                         break;
                 }
             }
-        } elseif($packet instanceof UpdateAttributesPacket && $packet->entityRuntimeId === $data->player->getId()){
+        } elseif($packet instanceof AdventureSettingsPacket){
+            if(!$packet->getFlag(AdventureSettingsPacket::ALLOW_FLIGHT)){
+                NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use ($data) : void{
+                    $data->isFlying = false;
+                });
+            }
+        }/* elseif($packet instanceof UpdateAttributesPacket && $packet->entityRuntimeId === $data->player->getId()){
             foreach($packet->entries as $attribute){
                 switch($attribute->getId()){
                     case Attribute::MOVEMENT_SPEED:
-                        NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($data, $attribute) : void{
-                            $data->movementSpeed = $attribute->getValue();
-                        });
+                        $data->movementSpeed = $attribute->getValue();
                         break;
                 }
             }
-        }
+        } */
     }
 
 }

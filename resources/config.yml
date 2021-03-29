@@ -13,7 +13,7 @@
 #  Written by Benjamin <schooldocumentsandstuff@gmail.com>, March, 2021
 
 # Prefix for the anti-cheat when sending warnings.
-prefix: "§6Eso§fteric§7>"
+prefix: "§l§6Eso§fteric§7>§r"
 # Alert cooldown
 alert_cooldown: 0
 
@@ -67,6 +67,18 @@ detections:
       punishment_type: none
       max_vl: 10
       setback: true
+    C:
+      enabled: true
+      punishment_type: none
+      max_vl: 10
+      setback: true
+  # Invalid movement detections
+  InvalidMove:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 3
+      setback: true
   # Velocity detections
   Velocity:
     A:
@@ -75,3 +87,9 @@ detections:
       max_vl: 20
       min_pct: 99.99 # minimum percentage allowed before flagging - change this if it keeps breaking on 99.99%
       max_pct: 105.0 # maximum percentage allowed before flagging - increase this value if it keeps causing problems
+  # Bad packet detections
+  BadPackets:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 3
