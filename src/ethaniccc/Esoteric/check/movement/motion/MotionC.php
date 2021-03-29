@@ -42,7 +42,7 @@ class MotionC extends Check{
             $currentMoveDeltaXZ = MathUtils::hypot($data->currentMoveDelta->x, $data->currentMoveDelta->z);
             $estimatedXZ = $lastMoveDeltaXZ * $friction;
             $diff = ($currentMoveDeltaXZ - $estimatedXZ) - $data->movementSpeed;
-            if((abs($data->moveForward) > 0.0 || abs($data->moveStrafe) > 0.0) && !$data->isCollidedHorizontally && $data->timeSinceJump > 1 && !$data->hasBlockAbove){
+            if(!$data->isCollidedHorizontally && $data->timeSinceJump > 1 && !$data->hasBlockAbove){
                 if($diff > 0.025){
                     // bad boi - most of the time, the difference is negative
                     // $data->player->sendMessage("diff=$diff");

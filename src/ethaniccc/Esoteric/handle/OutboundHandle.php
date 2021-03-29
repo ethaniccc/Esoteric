@@ -69,9 +69,9 @@ final class OutboundHandle{
                         break;
                     case MobEffectPacket::EVENT_MODIFY:
                         $effectData = $data->effects[$packet->effectId] ?? null;
-                        if($effectData === null) throw new \UnexpectedValueException("Effect data was null (unexpected), contact me on Discord @ ethaniccc#1659 if this error occurs.");
+                        if($effectData === null) return;
                         NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($effectData, $packet) : void{
-                            $effectData->amplifier = $packet->amplifier;
+                            $effectData->amplifier = $packet->amplifier + 1;
                             $effectData->ticksRemaining = $packet->duration - 1;
                         });
                         break;

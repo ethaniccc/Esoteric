@@ -10,11 +10,8 @@ use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
 class AimAssistA extends Check{
 
-    private $graph;
-
     public function __construct(){
-        parent::__construct("AimAssist", "A", "Checks for the coefficient of determination in a graph", true);
-        $this->graph = new EvictingList(20);
+        parent::__construct("AimAssist", "A", "Checks for rounded head movement", false);
     }
 
     public function inbound(DataPacket $packet, PlayerData $data) : void{

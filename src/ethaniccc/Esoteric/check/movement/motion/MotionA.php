@@ -29,7 +29,7 @@ class MotionA extends Check{
                 ]);
                 $this->setback($data);
             } else {
-                $this->reward();
+                $this->reward(0.02);
             }
         }
     }

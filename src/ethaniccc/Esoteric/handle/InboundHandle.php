@@ -205,56 +205,59 @@ final class InboundHandle{
             $data->currentYawDelta = abs(abs($data->currentYaw) - abs($data->previousYaw));
             $data->currentPitchDelta = abs(abs($data->currentPitch) - abs($data->previousPitch));
             $data->directionVector = MathUtils::directionVectorFromValues($data->currentYaw, $data->currentPitch);
-            $expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
-            $actualMoveY = $data->currentMoveDelta->y;
-            $flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
-            $flag2 = $expectedMoveY < 0;
-            $data->groundCollision = count($data->player->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.1, 0.2, 0.1)), true) !== 0;
-            $data->isCollidedVertically = $flag1;
-            $data->isCollidedHorizontally = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.5, 0.0, 0.5), true)) !== 0;
-            $data->hasBlockAbove = $flag1 && $expectedMoveY > 0;
-            // this method is very sensitive
-            $data->onGround = $data->groundCollision/* && $flag1 && $flag2*/;
-            if($data->onGround){
-                $data->lastOnGroundLocation = $data->currentLocation;
-            }
-            /* if($data->currentMoveDelta->lengthSquared() > 0.0009){
-                $f1 = var_export($flag1, true);
-                $f2 = var_export($flag2, true);
-                $c = var_export($data->groundCollision, true);
-                $data->player->sendMessage("collision=$c flag1=$f1 flag2=$f2");
-            } */
-            $blockVector = new Vector3((int) round($location->x), (int) round($location->y - 1), (int) round($location->z));
-            $possibleGhostBlock = (fmod(round($data->currentLocation->y, 4), MovementConstants::GROUND_MODULO) === 0.0 || fmod(round($data->currentLocation->y, 6) - 0.00001, MovementConstants::GROUND_MODULO) === 0.0) && !$data->onGround && $flag1 && $flag2;
-            if($possibleGhostBlock){
-                $possibleGhostBlock = false;
-                for($x = -1; $x <= 1; $x++){
-                    if($possibleGhostBlock) break;
-                    for($z = -1; $z <= 1; $z++){
-                        $newBlockVector = $blockVector->add($x, 0, $z);
-                        $possibleGhostBlock = in_array($newBlockVector, $this->blockPlaceVectors);
-                        if($possibleGhostBlock) break;
-                    }
+            $hasMoved = $data->currentMoveDelta->lengthSquared() > 0;
+            if($hasMoved){
+                $expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
+                $actualMoveY = $data->currentMoveDelta->y;
+                $flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
+                $flag2 = $expectedMoveY < 0;
+                $data->groundCollision = count($data->player->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.1, 0.2, 0.1)), true) !== 0;
+                $data->isCollidedVertically = $flag1;
+                $data->isCollidedHorizontally = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.5, 0.0, 0.5), true)) !== 0;
+                $data->hasBlockAbove = $flag1 && $expectedMoveY > 0;
+                // this method is very sensitive
+                $data->onGround = $data->groundCollision/* && $flag1 && $flag2*/;
+                if($data->onGround){
+                    $data->lastOnGroundLocation = $data->currentLocation;
                 }
-            }
-            if($possibleGhostBlock){
-                /** @var Vector3 $newBlockVector */
-                $pk = new UpdateBlockPacket();
-                $pk->x = $newBlockVector->x;
-                $pk->y = $newBlockVector->y;
-                $pk->z = $newBlockVector->z;
-                $pk->blockRuntimeId = 134;
-                $pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
-                $pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
-                $data->player->batchDataPacket($pk);
-                NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($data, $blockVector) : void{
-                    foreach($this->blockPlaceVectors as $key => $vector){
-                        if($vector->equals($blockVector)){
-                            unset($this->blockPlaceVectors[$key]);
+                /* if($data->currentMoveDelta->lengthSquared() > 0.0009){
+                    $f1 = var_export($flag1, true);
+                    $f2 = var_export($flag2, true);
+                    $c = var_export($data->groundCollision, true);
+                    $data->player->sendMessage("collision=$c flag1=$f1 flag2=$f2");
+                } */
+                $blockVector = new Vector3((int) round($location->x), (int) round($location->y - 1), (int) round($location->z));
+                $possibleGhostBlock = (fmod(round($data->currentLocation->y, 4), MovementConstants::GROUND_MODULO) === 0.0 || fmod(round($data->currentLocation->y, 6) - 0.00001, MovementConstants::GROUND_MODULO) === 0.0) && !$data->onGround && $flag1 && $flag2;
+                if($possibleGhostBlock){
+                    $possibleGhostBlock = false;
+                    for($x = -1; $x <= 1; $x++){
+                        if($possibleGhostBlock) break;
+                        for($z = -1; $z <= 1; $z++){
+                            $newBlockVector = $blockVector->add($x, 0, $z);
+                            $possibleGhostBlock = in_array($newBlockVector, $this->blockPlaceVectors);
+                            if($possibleGhostBlock) break;
                         }
                     }
-                });
-                $data->onGround = true;
+                }
+                if($possibleGhostBlock){
+                    /** @var Vector3 $newBlockVector */
+                    $pk = new UpdateBlockPacket();
+                    $pk->x = $newBlockVector->x;
+                    $pk->y = $newBlockVector->y;
+                    $pk->z = $newBlockVector->z;
+                    $pk->blockRuntimeId = 134;
+                    $pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
+                    $pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+                    $data->player->batchDataPacket($pk);
+                    NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($data, $blockVector) : void{
+                        foreach($this->blockPlaceVectors as $key => $vector){
+                            if($vector->equals($blockVector)){
+                                unset($this->blockPlaceVectors[$key]);
+                            }
+                        }
+                    });
+                    $data->onGround = true;
+                }
             }
 
             $liquids = 0;
@@ -305,10 +308,17 @@ final class InboundHandle{
             if($data->moveStrafe > 0.0) $data->pressedKeys[] = "A";
             elseif($data->moveStrafe < 0.0) $data->pressedKeys[] = "D";
 
-            $data->movementSpeed = $data->player->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->getValue();
+            $data->movementSpeed = 0.1;
+            $speedEffect = $data->effects[Effect::SPEED] ?? null;
+            if($speedEffect !== null){
+                $data->movementSpeed += 0.02 * $speedEffect->amplifier;
+            }
+            if($data->isSprinting){
+                $data->movementSpeed *= 1.3;
+            }
 
             // handle movement so that PMMP doesn't shit itself
-            if(($data->currentMoveDelta->lengthSquared() > 0.0009 || $data->currentYawDelta > 0.0 || $data->currentPitchDelta > 0.0) && !$data->awaitingTeleport){
+            if(($hasMoved || $data->currentYawDelta > 0.0 || $data->currentPitchDelta > 0.0) && !$data->awaitingTeleport){
                 $movePK = new MovePlayerPacket();
                 $movePK->entityRuntimeId = $data->player->getId();
                 $movePK->position = $packet->getPosition();

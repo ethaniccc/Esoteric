@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
+use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\network\mcpe\protocol\DataPacket;
 
 abstract class Check{
@@ -68,12 +69,18 @@ abstract class Check{
             $type = Esoteric::getInstance()->getSettings()->getSetbackType();
             switch($type){
                 case Settings::SETBACK_SMOOTH:
+                    // this doesn't even work most of the time LOL
+                    /* $data->player->teleport($data->currentLocation, $data->currentYaw, $data->currentPitch);
+                    $motion = MathUtils::directionVectorFromValues(-($data->currentYaw), $data->onGround ? 0 : 90);
+                    $data->player->setMotion(PlayerData::$zeroVector);
+                    $data->player->setMotion($motion); */
                     break;
                 case Settings::SETBACK_INSTANT:
                     $position = $data->onGround ? $data->lastLocation : $data->lastOnGroundLocation;
                     $data->player->teleport($position, $data->currentYaw, 0);
                     break;
             }
+            $data->hasMovementSuppressed = true;
         }
     }
 
