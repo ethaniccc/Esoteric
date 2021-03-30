@@ -18,7 +18,7 @@ class VelocityA extends Check{
 
     public function inbound(DataPacket $packet, PlayerData $data): void{
         if($packet instanceof PlayerAuthInputPacket){
-            if($data->timeSinceMotion <= 1){
+            if($data->timeSinceMotion <= 1 && $data->motion->y > 0){
                 $this->motionY = $data->motion->y;
                 if($data->timeSinceJump <= 1){
                     $this->motionY = $data->jumpVelocity;

@@ -15,6 +15,7 @@ but it is currently unstable because of protocol changes that are not necessary 
 - [ ] Banwaves - for the memes.
 - [ ] Discord webhook alerts.
 - [ ] Commands to edit alert delay, turn on/off alerts, and get player logs.
+- [ ] Create a functional exempt list for each detection.
 
 ## Detections
 These are a list of the current detections Esoteric has, along with descriptions of those checks.

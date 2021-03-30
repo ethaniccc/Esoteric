@@ -21,20 +21,21 @@ abstract class Check{
     public static $settings = [];
 
     public function __construct(string $name, string $subType, string $description, bool $experimental = false){
-        $settings = Esoteric::getInstance()->getSettings()->getCheckSettings($name, $subType);
-        if($settings === null){
-            $settings = [
-                "enabled" => true,
-                "punishment_type" => "none",
-                "max_vl" => 20
-            ];
-        }
         $this->name = $name;
         $this->subType = $subType;
         $this->description = $description;
         $this->experimental = $experimental;
-        if(!isset(self::$settings["$name:$subType"]))
+        if(!isset(self::$settings["$name:$subType"])){
+            $settings = Esoteric::getInstance()->getSettings()->getCheckSettings($name, $subType);
+            if($settings === null){
+                $settings = [
+                    "enabled" => true,
+                    "punishment_type" => "none",
+                    "max_vl" => 20
+                ];
+            }
             self::$settings["$name:$subType"] = $settings;
+        }
     }
 
     public abstract function inbound(DataPacket $packet, PlayerData $data) : void;

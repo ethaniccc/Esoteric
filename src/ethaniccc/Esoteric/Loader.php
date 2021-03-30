@@ -8,7 +8,7 @@ use pocketmine\scheduler\ClosureTask;
 final class Loader extends PluginBase{
 
     public function onEnable(){
-        try{Esoteric::init($this, true);}catch(\Exception $e){
+        try{Esoteric::init($this, $this->getConfig(), true);}catch(\Exception $e){
             $this->getLogger()->error("Unable to start Esoteric [{$e->getMessage()}]");
         }
         $this->getScheduler()->scheduleDelayedTask(new ClosureTask(function(int $currentTick) : void{

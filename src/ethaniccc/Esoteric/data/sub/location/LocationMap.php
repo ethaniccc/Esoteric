@@ -22,47 +22,34 @@ final class LocationMap{
     public $needSend = [];
     /** @var int[] */
     public $removed = [];
-    /** @var callable[] */
-    public $await = [];
     /** @var int */
     public $lastSendTick = 0;
-    /** @var int */
-    public $tickDiff = 1;
-
-    public function __construct(PlayerData &$data){
-        $task = new ClosureTask(function(int $currentTick) use(&$data, &$task) : void{
-            if(count($this->needSend) > 0){
-                $locations = $this->needSend;
-                $this->needSend = [];
-                NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($locations) : void{
-                    foreach($locations as $entityRuntimeId => $location){
-                        if(!isset($this->locations[$entityRuntimeId])){
-                            $locationData = new LocationData();
-                            $locationData->entityRuntimeId = $entityRuntimeId;
-                            $locationData->newPosRotationIncrements = 3;
-                            $locationData->currentLocation = clone $location;
-                            $locationData->lastLocation = clone $location;
-                            $locationData->receivedLocation = clone $location;
-                            $this->locations[$entityRuntimeId] = $locationData;
-                        } else {
-                            $locationData = $this->locations[$entityRuntimeId];
-                            $locationData->newPosRotationIncrements = 3;
-                            $locationData->receivedLocation = $location;
-                        }
-                    }
-                });
-                $this->tickDiff = Server::getInstance()->getTick() - $this->lastSendTick;
-                $this->lastSendTick = 0;
-            } elseif($data->player->isClosed()){
-                Esoteric::getInstance()->getPlugin()->getScheduler()->cancelTask($task->getTaskId());
-            }
-        });
-        Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleRepeatingTask($task, 1);
-    }
 
     function add(Vector3 $location, int $entityRuntimeId) : void{
         $this->needSend[$entityRuntimeId] = $location;
         if($this->lastSendTick === 0) $this->lastSendTick = Server::getInstance()->getTick();
+    }
+
+    function send(PlayerData $data): void{
+        $locations = $this->needSend;
+        $this->needSend = [];
+        NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($locations) : void{
+            foreach($locations as $entityRuntimeId => $location){
+                if(!isset($this->locations[$entityRuntimeId])){
+                    $locationData = new LocationData();
+                    $locationData->entityRuntimeId = $entityRuntimeId;
+                    $locationData->newPosRotationIncrements = 3;
+                    $locationData->currentLocation = clone $location;
+                    $locationData->lastLocation = clone $location;
+                    $locationData->receivedLocation = clone $location;
+                    $this->locations[$entityRuntimeId] = $locationData;
+                } else {
+                    $locationData = $this->locations[$entityRuntimeId];
+                    $locationData->newPosRotationIncrements = 3;
+                    $locationData->receivedLocation = $location;
+                }
+            }
+        });
     }
 
     function executeTick(PlayerData $data) : void{
@@ -84,20 +71,10 @@ final class LocationMap{
                 $locationData->isSynced++;
             }
         }
-        $await = $this->await[0] ?? null;
-        array_shift($this->await);
-        if($await !== null) foreach($await as $callable) $callable($this);
     }
 
     function get(int $entityRuntimeId) : ?LocationData{
         return $this->locations[$entityRuntimeId] ?? null;
-    }
-
-    function await(callable $callable, int $wait = 1) : void{
-        $key = $wait - 1;
-        if($key < 0) $key = 0;
-        foreach(range(0, $key) as $k) if(!isset($this->await[$k])) $this->await[$k] = [];
-        $this->await[$key][] = $callable;
     }
 
     function remove(int $entityRuntimeId) : void{

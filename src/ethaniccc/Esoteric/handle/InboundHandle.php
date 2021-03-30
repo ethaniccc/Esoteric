@@ -211,7 +211,9 @@ final class InboundHandle{
                 $actualMoveY = $data->currentMoveDelta->y;
                 $flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
                 $flag2 = $expectedMoveY < 0;
-                $data->groundCollision = count($data->player->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.1, 0.2, 0.1)), true) !== 0;
+                $groundAABB = $data->boundingBox->expandedCopy(0.1, 0.2, 0.1);
+                $groundAABB->maxY = $location->y;
+                $data->groundCollision = count($data->player->getLevel()->getCollisionBlocks($groundAABB), true) !== 0;
                 $data->isCollidedVertically = $flag1;
                 $data->isCollidedHorizontally = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.5, 0.0, 0.5), true)) !== 0;
                 $data->hasBlockAbove = $flag1 && $expectedMoveY > 0;

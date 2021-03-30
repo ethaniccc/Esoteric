@@ -39,10 +39,10 @@ final class DataManager{
     }
 
     /**
-     * @return array
+     * @return PlayerData[]
      * Get the whole list, added to prevent me needing to add this in the future.
      */
-    public function getAll() : array{
+    public function getAll(){
         return $this->list;
     }
 

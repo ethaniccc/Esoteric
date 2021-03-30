@@ -53,8 +53,8 @@ final class PlayerListener implements Listener{
 
     /**
      * @param DataPacketSendEvent $event
-     * @priority HIGHEST
-     * @ignoreCancelled true
+     * @priority LOWEST
+     * @ignoreCancelled false
      */
     public function send(DataPacketSendEvent $event) : void{
         $player = $event->getPlayer();

@@ -13,6 +13,7 @@ use ethaniccc\Esoteric\check\movement\invalid\InvalidMoveA;
 use ethaniccc\Esoteric\check\movement\motion\MotionA;
 use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\motion\MotionC;
+use ethaniccc\Esoteric\check\movement\phase\PhaseA;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
 use ethaniccc\Esoteric\check\packet\badpacket\BadPacketsA;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
@@ -20,6 +21,7 @@ use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\handle\InboundHandle;
 use ethaniccc\Esoteric\handle\OutboundHandle;
+use ethaniccc\Esoteric\handle\TickHandle;
 use ethaniccc\Esoteric\utils\AABB;
 use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
@@ -57,13 +59,12 @@ final class PlayerData{
         $this->directionVector = clone self::$zeroVector;
         $this->motion = clone self::$zeroVector;
         $this->lastOnGroundLocation = clone self::$zeroVector;
-        $this->entityLocationMap = new LocationMap($this);
+        $this->entityLocationMap = new LocationMap();
         $this->inboundHandler = new InboundHandle();
         $this->outboundHandler = new OutboundHandle();
+        $this->tickHandler = new TickHandle();
         // checks for the player
         $this->checks = [
-            # Combat
-
             # Autoclicker
             new AutoClickerA(),
             new AutoClickerB(),
@@ -73,8 +74,6 @@ final class PlayerData{
 
             # AimAssist
             new AimAssistA(),
-
-            # Movement
 
             # Velocity
             new VelocityA(),
@@ -93,6 +92,9 @@ final class PlayerData{
 
             # Bad packets
             new BadPacketsA(),
+
+            # Phase checks - these will NOT flag and cannot punish
+            new PhaseA(),
         ];
     }
 
@@ -108,6 +110,8 @@ final class PlayerData{
     public $inboundHandler;
     /** @var OutboundHandle */
     public $outboundHandler;
+    /** @var TickHandle */
+    public $tickHandler;
 
     /** Movement data */
 

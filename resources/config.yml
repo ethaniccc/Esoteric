@@ -87,6 +87,13 @@ detections:
       max_vl: 20
       min_pct: 99.99 # minimum percentage allowed before flagging - change this if it keeps breaking on 99.99%
       max_pct: 105.0 # maximum percentage allowed before flagging - increase this value if it keeps causing problems
+  # Phase detections
+  Phase:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 0
+      # This check cannot punish and will only setback users.
   # Bad packet detections
   BadPackets:
     A:
