@@ -2,9 +2,10 @@
 
 namespace ethaniccc\Esoteric;
 
-use ethaniccc\Esoteric\data\DataManager;
+use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\listener\PlayerListener;
+use ethaniccc\Esoteric\data\PlayerDataManager;
+use ethaniccc\Esoteric\listener\PMMPListener;
 use ethaniccc\Esoteric\tasks\TickingTask;
 use Exception;
 use pocketmine\event\HandlerList;
@@ -39,21 +40,25 @@ final class Esoteric{
 
     /** @var PluginBase */
     public $plugin;
-    /** @var PlayerListener */
-    public $listener;
-    /** @var DataManager */
-    public $dataManager;
     /** @var Settings */
     public $settings;
+    /** @var PlayerDataManager */
+    public $dataManager;
     /** @var PlayerData[] */
     public $hasAlerts = [];
 
     /** @var TickingTask */
     private $tickingTask;
+    /** @var EsotericCommand */
+    private $command;
+    /** @var PMMPListener */
+    private $listener;
 
     public function __construct(PluginBase $plugin, ?Config $config){
         $this->plugin = $plugin;
         $this->settings = new Settings($config === null ? $this->getPlugin()->getConfig()->getAll() : $config->getAll());
+        $this->dataManager = new PlayerDataManager();
+        $this->tickingTask = new TickingTask();
     }
 
     /**
@@ -63,11 +68,11 @@ final class Esoteric{
         if(self::$instance === null)
             throw new Exception("Esoteric has not been initialized");
         assert($this->plugin !== null);
-        $this->listener = new PlayerListener();
-        $this->getServer()->getPluginManager()->registerEvents($this->listener, $this->plugin);
-        $this->dataManager = new DataManager();
-        $this->tickingTask = new TickingTask();
+        $this->listener = new PMMPListener();
+        Server::getInstance()->getPluginManager()->registerEvents($this->listener, $this->plugin);
         $this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
+        $this->command = new EsotericCommand();
+        Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
     }
 
     /**
@@ -77,8 +82,9 @@ final class Esoteric{
         if(self::$instance === null)
             throw new Exception("Esoteric has not been initialized");
         assert($this->plugin !== null);
-        HandlerList::unregisterAll($this->listener);
         $this->plugin->getScheduler()->cancelTask($this->tickingTask->getTaskId());
+        Server::getInstance()->getCommandMap()->unregister($this->command);
+        HandlerList::unregisterAll($this->listener);
     }
 
     public function getPlugin() : ?PluginBase{

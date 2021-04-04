@@ -5,7 +5,7 @@ namespace ethaniccc\Esoteric\check\movement\motion;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use pocketmine\network\mcpe\protocol\DataPacket;
-use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 
 class MotionA extends Check{
 
@@ -13,16 +13,17 @@ class MotionA extends Check{
         parent::__construct("Motion", "A", "Checks for impossible upward motion", false);
     }
 
-    public function inbound(DataPacket $packet, PlayerData $data) : void{
-        if($packet instanceof PlayerAuthInputPacket && !$data->onGround && $data->timeSinceFlight >= 10){
+    public function inbound(DataPacket $packet, PlayerData $data): void{
+        if($packet instanceof MovePlayerPacket && !$data->onGround && $data->ticksSinceFlight >= 10){
             $currentYMovement = $data->currentMoveDelta->y;
-            if($data->timeSinceJump <= 1){
+            if($data->ticksSinceJump <= 1){
                 $currentYMovement -= $data->jumpVelocity;
             }
+            if($data->ticksSinceMotion <= 1){
+                $currentYMovement -= $data->motion->y;
+            }
             $lastYMovement = $data->lastMoveDelta->y;
-            if($currentYMovement > $lastYMovement && $currentYMovement > 0.005 && !$data->isCollidedHorizontally
-            && $data->timeSinceMotion > 1 && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10
-            && $data->timeSinceTeleport > 1){
+            if($currentYMovement > $lastYMovement && $currentYMovement > 0.005 && !$data->isCollidedHorizontally && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10 && !$data->teleported){
                 $this->flag($data, [
                     "current" => round($currentYMovement, 3),
                     "last" => round($lastYMovement, 3)

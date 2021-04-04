@@ -3,8 +3,8 @@
 namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\Esoteric;
-use ethaniccc\Esoteric\listener\NetworkStackLatencyHandler;
 use pocketmine\math\Vector3;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;

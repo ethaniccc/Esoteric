@@ -5,12 +5,10 @@ namespace ethaniccc\Esoteric\check\movement\motion;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
-use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\network\mcpe\protocol\DataPacket;
-use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\PlayerInputPacket;
+use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 
 class MotionC extends Check{
 
@@ -18,8 +16,8 @@ class MotionC extends Check{
         parent::__construct("Motion", "C", "Checks if the player follows friction rules on-ground", false);
     }
 
-    public function inbound(DataPacket $packet, PlayerData $data) : void{
-        if($packet instanceof PlayerAuthInputPacket && $data->onGroundTicks >= 5 && $data->currentMoveDelta->lengthSquared() > 0.0009 && $data->timeSinceTeleport > 1 && $data->timeSinceFlight >= 10){
+    public function inbound(DataPacket $packet, PlayerData $data): void{
+        if($packet instanceof MovePlayerPacket && $data->onGroundTicks >= 3 && $data->ticksSinceFlight >= 10){
             $friction = MovementConstants::FRICTION;
             $blockFriction = null;
             $AABB = new AABB($data->currentLocation->x - 0.5, $data->currentLocation->y - 1, $data->currentLocation->z - 0.5, $data->currentLocation->x + 0.5, $data->currentLocation->y, $data->currentLocation->z + 0.5);
@@ -34,7 +32,7 @@ class MotionC extends Check{
                 }
             }
             if($blockFriction === null){
-                // assume normal block friction
+                // assume normal block friction (maybe a ghost block?)
                 $blockFriction = 0.6;
             }
             $friction *= $blockFriction;
@@ -42,9 +40,7 @@ class MotionC extends Check{
             $currentMoveDeltaXZ = MathUtils::hypot($data->currentMoveDelta->x, $data->currentMoveDelta->z);
             $estimatedXZ = $lastMoveDeltaXZ * $friction;
             $diff = ($currentMoveDeltaXZ - $estimatedXZ) - $data->movementSpeed;
-            // my sensitive as shit on-ground method would allow me to not exempt for a few ticks after jumping, but
-            // it's soo sensitive - it's a hard knock life!
-            if(!$data->isCollidedHorizontally && $data->timeSinceJump >= 4){
+            if(!$data->isCollidedHorizontally){
                 if($diff > 0.025){
                     // bad boi - most of the time, the difference is negative
                     // $data->player->sendMessage("diff=$diff");

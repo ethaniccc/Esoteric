@@ -29,18 +29,14 @@ detections:
     A:
       enabled: true
       punishment_type: none
-      max_vl: 4
-      max_cps: 25
-    B:
-      enabled: true
-      punishment_type: none
-      max_vl: 10
-  # Reach detections
-  Range:
+      max_vl: 5
+      max_cps: 21
+  # Killaura detections
+  Killaura:
     A:
       enabled: true
       punishment_type: none
-      max_vl: 10
+      max_vl: 5
   # Fly detections
   Fly:
     A:
@@ -54,6 +50,11 @@ detections:
       punishment_type: none
       max_vl: 20
       diff_max: 0.01
+      setback: true
+    C:
+      enabled: true
+      punishment_type: none
+      max_vl: 2
       setback: true
   # Motion detections
   Motion:
@@ -72,31 +73,15 @@ detections:
       punishment_type: none
       max_vl: 10
       setback: true
-  # Invalid movement detections
-  InvalidMove:
+  # Ground spoof detection(s)
+  GroundSpoof:
     A:
       enabled: true
       punishment_type: none
-      max_vl: 3
-      setback: true
-  # Velocity detections
+      max_vl: 10
+  # Velocity detection(s)
   Velocity:
     A:
       enabled: true
       punishment_type: none
       max_vl: 20
-      min_pct: 99.99 # minimum percentage allowed before flagging - change this if it keeps breaking on 99.99%
-      max_pct: 105.0 # maximum percentage allowed before flagging - increase this value if it keeps causing problems
-  # Phase detections
-  Phase:
-    A:
-      enabled: true
-      punishment_type: none
-      max_vl: 0
-      # This check cannot punish and will only setback users.
-  # Bad packet detections
-  BadPackets:
-    A:
-      enabled: true
-      punishment_type: none
-      max_vl: 3

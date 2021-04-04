@@ -2,12 +2,13 @@
 name: Esoteric
 author: ethaniccc
 description: A private anti-cheat made for PocketMine-MP
-version: 1.0.0
+version: 1.1.0
 main: ethaniccc\Esoteric\Loader
-api: 3.17.0
+api: 3.16.0
 mcpe-protocol:
-  - 422
   - 419
+  - 422
+  - 428
 permissions:
   ac:
     description: Gives all anticheat permissions
@@ -19,4 +20,14 @@ permissions:
       ac.bypass:
         description: Allows to bypass anticheat punishments
         default: op
+      ac.command:
+        description: Allows for all usages of the anticheat command
+        default: op
+        children:
+          ac.command.help:
+            description: Access to the anticheat's help command
+            default: op
+          ac.command.logs:
+            description: Get the anticheat logs of a player.
+            default: op
 ...

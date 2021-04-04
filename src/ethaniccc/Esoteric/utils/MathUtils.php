@@ -159,4 +159,22 @@ final class MathUtils{
         return $result;
     }
 
+    public static function wrap180(float $par0) : float{
+        $par0 = fmod($par0, 360);
+
+        if($par0 >= 180.0){
+            $par0 -= 360.0;
+        }
+
+        if($par0 < -180.0){
+            $par0 += 360.0;
+        }
+
+        return $par0;
+    }
+
+    public static function getLiteralFloat(float $float) : float{
+        return unpack("G", pack("G", $float))[1];
+    }
+
 }

@@ -113,7 +113,7 @@ class AABB extends AxisAlignedBB{
     }
 
     public function calculateIntercept(Vector3 $pos1, Vector3 $pos2) : ?RayTraceResult{
-        return $this->isVectorInside($pos1) ? new RayTraceResult($this, 0, clone PlayerData::$zeroVector) : parent::calculateIntercept($pos1, $pos2);
+        return $this->isVectorInside($pos1) ? new RayTraceResult($this, 0, clone PlayerData::$ZERO_VECTOR) : parent::calculateIntercept($pos1, $pos2);
     }
 
 }

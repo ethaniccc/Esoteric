@@ -3,117 +3,98 @@
 namespace ethaniccc\Esoteric\data;
 
 use ethaniccc\Esoteric\check\Check;
-use ethaniccc\Esoteric\check\combat\aimassist\AimAssistA;
 use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerA;
-use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerB;
-use ethaniccc\Esoteric\check\combat\range\RangeA;
+use ethaniccc\Esoteric\check\combat\killaura\KillAuraA;
 use ethaniccc\Esoteric\check\movement\fly\FlyA;
 use ethaniccc\Esoteric\check\movement\fly\FlyB;
-use ethaniccc\Esoteric\check\movement\invalid\InvalidMoveA;
+use ethaniccc\Esoteric\check\movement\fly\FlyC;
+use ethaniccc\Esoteric\check\movement\groundspoof\GroundSpoofA;
 use ethaniccc\Esoteric\check\movement\motion\MotionA;
 use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\motion\MotionC;
-use ethaniccc\Esoteric\check\movement\phase\PhaseA;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
-use ethaniccc\Esoteric\check\packet\badpacket\BadPacketsA;
+use ethaniccc\Esoteric\data\process\ProcessInbound;
+use ethaniccc\Esoteric\data\process\ProcessOutbound;
+use ethaniccc\Esoteric\data\process\ProcessTick;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
-use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
-use ethaniccc\Esoteric\handle\InboundHandle;
-use ethaniccc\Esoteric\handle\OutboundHandle;
-use ethaniccc\Esoteric\handle\TickHandle;
 use ethaniccc\Esoteric\utils\AABB;
-use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\Player;
 
 final class PlayerData{
 
+    /** @var Vector3 - A zero vector, duh. */
+    public static $ZERO_VECTOR;
+
     /** @var Player */
     public $player;
-    /** @var int - The protocol of the player. */
-    public $protocol = ProtocolInfo::CURRENT_PROTOCOL;
-    /** @var string - The spl_object_hash of the player, used to prevent multiple calls of spl_object_hash(); */
+    /** @var string - The spl_object_hash identifier of the player. */
     public $hash;
-    /** @var bool */
+    /** @var int - The current protocol of the player. */
+    public $protocol = ProtocolInfo::CURRENT_PROTOCOL;
+    /** @var bool - Boolean value for if the player is logged in. */
+    public $loggedIn = false;
+    /** @var bool - The boolean value for if the player has alerts enabled. This will always be false for players without alert permissions. */
     public $hasAlerts = false;
-    /** @var Check[] */
+    /** @var Check[] - An array of checks */
     public $checks = [];
-    /** @var array - A list of callables to happen at a certain client tick */
-    public $await = [];
-    /** @var EffectData[] - A list of effects */
-    public $effects = [];
-    /** @var Vector3 - A zero vector */
-    public static $zeroVector;
 
     public function __construct(Player $player){
+        if(self::$ZERO_VECTOR === null){
+            self::$ZERO_VECTOR = new Vector3(0, 0, 0);
+        }
         $this->player = $player;
         $this->hash = spl_object_hash($player);
-        if(self::$zeroVector === null)
-            self::$zeroVector = new Vector3(0, 0, 0);
-        $this->currentMoveDelta = clone self::$zeroVector;
-        $this->lastMoveDelta = clone self::$zeroVector;
-        $this->currentLocation = clone self::$zeroVector;
-        $this->lastLocation = clone self::$zeroVector;
-        $this->directionVector = clone self::$zeroVector;
-        $this->motion = clone self::$zeroVector;
-        $this->lastOnGroundLocation = clone self::$zeroVector;
-        $this->entityLocationMap = new LocationMap();
-        $this->inboundHandler = new InboundHandle();
-        $this->outboundHandler = new OutboundHandle();
-        $this->tickHandler = new TickHandle();
-        // checks for the player
+        $zeroVec = clone self::$ZERO_VECTOR;
+
+        // AIDS START
+        $this->currentLocation = $this->lastLocation = $this->currentMoveDelta = $this->lastMoveDelta
+        = $this->lastOnGroundLocation = $this->directionVector = $this->motion = $zeroVec;
+        // AIDS END
+
+        $this->inboundProcessor = new ProcessInbound();
+        $this->outboundProcessor = new ProcessOutbound();
+        $this->tickProcessor = new ProcessTick();
+
         $this->checks = [
-            # Autoclicker
+            # Autoclicker checks
             new AutoClickerA(),
-            new AutoClickerB(),
 
-            # Range
-            new RangeA(),
+            # Killaura checks
+            new KillAuraA(),
 
-            # AimAssist
-            new AimAssistA(),
-
-            # Velocity
-            new VelocityA(),
-
-            # Fly
+            # Fly checks
             new FlyA(),
             new FlyB(),
+            new FlyC(),
 
-            # Motion
+            # Ground spoof checks
+            new GroundSpoofA(),
+
+            # Motion checks
             new MotionA(),
             new MotionB(),
             new MotionC(),
 
-            # Invalid movement
-            new InvalidMoveA(),
-
-            # Bad packets
-            new BadPacketsA(),
-
-            # Phase checks - these will NOT flag and cannot punish
-            new PhaseA(),
+            # Velocity checks
+            new VelocityA(),
         ];
     }
 
-    public function await(callable $callable, int $future) : void{
-        $future = max($future, 1);
-        if(!isset($this->await[$this->currentTick + $future])) $this->await[$this->currentTick + $future] = [];
-        $this->await[$this->currentTick + $future][] = $callable;
-    }
+    /** @var ProcessInbound - A class to process packet data sent by the client. */
+    public $inboundProcessor;
+    /** @var ProcessOutbound - A class to process packet data sent by the server. */
+    public $outboundProcessor;
+    /** @var ProcessTick - A class to execute every tick. Mainly will be used for NetworkStackLatency timeouts, and  */
+    public $tickProcessor;
 
-    /** @var bool - Boolean value for if the player is logged into the server. */
-    public $loggedIn = false;
-    /** @var InboundHandle - A class that handles packets sent by the client for information */
-    public $inboundHandler;
-    /** @var OutboundHandle */
-    public $outboundHandler;
-    /** @var TickHandle */
-    public $tickHandler;
+    /** @var EffectData[] */
+    public $effects = [];
 
-    /** Movement data */
+    /** @var int */
+    public $currentTick = 0;
 
     /** @var Vector3 - The current and previous locations of the player */
     public $currentLocation, $lastLocation, $lastOnGroundLocation;
@@ -123,77 +104,57 @@ final class PlayerData{
     public $currentYaw = 0.0, $previousYaw = 0.0, $currentPitch = 0.0, $previousPitch = 0.0;
     /** @var float - Rotation deltas of the player */
     public $currentYawDelta = 0.0, $lastYawDelta = 0.0, $currentPitchDelta = 0.0, $lastPitchDelta = 0.0;
-    /** @var bool - The boolean value for if the player is on the ground */
+    /** @var bool - The boolean value for if the player is on the ground. The client on-ground value is used for this. */
     public $onGround = true;
-    /** @var bool - Boolean value for if the user is colliding with the ground. This is basically a more lenient version of onGround */
-    public $groundCollision = true;
+    /** @var bool - An expected value for the client's on ground. */
+    public $expectedOnGround = true;
     /** @var int */
     public $onGroundTicks = 0, $offGroundTicks = 0;
     /** @var AABB */
     public $boundingBox;
     /** @var Vector3 */
     public $directionVector;
+    /** @var int - Ticks since the player has taken motion. */
+    public $ticksSinceMotion = 0;
     /** @var Vector3 */
     public $motion;
     /** @var bool */
     public $isCollidedVertically = false, $isCollidedHorizontally = false, $hasBlockAbove = false;
     /** @var int */
     public $ticksSinceInLiquid = 0, $ticksSinceInCobweb = 0, $ticksSinceInClimbable = 0;
-    /** @var Vector3|null */
-    public $teleportPos;
+    /** @var int - Movements passed since the user teleported. */
+    public $ticksSinceTeleport = 0;
     /** @var bool */
-    public $awaitingTeleport = false;
+    public $teleported = false;
+    /** @var int - The amount of movements that have passed since the player has disabled flight. */
+    public $ticksSinceFlight = 0;
+    /** @var bool - Boolean value for if the player is flying. */
+    public $isFlying = false;
+    /** @var bool */
+    public $hasFlyFlag = false;
+    /** @var int - Movements that have passed since the user has jumped. */
+    public $ticksSinceJump = 0;
     /** @var bool */
     public $hasMovementSuppressed = false;
 
-    /** Clicking data */
-
-    /** @var float - The cps of the player */
-    public $cps = 0.0;
-    /** @var float - Statistical data of clicks */
-    public $kurtosis = 0.0, $skewness = 0.0, $deviation = 0.0, $outliers = 0.0, $variance = 0.0;
-    /** @var bool - Boolean value for if auto-clicker checks should run. */
-    public $runClickChecks = false;
-    /** @var int[] - An array of client-tick samples between clicks */
-    public $clickSamples = [];
-    /** @var int - The last tick the player clicked. */
-    public $lastClickTick = 0;
-
-    /** Tick data */
-
-    /** @var int - The current tick of the player. */
-    public $currentTick = 0;
-
-    /** Combat data */
-
-    /** @var Entity|null */
-    public $targetEntity, $lastTargetEntity;
-    /** @var LocationMap */
-    public $entityLocationMap;
-
-    /** Client data */
-
-    /** @var bool */
-    public $isTouch;
-    /** @var int */
-    public $inputMode;
-
-    /** Timed data */
-
-    public $timeSinceAttack = 0;
-    public $timeSinceMotion = 0;
-    public $timeSinceJump = 0;
-    public $timeSinceTeleport = 0;
-    public $timeSinceJoin = 0;
-    public $timeSinceFlight = 0;
-
-    /** Extra movement data */
-
     public $isSprinting = false;
-    public $isFlying = false;
     public $movementSpeed = 0.1;
-    public $moveForward = 0.0, $moveStrafe = 0.0, $pressedKeys = [];
     public $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
     public $jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
+
+    /** @var int[] */
+    public $clickSamples = [];
+    /** @var bool - Boolean value for if autoclicker checks should run. */
+    public $runClickChecks = false;
+    /** @var float - Statistical data for autoclicker checks. */
+    public $cps = 0.0, $kurtosis = 0.0, $skewness = 0.0, $deviation = 0.0, $outliers = 0.0, $variance = 0.0;
+    /** @var int - Last tick the client clicked. */
+    public $lastClickTick = 0;
+    /** @var bool */
+    public $isClickDataIsValid = true;
+
+
+    public function tick() : void{
+    }
 
 }

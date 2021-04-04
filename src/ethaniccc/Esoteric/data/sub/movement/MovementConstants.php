@@ -5,7 +5,7 @@ namespace ethaniccc\Esoteric\data\sub\movement;
 final class MovementConstants{
 
     public const Y_SUBTRACTION = 0.08;
-    public const Y_MULTIPLICATION = 0.980000012;
+    public const Y_MULTIPLICATION = 0.98000001907349;
 
     public const FRICTION = 0.98;
     public const DEFAULT_BLOCK_FRICTION = 0.6;

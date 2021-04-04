@@ -1,6 +1,6 @@
 <?php
 
-namespace ethaniccc\Esoteric\listener;
+namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
@@ -16,7 +16,7 @@ final class NetworkStackLatencyHandler{
     }
 
     public static function send(PlayerData $data, NetworkStackLatencyPacket $packet, callable $onResponse) : void{
-        if($packet->needResponse && $data->loggedIn){
+        if($packet->needResponse){
             $timestamp = $packet->timestamp;
             $data->player->dataPacket($packet);
             if(!isset(self::$list[$data->hash])){
