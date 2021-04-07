@@ -22,19 +22,11 @@ class KillAuraA extends Check{
 
     public function inbound(DataPacket $packet, PlayerData $data): void{
         if($packet instanceof AnimatePacket && $packet->action === AnimatePacket::ACTION_SWING_ARM){
-            $this->lastTick = Server::getInstance()->getTick();
+            $this->lastTick = $data->currentTick;
         } elseif($packet instanceof InventoryTransactionPacket && $packet->transactionType === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->actionType === InventoryTransactionPacket::USE_ITEM_ON_ENTITY_ACTION_ATTACK){
-            $tickDiff = Server::getInstance()->getTick() - $this->lastTick;
+            $tickDiff = $data->currentTick - $this->lastTick;
             if($tickDiff > 4){
                 $this->flag($data);
-            }
-        } elseif($packet instanceof MovePlayerPacket && !$data->teleported){
-            $expectedHeadYaw = MathUtils::getLiteralFloat(fmod(($packet->yaw > 0 ? 0 : 360) + $packet->yaw, 360));
-            $diff = abs($expectedHeadYaw - $packet->headYaw);
-            if($diff > 0.001){
-                $data->player->sendMessage("headYaw={$packet->headYaw} expected=$expectedHeadYaw");
-            } elseif($expectedHeadYaw < 0){
-                $data->player->sendMessage("invalid negative head yaw");
             }
         }
     }

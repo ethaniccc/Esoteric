@@ -10,6 +10,7 @@ class ProcessTick{
 
     public function execute(PlayerData $data) : void{
         if($data->loggedIn){
+            $data->entityLocationMap->send($data);
             if($this->lastTime === null){
                 $this->lastTime = microtime(true);
                 NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use ($data): void{

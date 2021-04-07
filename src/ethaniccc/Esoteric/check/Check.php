@@ -65,14 +65,13 @@ abstract class Check{
         if (!$this->experimental)
             ++$this->violations;
         $extraData["ping"] = $data->player->getPing();
-        if (microtime(true) - $this->lastWarnedTime >= Esoteric::getInstance()->getSettings()->getWarnCooldown()) {
-            $this->warn($data, $extraData);
-        }
+        $this->warn($data, $extraData);
         if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
-            if ($data->player->hasPermission("ac.bypass"))
+            if ($data->player->hasPermission("ac.bypass")){
                 $this->violations = 0;
-            else
+            } else {
                 $this->punish($data);
+            }
         }
     }
 
@@ -107,9 +106,13 @@ abstract class Check{
                 $dataString .= " ";
             $i++;
         }
-        $string = str_replace(["{prefix}", "{player}", "{check_name}", "{check_subtype}", "{violations}", "{data}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->subType, var_export(round($this->violations, 2), true), $dataString], Esoteric::getInstance()->getSettings()->getWarnMessage());
-        foreach(Esoteric::getInstance()->hasAlerts as $other)
-            $other->player->sendMessage($string);
+        $string = str_replace(["{prefix}", "{player}", "{check_name}", "{check_subtype}", "{violations}", "{data}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->subType, var_export(round($this->violations, 2), true), $dataString], Esoteric::getInstance()->getSettings()->getAlertMessage());
+        foreach(Esoteric::getInstance()->hasAlerts as $other){
+            if(microtime(true) - $other->lastAlertTime >= $other->alertCooldown){
+                $other->lastAlertTime = microtime(true);
+                $other->player->sendMessage($string);
+            }
+        }
         $this->lastWarnedTime = microtime(true);
     }
 

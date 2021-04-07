@@ -28,11 +28,11 @@ final class Settings{
         return ($this->data["prefix"] ?? "§l§7[§c!§7]") . TextFormat::RESET;
     }
 
-    public function getWarnCooldown() : float{
+    public function getAlertCooldown() : float{
         return $this->data["alert_cooldown"] ?? 5.0;
     }
 
-    public function getWarnMessage() : string{
+    public function getAlertMessage() : string{
         return $this->data["alert_message"];
     }
 

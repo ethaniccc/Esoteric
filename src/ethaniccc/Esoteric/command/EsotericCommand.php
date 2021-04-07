@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\Esoteric;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\PluginIdentifiableCommand;
+use pocketmine\Player;
 use pocketmine\plugin\Plugin;
 use pocketmine\utils\TextFormat;
 
@@ -26,7 +27,8 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand{
             case "help":
                 if($sender->hasPermission("ac.command.help")){
                     $helpMessage = TextFormat::GRAY . str_repeat("-", 8) . " " . TextFormat::BOLD . TextFormat::GRAY . "[" . TextFormat::YELLOW . "Eso" . TextFormat::GOLD . "teric" . TextFormat::GRAY . "] " . TextFormat::RESET . TextFormat::GRAY . str_repeat("-", 8) . PHP_EOL .
-                    TextFormat::RED . "There are no commands available at the moment.";
+                    TextFormat::YELLOW . "/ac logs <player> - Get the anti-cheat logs of the specified player (permission=ac.command.logs)" . PHP_EOL .
+                    TextFormat::GOLD . "/ac delay <delay> - Set your alert cooldown delay (permission=ac.command.delay)";
                     $sender->sendMessage($helpMessage);
                 } else {
                     $sender->sendMessage($this->getPermissionMessage());
@@ -45,7 +47,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand{
                             $message = null;
                             foreach($data->checks as $check){
                                 $checkData = $check->getData();
-                                if($checkData["violations"] > 1){
+                                if($checkData["violations"] >= 1){
                                     if($message === null){
                                         $message = "";
                                     }
@@ -56,6 +58,16 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand{
                         }
                     }
                 } else {
+                    $sender->sendMessage($this->getPermissionMessage());
+                }
+                break;
+            case "delay":
+                if($sender->hasPermission("ac.command.delay") && $sender instanceof Player){
+                    $delay = (int) ($args[0] ?? Esoteric::getInstance()->getSettings()->getAlertCooldown());
+                    $playerData = Esoteric::getInstance()->dataManager->get($sender);
+                    $playerData->alertCooldown = $delay;
+                    $sender->sendMessage(TextFormat::GREEN . "Your alert cooldown was set to $delay seconds");
+                } elseif($sender instanceof Player) {
                     $sender->sendMessage($this->getPermissionMessage());
                 }
                 break;

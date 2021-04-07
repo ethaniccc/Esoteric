@@ -26,6 +26,13 @@ final class NetworkStackLatencyHandler{
         }
     }
 
+    public static function forceHandle(PlayerData $data, int $timestamp, callable $onResponse) : void{
+        if(!isset(self::$list[$data->hash])){
+            self::$list[$data->hash] = [];
+        }
+        self::$list[$data->hash][$timestamp] = $onResponse;
+    }
+
     public static function execute(PlayerData $data, int $timestamp) : void{
         $closure = self::$list[$data->hash][$timestamp] ?? null;
         if($closure !== null){

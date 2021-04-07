@@ -5,7 +5,12 @@ namespace ethaniccc\Esoteric\data\sub\location;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\Esoteric;
+use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\BatchPacket;
+use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
+use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
+use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
 
@@ -16,24 +21,53 @@ use pocketmine\Server;
  */
 final class LocationMap{
 
+    public function __construct(){
+        $this->needSend = new BatchPacket();
+    }
+
     /** @var LocationData[] - Estimated client-sided locations */
     public $locations = [];
-    /** @var Vector3[] - Locations that need sending */
-    public $needSend = [];
+    /** @var BatchPacket - A batch packet that contains entity locations along with a NetworkStackLatencyPacket */
+    public $needSend;
+    /** @var MovePlayerPacket|MoveActorDeltaPacket[] */
+    public $needSendArray = [];
     /** @var int[] */
     public $removed = [];
     /** @var int */
     public $lastSendTick = 0;
+    /** @var int */
+    public $key = 0;
 
-    function add(Vector3 $location, int $entityRuntimeId) : void{
-        $this->needSend[$entityRuntimeId] = $location;
+    /**
+     * @param MovePlayerPacket|MoveActorDeltaPacket $packet
+     */
+    function add($packet) : void{
+        $this->needSend->addPacket($packet);
+        if($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL){
+            $data = $this->locations[$packet->entityRuntimeId] ?? null;
+            if($data !== null){
+                $data->isSynced = 0;
+                $data->newPosRotationIncrements = 1;
+            }
+        }
+        $this->needSendArray[$packet->entityRuntimeId] = ($packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position);
         if($this->lastSendTick === 0) $this->lastSendTick = Server::getInstance()->getTick();
     }
 
     function send(PlayerData $data): void{
-        $locations = $this->needSend;
-        $this->needSend = [];
-        NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($locations) : void{
+        if(count($this->needSendArray) === 0 || !$data->loggedIn){
+            return;
+        }
+        $pk = NetworkStackLatencyHandler::random();
+        $batch = clone $this->needSend;
+        $batch->addPacket($pk);
+        $batch->encode();
+        $locations = $this->needSendArray;
+        $this->needSend = new BatchPacket();
+        $this->needSendArray = [];
+        $this->key = $pk->timestamp;
+        $data->player->sendDataPacket($batch, false, true);
+        NetworkStackLatencyHandler::forceHandle($data, $pk->timestamp, function(int $timestamp) use($locations) : void{
             foreach($locations as $entityRuntimeId => $location){
                 if(!isset($this->locations[$entityRuntimeId])){
                     $locationData = new LocationData();
@@ -56,13 +90,13 @@ final class LocationMap{
         foreach($this->locations as $entityRuntimeId => $locationData){
             if(($entity = Server::getInstance()->findEntity($entityRuntimeId)) === null){
                 unset($this->locations[$entityRuntimeId]);
-                unset($this->needSend[$entityRuntimeId]);
+                unset($this->needSendArray[$entityRuntimeId]);
             } else {
                 if($locationData->newPosRotationIncrements > 0){
                     $locationData->lastLocation = clone $locationData->currentLocation;
-                    $locationData->currentLocation->x = $locationData->currentLocation->x + (($locationData->receivedLocation->x - $locationData->currentLocation->x) / $locationData->newPosRotationIncrements);
-                    $locationData->currentLocation->y = $locationData->currentLocation->y + (($locationData->receivedLocation->y - $locationData->currentLocation->y) / $locationData->newPosRotationIncrements);
-                    $locationData->currentLocation->z = $locationData->currentLocation->z + (($locationData->receivedLocation->z - $locationData->currentLocation->z) / $locationData->newPosRotationIncrements);
+                    $locationData->currentLocation->x = MathUtils::getLiteralFloat($locationData->currentLocation->x + (($locationData->receivedLocation->x - $locationData->currentLocation->x) / $locationData->newPosRotationIncrements));
+                    $locationData->currentLocation->y = MathUtils::getLiteralFloat($locationData->currentLocation->y + (($locationData->receivedLocation->y - $locationData->currentLocation->y) / $locationData->newPosRotationIncrements));
+                    $locationData->currentLocation->z = MathUtils::getLiteralFloat($locationData->currentLocation->z + (($locationData->receivedLocation->z - $locationData->currentLocation->z) / $locationData->newPosRotationIncrements));
                 } elseif($locationData->newPosRotationIncrements === 0){
                     // don't need to clone all the time... lol
                     $locationData->lastLocation = clone $locationData->currentLocation;

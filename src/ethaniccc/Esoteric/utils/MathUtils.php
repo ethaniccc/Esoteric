@@ -141,11 +141,15 @@ final class MathUtils{
         if($a < $b){
             return self::getGCD($b, $a);
         }
-        if(abs($b) < 0.001){
+        if(abs($b) < 0.0001){
             return $a;
         } else {
             return self::getGCD($b, $a - floor($a / $b) * $b);
         }
+    }
+
+    public static function gcdLong(float $a, float $b) : float{
+        return ($b <= 16384) ? $a : self::gcdLong($b, fmod($a, $b));
     }
 
     public static function getArrayGCD(array $nums) : float{

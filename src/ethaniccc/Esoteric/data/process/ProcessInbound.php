@@ -26,6 +26,7 @@ use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
 use pocketmine\network\mcpe\protocol\SetLocalPlayerAsInitializedPacket;
+use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 
 final class ProcessInbound{
@@ -168,13 +169,14 @@ final class ProcessInbound{
                     }
                     break;
                 case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
-                    /*switch($packet->trData->actionType){
+                    switch($packet->trData->actionType){
                         case InventoryTransactionPacket::USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-                            $data->lastTargetEntity = $data->targetEntity;
-                            $data->targetEntity = $data->player->getLevel()->getEntity($packet->trData->entityRuntimeId);
-                            $data->timeSinceAttack = 0;
+                            $data->lastTarget = $data->target;
+                            $data->target = $packet->trData->entityRuntimeId;
+                            $data->attackTick = $data->currentTick;
+                            $data->attackPos = $packet->trData->playerPos;
                             break;
-                    }*/
+                    }
                     $this->click($data);
                     break;
             }
@@ -205,6 +207,7 @@ final class ProcessInbound{
             $pk = new LoginPacket($packet->getBuffer());
             $pk->decode();
             $data->protocol = $pk->protocol;
+            $data->isMobile = in_array($pk->clientData["DeviceOS"], [DeviceOS::AMAZON, DeviceOS::ANDROID, DeviceOS::IOS]);
         } elseif($packet instanceof LevelSoundEventPacket){
             if($packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE){
                 $this->click($data);

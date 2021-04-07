@@ -3,8 +3,11 @@
 namespace ethaniccc\Esoteric\data;
 
 use ethaniccc\Esoteric\check\Check;
+use ethaniccc\Esoteric\check\combat\aim\AimA;
 use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerA;
 use ethaniccc\Esoteric\check\combat\killaura\KillAuraA;
+use ethaniccc\Esoteric\check\combat\range\RangeA;
+use ethaniccc\Esoteric\check\combat\range\RangeB;
 use ethaniccc\Esoteric\check\movement\fly\FlyA;
 use ethaniccc\Esoteric\check\movement\fly\FlyB;
 use ethaniccc\Esoteric\check\movement\fly\FlyC;
@@ -17,7 +20,9 @@ use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
+use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
+use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
@@ -38,6 +43,10 @@ final class PlayerData{
     public $loggedIn = false;
     /** @var bool - The boolean value for if the player has alerts enabled. This will always be false for players without alert permissions. */
     public $hasAlerts = false;
+    /** @var int - The alert cooldown the player has set. */
+    public $alertCooldown = 0;
+    /** @var float - The last time the player has received an alert message. */
+    public $lastAlertTime;
     /** @var Check[] - An array of checks */
     public $checks = [];
 
@@ -58,9 +67,21 @@ final class PlayerData{
         $this->outboundProcessor = new ProcessOutbound();
         $this->tickProcessor = new ProcessTick();
 
+        $this->entityLocationMap = new LocationMap();
+
+        $this->alertCooldown = Esoteric::getInstance()->getSettings()->getAlertCooldown();
+        $this->lastAlertTime = microtime(true);
+
         $this->checks = [
             # Autoclicker checks
             new AutoClickerA(),
+
+            # Aim checks
+            new AimA(),
+
+            # Range checks
+            new RangeA(),
+            new RangeB(),
 
             # Killaura checks
             new KillAuraA(),
@@ -89,6 +110,21 @@ final class PlayerData{
     public $outboundProcessor;
     /** @var ProcessTick - A class to execute every tick. Mainly will be used for NetworkStackLatency timeouts, and  */
     public $tickProcessor;
+
+    /** @var LocationMap */
+    public $entityLocationMap;
+
+    /** @var bool */
+    public $isMobile = false;
+
+    /** @var int - ID of the current target entity */
+    public $target = -1;
+    /** @var int - ID of the last target entity */
+    public $lastTarget = -1;
+    /** @var int - The tick when the player attacked. */
+    public $attackTick = -1;
+    /** @var Vector3 - Attack position of the player */
+    public $attackPos;
 
     /** @var EffectData[] */
     public $effects = [];
@@ -155,6 +191,7 @@ final class PlayerData{
 
 
     public function tick() : void{
+        $this->entityLocationMap->executeTick($this);
     }
 
 }

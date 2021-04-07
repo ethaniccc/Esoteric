@@ -28,6 +28,8 @@ permissions:
             description: Access to the anticheat's help command
             default: op
           ac.command.logs:
-            description: Get the anticheat logs of a player.
+            description: Access to get the anticheat logs of a player
             default: op
+          ac.command.delay:
+            description: Access to change the alert delay
 ...
