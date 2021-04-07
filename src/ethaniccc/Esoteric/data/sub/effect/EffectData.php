@@ -2,9 +2,9 @@
 
 namespace ethaniccc\Esoteric\data\sub\effect;
 
-final class EffectData{
+final class EffectData {
 
-    public $effectId;
-    public $amplifier;
+	public $effectId;
+	public $amplifier;
 
 }
