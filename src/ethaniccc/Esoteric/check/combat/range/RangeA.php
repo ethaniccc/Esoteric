@@ -26,16 +26,16 @@ class RangeA extends Check {
 				$locationData = $data->entityLocationMap->get($data->target);
 				if ($locationData !== null) {
 					$ray = new Ray($data->attackPos, $data->directionVector);
-					$AABB = AABB::fromPosition($locationData->lastLocation)->expand(0.1, 0.1, 0.1);
+					$AABB = AABB::fromPosition($locationData->lastLocation)->expand(0.105, 0.105, 0.105);
 					$intersection = $AABB->calculateIntercept($ray->getOrigin(), $ray->traverse(20));
 					$distance = $intersection === null ? -69 : ($AABB->isVectorInside($ray->getOrigin()) ? 0 : $intersection->getHitVector()->distance($ray->getOrigin()));
-					if ($distance > 3.001 && $data->ticksSinceTeleport >= 5 && $locationData->isSynced >= 5) {
-						if (++$this->buffer >= 2) {
+					if ($distance > 3.001 && $data->ticksSinceTeleport >= 10 && $locationData->isSynced >= 10) {
+						if (++$this->buffer >= 2.5) {
 							$this->flag($data, ["dist" => round($distance, 4), "buff" => round($this->buffer, 2)]);
 							$this->buffer = min($this->buffer, 4);
 						}
 					} elseif ($distance !== -69) {
-						$this->buffer = max($this->buffer - 0.02, 0);
+						$this->buffer = max($this->buffer - 0.025, 0);
 						$this->reward(0.005);
 					}
 
