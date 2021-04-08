@@ -34,14 +34,14 @@ final class Esoteric {
 	/** @var PMMPListener */
 	private $listener;
 
-	public function __construct(PluginBase $plugin, ?Config $config) {
+	public function __construct(PluginBase $plugin, Config $config) {
 		$this->plugin = $plugin;
 		$this->settings = new Settings($config === null ? $this->getPlugin()->getConfig()->getAll() : $config->getAll());
 		$this->dataManager = new PlayerDataManager();
 		$this->tickingTask = new TickingTask();
 	}
 
-	public function getPlugin(): ?PluginBase {
+	public function getPlugin(): PluginBase {
 		return $this->plugin;
 	}
 
@@ -51,7 +51,7 @@ final class Esoteric {
 	 * @param bool $start
 	 * @throws Exception
 	 */
-	public static function init(PluginBase $plugin, Config $config = null, bool $start = false) {
+	public static function init(PluginBase $plugin, Config $config, bool $start = false) {
 		if (self::$instance !== null)
 			throw new Exception("Esoteric is already started");
 		self::$instance = new self($plugin, $config);
@@ -65,7 +65,6 @@ final class Esoteric {
 	public function start(): void {
 		if (self::$instance === null)
 			throw new Exception("Esoteric has not been initialized");
-		assert($this->plugin !== null);
 		$this->listener = new PMMPListener();
 		Server::getInstance()->getPluginManager()->registerEvents($this->listener, $this->plugin);
 		$this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
@@ -83,7 +82,6 @@ final class Esoteric {
 	public function stop(): void {
 		if (self::$instance === null)
 			throw new Exception("Esoteric has not been initialized");
-		assert($this->plugin !== null);
 		$this->plugin->getScheduler()->cancelTask($this->tickingTask->getTaskId());
 		Server::getInstance()->getCommandMap()->unregister($this->command);
 		HandlerList::unregisterAll($this->listener);
