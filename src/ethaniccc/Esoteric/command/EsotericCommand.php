@@ -40,7 +40,9 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 					} else {
 						$data = Esoteric::getInstance()->dataManager->getFromName($selectedUser);
 						if ($data === null) {
-							$sender->sendMessage(TextFormat::RED . "The specified player was not found.");
+							// try the log cache
+							$cached = Esoteric::getInstance()->logCache[strtolower($selectedUser)] ?? null;
+							$sender->sendMessage($cached === null ? TextFormat::RED . "The specified player was not found." : $cached);
 						} else {
 							$message = null;
 							foreach ($data->checks as $check) {

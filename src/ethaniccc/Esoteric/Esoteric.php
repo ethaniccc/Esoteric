@@ -25,6 +25,8 @@ final class Esoteric {
 	public $dataManager;
 	/** @var PlayerData[] */
 	public $hasAlerts = [];
+	/** @var string[] */
+	public $logCache = [];
 	/** @var TickingTask */
 	private $tickingTask;
 	/** @var EsotericCommand */
