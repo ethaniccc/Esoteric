@@ -73,6 +73,11 @@ detections:
       punishment_type: none
       max_vl: 10
       setback: true
+    D:
+      enabled: true
+      punishment_type: none
+      max_vl: 5
+      setback: true
   # Ground spoof detection(s)
   GroundSpoof:
     A:

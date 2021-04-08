@@ -16,6 +16,7 @@ use ethaniccc\Esoteric\check\movement\groundspoof\GroundSpoofA;
 use ethaniccc\Esoteric\check\movement\motion\MotionA;
 use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\motion\MotionC;
+use ethaniccc\Esoteric\check\movement\motion\MotionD;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
@@ -169,7 +170,7 @@ final class PlayerData {
 			new GroundSpoofA(),
 
 			# Motion checks
-			new MotionA(), new MotionB(), new MotionC(),
+			new MotionA(), new MotionB(), new MotionC(), new MotionD(),
 
 			# Velocity checks
 			new VelocityA(),

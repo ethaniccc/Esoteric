@@ -17,7 +17,6 @@ abstract class Check {
 	public $experimental;
 	public $violations = 0;
 	public $buffer = 0;
-	public $lastWarnedTime = 0;
 
 	public function __construct(string $name, string $subType, string $description, bool $experimental = false) {
 		$this->name = $name;
@@ -85,11 +84,10 @@ abstract class Check {
 				$other->player->sendMessage($string);
 			}
 		}
-		$this->lastWarnedTime = microtime(true);
 	}
 
 	protected function canPunish(): bool {
-		return $this->option("punishment_type") !== "none";
+		return $this->option("punishment_type") !== "none" && !$this->experimental;
 	}
 
 	protected function punish(PlayerData $data): void {

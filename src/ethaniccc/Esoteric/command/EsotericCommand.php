@@ -69,6 +69,34 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 					$sender->sendMessage($this->getPermissionMessage());
 				}
 				break;
+			case "alerts":
+				if ($sender->hasPermission("ac.alerts") && $sender instanceof Player) {
+					$playerData = Esoteric::getInstance()->dataManager->get($sender);
+					if (isset($args[1])) {
+						switch ($args[1]) {
+							case "on":
+							case "true":
+							case "enable":
+								$alerts = true;
+								break;
+							case "off":
+							case "false":
+							case "disable":
+								$alerts = false;
+								break;
+							default:
+								$alerts = !$playerData->hasAlerts;
+								break;
+						}
+					} else {
+						$alerts = !$playerData->hasAlerts;
+					}
+					$playerData->hasAlerts = $alerts;
+					$sender->sendMessage($playerData->hasAlerts ? TextFormat::GREEN . "Your alerts have been turned on" : TextFormat::RED . "Your alerts have been disabled");
+				} elseif ($sender instanceof Player) {
+					$sender->sendMessage($this->getPermissionMessage());
+				}
+				break;
 		}
 	}
 
