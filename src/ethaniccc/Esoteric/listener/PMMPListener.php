@@ -17,7 +17,7 @@ use pocketmine\network\mcpe\protocol\PacketPool;
 class PMMPListener implements Listener {
 
 	public function quit(PlayerQuitEvent $event): void {
-		Esoteric::getInstance()->dataManager->remove($event->getPlayer());
+		Esoteric::getInstance()->getDataManager()->remove($event->getPlayer());
 	}
 
 	/**
@@ -28,11 +28,13 @@ class PMMPListener implements Listener {
 	public function inbound(DataPacketReceiveEvent $event): void {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
-		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
+		$playerData = Esoteric::getInstance()->getDataManager()->get($player) ?? Esoteric::getInstance()->getDataManager()->add($player);
 		$playerData->inboundProcessor->execute($packet, $playerData);
-		foreach ($playerData->checks as $check)
-			if ($check->enabled())
+		foreach ($playerData->checks as $check) {
+			if ($check->enabled()) {
 				$check->inbound($packet, $playerData);
+			}
+		}
 	}
 
 	/**
@@ -43,7 +45,7 @@ class PMMPListener implements Listener {
 	public function outbound(DataPacketSendEvent $event): void {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
-		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
+		$playerData = Esoteric::getInstance()->getDataManager()->get($player) ?? Esoteric::getInstance()->getDataManager()->add($player);
 		if ($packet instanceof BatchPacket) {
 			$locationList = [];
 			$key = null;
@@ -68,19 +70,22 @@ class PMMPListener implements Listener {
 				}
 
 				$playerData->outboundProcessor->execute($pk, $playerData);
-				foreach ($playerData->checks as $check)
-					if ($check->handleOut())
+				foreach ($playerData->checks as $check) {
+					if ($check->handleOut()) {
 						$check->outbound($pk, $playerData);
+					}
+				}
 				$gen->next();
 			}
-			if ($playerData->loggedIn) {
-				if ($playerData->entityLocationMap->key !== null) {
-					if ($key !== $playerData->entityLocationMap->key && count($locationList) > 0) {
-						$event->setCancelled();
-						foreach ($locationList as $p) {
-							$playerData->entityLocationMap->add($p);
-						}
-					}
+			if (
+				$playerData->loggedIn &&
+				$playerData->entityLocationMap->key !== null &&
+				$key !== $playerData->entityLocationMap->key &&
+				count($locationList) > 0
+			 ) {
+				$event->setCancelled();
+				foreach ($locationList as $p) {
+					$playerData->entityLocationMap->add($p);
 				}
 			}
 		}

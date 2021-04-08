@@ -38,7 +38,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 					if ($selectedUser === null) {
 						$sender->sendMessage(TextFormat::RED . "You need to specify a player.");
 					} else {
-						$data = Esoteric::getInstance()->dataManager->getFromName($selectedUser);
+						$data = Esoteric::getInstance()->getDataManager()->getFromName($selectedUser);
 						if ($data === null) {
 							$sender->sendMessage(TextFormat::RED . "The specified player was not found.");
 						} else {
@@ -60,41 +60,45 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				}
 				break;
 			case "delay":
-				if ($sender->hasPermission("ac.command.delay") && $sender instanceof Player) {
-					$delay = (int) ($args[1] ?? Esoteric::getInstance()->getSettings()->getAlertCooldown());
-					$playerData = Esoteric::getInstance()->dataManager->get($sender);
-					$playerData->alertCooldown = $delay;
-					$sender->sendMessage(TextFormat::GREEN . "Your alert cooldown was set to $delay seconds");
-				} elseif ($sender instanceof Player) {
+				if($sender instanceof Player) {
+					if ($sender->hasPermission("ac.command.delay")) {
+						$delay = (int) ($args[1] ?? Esoteric::getInstance()->getSettings()->getAlertCooldown());
+						$playerData = Esoteric::getInstance()->getDataManager()->get($sender);
+						$playerData->alertCooldown = $delay;
+						$sender->sendMessage(TextFormat::GREEN . "Your alert cooldown was set to $delay seconds");
+					} else {
 					$sender->sendMessage($this->getPermissionMessage());
+					}
 				}
 				break;
 			case "alerts":
-				if ($sender->hasPermission("ac.alerts") && $sender instanceof Player) {
-					$playerData = Esoteric::getInstance()->dataManager->get($sender);
-					if (isset($args[1])) {
-						switch ($args[1]) {
-							case "on":
-							case "true":
-							case "enable":
-								$alerts = true;
-								break;
-							case "off":
-							case "false":
-							case "disable":
-								$alerts = false;
-								break;
-							default:
-								$alerts = !$playerData->hasAlerts;
-								break;
+			if($sender instanceof Player) {
+				if ($sender->hasPermission("ac.alerts")) {
+						$playerData = Esoteric::getInstance()->getDataManager()->get($sender);
+						if (isset($args[1])) {
+							switch ($args[1]) {
+								case "on":
+								case "true":
+								case "enable":
+									$alerts = true;
+									break;
+								case "off":
+								case "false":
+								case "disable":
+									$alerts = false;
+									break;
+								default:
+									$alerts = !$playerData->hasAlerts;
+									break;
+							}
+						} else {
+							$alerts = !$playerData->hasAlerts;
 						}
+						$playerData->hasAlerts = $alerts;
+						$sender->sendMessage($playerData->hasAlerts ? TextFormat::GREEN . "Your alerts have been turned on" : TextFormat::RED . "Your alerts have been disabled");
 					} else {
-						$alerts = !$playerData->hasAlerts;
+						$sender->sendMessage($this->getPermissionMessage());
 					}
-					$playerData->hasAlerts = $alerts;
-					$sender->sendMessage($playerData->hasAlerts ? TextFormat::GREEN . "Your alerts have been turned on" : TextFormat::RED . "Your alerts have been disabled");
-				} elseif ($sender instanceof Player) {
-					$sender->sendMessage($this->getPermissionMessage());
 				}
 				break;
 		}
