@@ -19,6 +19,16 @@ The versions this anti-cheat currently supports are 1.16.100, 1.16.201, and 1.16
 ## Detections
 These are a list of the current detections Esoteric has, along with descriptions of those checks.
 
+* **Autoclicker**
+    - A: Checks if the player's CPS exceeds a certain threshold.
+* **Aim**
+    - A: Checks if the player's headYaw does not correlate with the player's yaw.
+    - B: Checks if the player's yaw movement is rounded.
+* **KillAura**
+    - A: Checks if the player is swinging their arm whilst attacking.
+* **Range**
+    - A: Checks if the player's range goes beyond a certain threshold. Devices which have the capability to switch to touch-screen easily are exempted from this check.
+    - B: Checks if the player is looking at the entity it's attacking.
 * **Fly**
     - A: Estimates the next Y movement of the player. This check detects basic flies.
     - B: Checks if the current Y movement of the player is near equal to the  Y movement of the player.
@@ -31,7 +41,8 @@ These are a list of the current detections Esoteric has, along with descriptions
     - C: Checks if the player is following Minecraft's friction rules while on the ground. This check is surprisingly very effective
     and can detect a variety of speeds on the ground. The idea behind this check is that your current speed multiplied by your friction
     cannot be greater than your previous speed.
-    - D: **Experimental:** Checks if the player has an illegal velocity when jumping or in the air (BHOP) 
+    - D (**Exp**): Checks if the player's XZ velocity while jumping exceeds a certain threshold. This mainly blocks hacks such as "LongJump".
+* **Velocity**
+    - A: Checks if the player takes less vertical knockback than normal.
 * **GroundSpoof**
     - A: This checks if the player says that they're on the ground while not having any solid blocks around them.
-  
