@@ -31,6 +31,7 @@ These are a list of the current detections Esoteric has, along with descriptions
     - C: Checks if the player is following Minecraft's friction rules while on the ground. This check is surprisingly very effective
     and can detect a variety of speeds on the ground. The idea behind this check is that your current speed multiplied by your friction
     cannot be greater than your previous speed.
+    - D: **Experimental:** Checks if the player has an illegal velocity when jumping or in the air (BHOP) 
 * **GroundSpoof**
     - A: This checks if the player says that they're on the ground while not having any solid blocks around them.
   
