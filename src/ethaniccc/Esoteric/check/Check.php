@@ -6,8 +6,11 @@ namespace ethaniccc\Esoteric\check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
+use ethaniccc\Esoteric\tasks\BanTask;
+use ethaniccc\Esoteric\tasks\KickTask;
 use Exception;
 use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\utils\TextFormat as C;
 
 abstract class Check {
 
@@ -59,6 +62,8 @@ abstract class Check {
 			++$this->violations;
 		$extraData["ping"] = $data->player->getPing();
 		$this->warn($data, $extraData);
+		$this->punish($data);
+		return;
 		if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
 			if ($data->player->hasPermission("ac.bypass")) {
 				$this->violations = 0;
@@ -92,16 +97,15 @@ abstract class Check {
 	}
 
 	protected function punish(PlayerData $data): void {
-		if($this->option("punishment_type") === 'kick') {
-			// yes i know this is retarded
-			// dont fucking @ me
-			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Kicked for " . $this->name . "({$this->subType})";
-			$data->player->kick($string, false, null);
-			// broadcast message idk add to listener ig
+		$code = substr(sha1(rand()), 0, 7);
+		if($this->option("punishment_type") === 'ban') {
+			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Banned for " . $this->name . "({$this->subType}) [CODE: $code]";
+			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new BanTask($data->player, $string), 1);
+		} else if($this->option("punishment_type") === 'kick') {
+			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Kicked for " . $this->name . "({$this->subType}) [CODE: $code]";
+			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, $string), 1);
 		} else {
-			// lol no support
-			// bans crash server idk why
-			// $this->violations = 0;
+			$this->violations = 0;
 		}
 	}
 
