@@ -97,12 +97,11 @@ abstract class Check {
 	}
 
 	protected function punish(PlayerData $data): void {
-		$code = substr(sha1(rand()), 0, 7);
 		if($this->option("punishment_type") === 'ban') {
-			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Banned for " . $this->name . "({$this->subType}) [CODE: $code]";
+			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Banned for " . $this->name . "({$this->subType})";
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new BanTask($data->player, $string), 1);
 		} else if($this->option("punishment_type") === 'kick') {
-			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Kicked for " . $this->name . "({$this->subType}) [CODE: $code]";
+			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Kicked for " . $this->name . "({$this->subType})";
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, $string), 1);
 		} else {
 			$this->violations = 0;
