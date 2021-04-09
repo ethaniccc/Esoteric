@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\Ray;
+use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -26,17 +27,18 @@ class RangeB extends Check {
 				$locationData = $data->entityLocationMap->get($data->target);
 				if ($locationData !== null) {
 					$ray = new Ray($data->attackPos, $data->directionVector);
-					$AABB = AABB::fromPosition($locationData->lastLocation)->expand(0.1, 0.1, 0.1);
-					$intersection = $AABB->calculateIntercept($ray->getOrigin(), $ray->traverse(20));
-					$distance = $intersection === null ? -69 : ($AABB->isVectorInside($ray->getOrigin()) ? 0 : $intersection->getHitVector()->distance($ray->getOrigin()));
-					if ($distance === -69 && $data->ticksSinceTeleport >= 5 && $locationData->isSynced >= 5) {
-						// no intersection
-						if (++$this->buffer >= 4) {
-							$this->flag($data, ["buff" => round($this->buffer, 2)]);
-							$this->buffer = min($this->buffer, 8);
+					$hasCollision = false;
+					$locationData->history->iterate(function (Vector3 $location) use (&$hasCollision, $ray): void {
+						if (!$hasCollision) {
+							$hasCollision = AABB::fromPosition($location)->expand(0.1, 0.1, 0.1)->calculateIntercept($ray->getOrigin(), $ray->traverse(20)) !== null;
+						}
+					});
+					if (!$hasCollision) {
+						if (++$this->buffer >= 10) {
+							$this->flag($data);
 						}
 					} else {
-						$this->buffer = max($this->buffer - 0.75, 0);
+						$this->buffer = max($this->buffer - 1.5, 0);
 					}
 				}
 			}

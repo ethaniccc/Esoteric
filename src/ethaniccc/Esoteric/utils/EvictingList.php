@@ -70,4 +70,10 @@ class EvictingList {
 		return $list;
 	}
 
+	public function iterate(callable $callable): void {
+		foreach ($this->array as $value) {
+			$callable($value);
+		}
+	}
+
 }

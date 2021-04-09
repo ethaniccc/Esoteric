@@ -18,6 +18,7 @@ use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\motion\MotionC;
 use ethaniccc\Esoteric\check\movement\motion\MotionD;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
+use ethaniccc\Esoteric\check\movement\velocity\VelocityB;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
@@ -116,9 +117,11 @@ final class PlayerData {
 	/** @var int - Current gamemode of the player. */
 	public $gamemode = 0;
 	public $isSprinting = false;
+	public $isSneaking = false;
 	public $movementSpeed = 0.1;
 	public $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
 	public $jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
+	public $moveForward = 0.0, $moveStrafe = 0.0;
 	/** @var int[] */
 	public $clickSamples = [];
 	/** @var bool - Boolean value for if autoclicker checks should run. */
@@ -173,7 +176,7 @@ final class PlayerData {
 			new MotionA(), new MotionB(), new MotionC(), new MotionD(),
 
 			# Velocity checks
-			new VelocityA(),
+			new VelocityA(), new VelocityB(),
 
 			# Edition faker checks
 			new EditionFakerA(),];

@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
+use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
@@ -73,6 +74,7 @@ final class LocationMap {
 					$locationData->currentLocation = clone $location;
 					$locationData->lastLocation = clone $location;
 					$locationData->receivedLocation = clone $location;
+					$locationData->history = new EvictingList(3);
 					$this->locations[$entityRuntimeId] = $locationData;
 				} else {
 					$locationData = $this->locations[$entityRuntimeId];
@@ -98,6 +100,7 @@ final class LocationMap {
 					// don't need to clone all the time... lol
 					$locationData->lastLocation = clone $locationData->currentLocation;
 				}
+				$locationData->history->add(clone $locationData->lastLocation);
 				$locationData->newPosRotationIncrements--;
 				$locationData->isSynced++;
 			}

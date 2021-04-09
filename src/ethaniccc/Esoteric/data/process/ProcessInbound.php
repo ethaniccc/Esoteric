@@ -33,6 +33,8 @@ final class ProcessInbound {
 
 	/** @var Vector3[] */
 	public $blockPlaceVectors = [];
+	/** @var Vector3 */
+	public $knockbackMotion;
 
 	public function execute(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof MovePlayerPacket) {
@@ -92,6 +94,83 @@ final class ProcessInbound {
 			$liquids = 0;
 			$climbable = 0;
 			$cobweb = 0;
+
+			$data->moveForward = 0.0;
+			$data->moveStrafe = 0.0;
+
+			// here we want to predict the moveForward and moveStrafing values of the player
+			// reference: https://www.spigotmc.org/threads/player-moveforward-movestrafe-aispeed.441073/#post-3819915
+			if ($data->ticksSinceMotion === 1) {
+				$this->knockbackMotion = clone $data->motion;
+			}
+
+			// how is 0.91 more effective here than 0.98 (assumed normal friction??)
+			if ($data->onGround) {
+				$friction = 0.91 * $data->player->getLevel()->getBlockAt($data->lastLocation->x, $data->lastLocation->y - 1, $data->lastLocation->z, false, false)->getFrictionFactor();
+			} else {
+				$friction = 0.91;
+			}
+
+			$currVelocity = new Vector3($data->currentMoveDelta->x, 0, $data->currentMoveDelta->z);
+			$prevVelocity = new Vector3($data->lastMoveDelta->x, 0, $data->lastMoveDelta->z);
+
+			if ($this->knockbackMotion !== null) {
+				$prevVelocity = $this->knockbackMotion;
+			}
+
+			if (abs($prevVelocity->x * $friction) < 0.005) {
+				$prevVelocity->x = 0;
+			}
+			if (abs($prevVelocity->z * $friction) < 0.005) {
+				$prevVelocity->z = 0;
+			}
+
+			$currVelocity->x /= $friction;
+			$currVelocity->z /= $friction;
+			$currVelocity->x -= $prevVelocity->x;
+			$currVelocity->z -= $prevVelocity->z;
+			$yawVec = MathUtils::directionVectorFromValues($data->currentYaw, 0);
+
+			// you're actually pressing a WASD key
+			if ($currVelocity->lengthSquared() >= 0.0002) {
+				$vectorDir = $currVelocity->cross($yawVec)->dot(new Vector3(0, 1, 0)) >= 0;
+				$angle = ($vectorDir ? 1 : -1) * MathUtils::vectorAngle($currVelocity, $yawVec);
+				$deg = round(rad2deg($angle));
+				if (abs($deg) < 45) {
+					$data->moveForward = 1.0;
+				} elseif (abs(abs($deg) - 180) <= 10) {
+					$data->moveForward = -1.0;
+				} elseif (abs($deg - 45) <= 45) {
+					$data->moveForward = 1.0;
+					$data->moveStrafe = 1.0;
+				} elseif (abs($deg + 45) <= 45) {
+					$data->moveForward = 1.0;
+					$data->moveStrafe = -1.0;
+				} elseif (abs($deg - 135) <= 45) {
+					$data->moveForward = -1.0;
+					$data->moveStrafe = 1.0;
+				} elseif (abs($deg + 135) <= 45) {
+					$data->moveForward = -1.0;
+					$data->moveStrafe = -1.0;
+				}
+			}
+
+			if (abs($data->moveForward) > 0 && abs($data->moveStrafe) > 0) {
+				$data->moveForward *= 0.8;
+				$data->moveStrafe *= 0.8;
+			}
+
+			if ($data->isSneaking) {
+				$var2 = MathUtils::getLiteralFloat(0.3);
+				$data->moveForward *= $var2;
+				$data->moveStrafe *= $var2;
+			}
+
+			$var3 = MathUtils::getLiteralFloat(0.98);
+			$data->moveForward *= $var3;
+			$data->moveStrafe *= $var3;
+
+			$this->knockbackMotion = null;
 
 			foreach (LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0, 0.5), $data->player->getLevel(), LevelUtils::SEARCH_TRANSPARENT) as $block) {
 				/** @var Block $block */
@@ -203,6 +282,12 @@ final class ProcessInbound {
 				case PlayerActionPacket::ACTION_STOP_SPRINT:
 					$data->isSprinting = false;
 					$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
+					break;
+				case PlayerActionPacket::ACTION_START_SNEAK:
+					$data->isSneaking = true;
+					break;
+				case PlayerActionPacket::ACTION_STOP_SNEAK:
+					$data->isSneaking = false;
 					break;
 				case PlayerActionPacket::ACTION_JUMP:
 					$data->ticksSinceJump = 0;

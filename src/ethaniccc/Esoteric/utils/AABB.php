@@ -79,7 +79,7 @@ class AABB extends AxisAlignedBB {
 	}
 
 	public function getCornerVectors(): array {
-		return [// top vectors
+		return [                                                                                                                                                                                                            // top vectors
 			new Vector3($this->maxX, $this->maxY, $this->maxZ), new Vector3($this->minX, $this->maxY, $this->maxZ), new Vector3($this->minX, $this->maxY, $this->minZ), new Vector3($this->maxX, $this->maxY, $this->minZ), // bottom vectors
 			new Vector3($this->maxX, $this->minY, $this->maxZ), new Vector3($this->minX, $this->minY, $this->maxZ), new Vector3($this->minX, $this->minY, $this->minZ), new Vector3($this->maxX, $this->minY, $this->minZ)];
 	}

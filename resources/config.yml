@@ -20,7 +20,7 @@ alert_cooldown: 0
 # Tags: {prefix}, {player}, {check_name}, {check_subtype}, {violations}, {data}
 alert_message: "{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]"
 
-# Setback types: smooth, instant
+# Setback types: smooth, instant, or none
 setback_type: "instant"
 
 detections:
@@ -47,6 +47,17 @@ detections:
       enabled: true
       punishment_type: none
       max_vl: 5
+  # Range checks
+  Range:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 20
+      max_dist: 3
+    B:
+      enabled: true
+      punishment_type: none
+      max_vl: 20
   # Fly detections
   Fly:
     A:
@@ -94,9 +105,19 @@ detections:
       enabled: true
       punishment_type: none
       max_vl: 10
-  # Velocity detection(s)
+  # Velocity detections
   Velocity:
     A:
       enabled: true
       punishment_type: none
       max_vl: 20
+    B:
+      enabled: false
+      punishment_type: none
+      max_vl: 20
+  # EditionFaker detections
+  EditionFaker:
+    A:
+      enabled: true
+      punishment_type: kick
+      max_vl: 1

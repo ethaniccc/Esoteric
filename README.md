@@ -44,5 +44,8 @@ These are a list of the current detections Esoteric has, along with descriptions
     - D (**Exp**): Checks if the player's XZ velocity while jumping exceeds a certain threshold. This mainly blocks hacks such as "LongJump".
 * **Velocity**
     - A: Checks if the player takes less vertical knockback than normal.
+    - B: Checks if the player takes less horizontal knockback than normal. This check is currently unusable.
 * **GroundSpoof**
     - A: This checks if the player says that they're on the ground while not having any solid blocks around them.
+* **EditionFaker**
+    - A: Checks if the player's TitleID does not match the given OS in the Login packet.

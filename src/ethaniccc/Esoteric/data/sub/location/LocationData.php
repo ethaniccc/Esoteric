@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric\data\sub\location;
 
+use ethaniccc\Esoteric\utils\EvictingList;
 use pocketmine\math\Vector3;
 
 final class LocationData {
@@ -18,5 +19,7 @@ final class LocationData {
 	public $newPosRotationIncrements = 0;
 	/** @var int */
 	public $isSynced = 0;
+	/** @var EvictingList */
+	public $history;
 
 }

@@ -24,9 +24,7 @@ class KillAuraA extends Check {
 		} elseif ($packet instanceof InventoryTransactionPacket && $packet->transactionType === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->actionType === InventoryTransactionPacket::USE_ITEM_ON_ENTITY_ACTION_ATTACK) {
 			$tickDiff = $data->currentTick - $this->lastTick;
 			if ($tickDiff > 4) {
-				$this->flag($data, [
-					"diff" => $tickDiff
-				]);
+				$this->flag($data, ["diff" => $tickDiff]);
 			}
 		}
 	}

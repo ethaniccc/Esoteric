@@ -31,7 +31,7 @@ final class MathUtils {
 
 	public static function vectorAngle(Vector3 $a, Vector3 $b): float {
 		try {
-			$dot = $a->dot($b) / ($a->length() * $b->length());
+			$dot = min(max($a->dot($b) / ($a->length() * $b->length()), -1), 1);
 			return acos($dot);
 		} catch (\ErrorException $e) {
 			return -1;
@@ -174,7 +174,7 @@ final class MathUtils {
 			$par0 += 360.0;
 		}
 
-		return $par0;
+		return MathUtils::getLiteralFloat($par0);
 	}
 
 	public static function getLiteralFloat(float $float): float {
