@@ -6,6 +6,7 @@ namespace ethaniccc\Esoteric\check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
+use Exception;
 use pocketmine\network\mcpe\protocol\DataPacket;
 
 abstract class Check {
@@ -91,7 +92,17 @@ abstract class Check {
 	}
 
 	protected function punish(PlayerData $data): void {
-		// TODO: Work on punishments
+		if($this->option("punishment_type") === 'kick') {
+			// yes i know this is retarded
+			// dont fucking @ me
+			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Kicked for " . $this->name . "({$this->subType})";
+			$data->player->kick($string, false, null);
+			// broadcast message idk add to listener ig
+		} else {
+			// lol no support
+			// bans crash server idk why
+			// $this->violations = 0;
+		}
 	}
 
 	protected function setback(PlayerData $data): void {
