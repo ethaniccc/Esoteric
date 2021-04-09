@@ -13,10 +13,23 @@ use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
+use pocketmine\utils\TextFormat;
 
 class PMMPListener implements Listener {
 
 	public function quit(PlayerQuitEvent $event): void {
+		$data = Esoteric::getInstance()->dataManager->get($event->getPlayer());
+		$message = null;
+		foreach ($data->checks as $check) {
+			$checkData = $check->getData();
+			if ($checkData["violations"] >= 1) {
+				if ($message === null) {
+					$message = "";
+				}
+				$message .= TextFormat::YELLOW . $checkData["full_name"] . TextFormat::WHITE . " - " . $checkData["description"] . TextFormat::GRAY . " (" . TextFormat::RED . "x" . var_export(round($checkData["violations"], 3), true) . TextFormat::GRAY . ")" . PHP_EOL;
+			}
+		}
+		Esoteric::getInstance()->logCache[strtolower($event->getPlayer()->getName())] = $message === null ? TextFormat::GREEN . "This player has no logs" : $message;
 		Esoteric::getInstance()->dataManager->remove($event->getPlayer());
 	}
 

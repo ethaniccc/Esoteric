@@ -31,6 +31,16 @@ detections:
       punishment_type: none
       max_vl: 5
       max_cps: 21
+  # Aim detections
+  Aim:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 5
+    B:
+      enabled: true
+      punishment_type: none
+      max_vl: 5
   # Killaura detections
   Killaura:
     A:
