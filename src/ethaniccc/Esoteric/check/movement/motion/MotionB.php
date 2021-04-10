@@ -15,7 +15,7 @@ class MotionB extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof MovePlayerPacket && $data->offGroundTicks >= 3 && $data->ticksSinceFlight >= 10) {
+		if ($packet instanceof MovePlayerPacket && $data->offGroundTicks >= 5 && $data->ticksSinceFlight >= 10) {
 			$currentXZ = MathUtils::hypot($data->currentMoveDelta->x, $data->currentMoveDelta->z);
 			$lastXZ = MathUtils::hypot($data->lastMoveDelta->x, $data->lastMoveDelta->z);
 			$prediction = $lastXZ * 0.91 + $data->jumpMovementFactor;

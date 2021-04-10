@@ -59,10 +59,10 @@ final class ProcessInbound {
 			$actualMoveY = $data->currentMoveDelta->y;
 			$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
 			$flag2 = $expectedMoveY < 0;
-			$data->hasBlockAbove = $flag1 && $expectedMoveY > 0;
 			$data->isCollidedVertically = $flag1;
 			$data->onGround = $packet->onGround;
 			$AABBCollision = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), true)) !== 0;
+			$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005;
 			$data->expectedOnGround = $AABBCollision;
 			$data->isCollidedHorizontally = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expand(0.5, -0.05, 0.5), true)) !== 0;
 
