@@ -19,8 +19,9 @@ class BanTask extends Task {
         $this->player = $player;
         $this->reason = $reason;
     }
+
 	public function onRun(int $currentTick) {
-        Server::getInstance()->getNameBans()->addBan($this->player->getName(), $this->reason, null, "Esoteric Anti-Cheat");
+        Server::getInstance()->getNameBans()->addBan($this->player->getName(), $this->reason, null, "Esoteric AC");
         $this->player->kick($this->reason, false);
 	}
 }

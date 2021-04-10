@@ -42,4 +42,12 @@ final class Settings {
 		return $this->setbackType;
 	}
 
+	public function getKickMessage(): string {
+		return $this->data["kick_message"] ?? "{prefix} Kicked (code={code}) | Contact staff if this issue persists";
+	}
+
+	public function getBanMessage(): string {
+		return $this->data["ban_message"] ?? "{prefix} Banned (code={code}) | Make a ticket if this is a mistake";
+	}
+
 }

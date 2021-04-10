@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\listener;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
@@ -13,10 +14,29 @@ use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
+use pocketmine\Server;
 use pocketmine\utils\TextFormat;
 
 class PMMPListener implements Listener {
 
+	/**
+	 * @param PlayerPreLoginEvent $event
+	 * @priority LOWEST
+	 */
+	public function log(PlayerPreLoginEvent $event): void {
+		foreach (Server::getInstance()->getNameBans()->getEntries() as $entry) {
+			if ($entry->getSource() === "Esoteric AC") {
+				$event->setCancelled();
+				$event->setKickMessage($entry->getReason());
+				break;
+			}
+		}
+	}
+
+	/**
+	 * @param PlayerQuitEvent $event
+	 * @priority LOWEST
+	 */
 	public function quit(PlayerQuitEvent $event): void {
 		$data = Esoteric::getInstance()->dataManager->get($event->getPlayer());
 		$message = null;
@@ -43,9 +63,7 @@ class PMMPListener implements Listener {
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
 		$playerData->inboundProcessor->execute($packet, $playerData);
-		foreach ($playerData->checks as $check)
-			if ($check->enabled())
-				$check->inbound($packet, $playerData);
+		foreach ($playerData->checks as $check) if ($check->enabled()) $check->inbound($packet, $playerData);
 	}
 
 	/**

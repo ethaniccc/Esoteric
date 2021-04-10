@@ -8,9 +8,7 @@ use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
 use ethaniccc\Esoteric\tasks\BanTask;
 use ethaniccc\Esoteric\tasks\KickTask;
-use Exception;
 use pocketmine\network\mcpe\protocol\DataPacket;
-use pocketmine\utils\TextFormat as C;
 
 abstract class Check {
 
@@ -53,6 +51,10 @@ abstract class Check {
 		return $this->option("enabled");
 	}
 
+	public function getCodeName(): string{
+		return $this->option("code", "{$this->name}({$this->subType})");
+	}
+
 	protected function option(string $option, $default = null) {
 		return self::$settings["{$this->name}:{$this->subType}"][$option] ?? $default;
 	}
@@ -62,9 +64,7 @@ abstract class Check {
 			++$this->violations;
 		$extraData["ping"] = $data->player->getPing();
 		$this->warn($data, $extraData);
-		$this->punish($data);
-		return;
-		if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
+		if ($this->violations >= $this->option("max_vl", 25) && $this->canPunish()) {
 			if ($data->player->hasPermission("ac.bypass")) {
 				$this->violations = 0;
 			} else {
@@ -97,11 +97,11 @@ abstract class Check {
 	}
 
 	protected function punish(PlayerData $data): void {
-		if($this->option("punishment_type") === 'ban') {
-			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Banned for " . $this->name . "({$this->subType})";
+		if($this->option("punishment_type") === "ban") {
+			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getBanMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new BanTask($data->player, $string), 1);
-		} else if($this->option("punishment_type") === 'kick') {
-			$string = Esoteric::getInstance()->getInstance()->getSettings()->getPrefix() . " Kicked for " . $this->name . "({$this->subType})";
+		} elseif($this->option("punishment_type") === "kick") {
+			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getKickMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, $string), 1);
 		} else {
 			$this->violations = 0;
