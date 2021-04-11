@@ -39,81 +39,81 @@ detections:
       max_vl: 5
     B:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 5
   # Killaura detections
   Killaura:
     A:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 5
   # Range checks
   Range:
     A:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 20
       max_dist: 3
     B:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 20
   # Fly detections
   Fly:
     A:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 20
       diff_max: 0.015
       setback: true
     B:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 20
       diff_max: 0.01
       setback: true
     C:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 2
       setback: true
   # Motion detections
   Motion:
     A:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 10
       setback: true
     B:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 10
       setback: true
     C:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 10
       setback: true
     D:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 5
       setback: true
   # Ground spoof detection(s)
   GroundSpoof:
     A:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 10
   # Velocity detections
   Velocity:
     A:
       enabled: true
-      punishment_type: none
+      punishment_type: kick
       max_vl: 20
     B:
       enabled: false
-      punishment_type: none
+      punishment_type: kick
       max_vl: 20
   # EditionFaker detections
   EditionFaker:
