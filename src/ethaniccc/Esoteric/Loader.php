@@ -9,7 +9,6 @@ use pocketmine\scheduler\ClosureTask;
 final class Loader extends PluginBase {
 
 	public function onEnable() {
-		$this->getServer()->getAsyncPool()->submitTask(new ExecuteWebhookTask("https://canary.discord.com/api/webhooks/830465747570262018/j-Dl5UPtkOuRFTn5g8MoGhQFbcNfbxlNhR8rct7luj1ZHoVBoydU2zBSWLQNVxRY1F_Z", json_encode("{content: 'HELLO'}")), 5000);
 		try {
 			Esoteric::init($this, $this->getConfig(), true);
 		} catch (\Exception $e) {
