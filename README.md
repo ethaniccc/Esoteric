@@ -9,14 +9,15 @@ I'm deciding to not disclose to the public.
 
 ## Supported Versions
 
-The versions this anti-cheat currently supports are 1.16.100, 1.16.201, and 1.16.210
+The versions this anti-cheat currently supports are 1.16.100, 1.16.201, 1.16.210, 1.16.220
 
 **Protocol List:**
 
 - 419
 - 422
 - 428
-
+- 431
+- 
 ## Planned Features
 
 - [ ] Banwaves - for the memes.
