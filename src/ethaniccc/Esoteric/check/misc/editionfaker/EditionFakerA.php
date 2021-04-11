@@ -42,9 +42,9 @@ class EditionFakerA extends Check {
 					$expectedOS->add(DeviceOS::ANDROID);
 					break;
 			}
-			if($expectedOS->size() > 0) {
+			if ($expectedOS->size() > 0) {
 				$passed = false;
-				$expectedOS->iterate(function(int $deviceOS) use(&$passed, $givenOS): void {
+				$expectedOS->iterate(function (int $deviceOS) use (&$passed, $givenOS): void {
 					if (!$passed && $deviceOS === $givenOS) {
 						$passed = true;
 					}

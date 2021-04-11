@@ -19,7 +19,7 @@ use pocketmine\utils\TextFormat;
 
 class PMMPListener implements Listener {
 
-		/**
+	/**
 	 * @param PlayerPreLoginEvent $event
 	 * @priority LOWEST
 	 */
@@ -63,7 +63,9 @@ class PMMPListener implements Listener {
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
 		$playerData->inboundProcessor->execute($packet, $playerData);
-		foreach ($playerData->checks as $check) if ($check->enabled()) $check->inbound($packet, $playerData);
+		foreach ($playerData->checks as $check)
+			if ($check->enabled())
+				$check->inbound($packet, $playerData);
 	}
 
 	/**

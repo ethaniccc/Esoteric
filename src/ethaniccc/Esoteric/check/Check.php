@@ -51,10 +51,6 @@ abstract class Check {
 		return $this->option("enabled");
 	}
 
-	public function getCodeName(): string {
-		return $this->option("code", "{$this->name}({$this->subType})");
-	}
-
 	protected function option(string $option, $default = null) {
 		return self::$settings["{$this->name}:{$this->subType}"][$option] ?? $default;
 	}
@@ -98,15 +94,19 @@ abstract class Check {
 	}
 
 	protected function punish(PlayerData $data): void {
-		if($this->option("punishment_type") === 'ban') {
+		if ($this->option("punishment_type") === 'ban') {
 			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getBanMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new BanTask($data->player, $string), 1);
-		} elseif($this->option("punishment_type") === "kick") {
+		} elseif ($this->option("punishment_type") === "kick") {
 			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getKickMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, $string), 1);
 		} else {
 			$this->violations = 0;
 		}
+	}
+
+	public function getCodeName(): string {
+		return $this->option("code", "{$this->name}({$this->subType})");
 	}
 
 	protected function setback(PlayerData $data): void {
