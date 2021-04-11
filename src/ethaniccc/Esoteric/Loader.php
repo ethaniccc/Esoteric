@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric;
 use ethaniccc\Esoteric\tasks\ExecuteWebhookTask;
 use pocketmine\plugin\PluginBase;
 use pocketmine\scheduler\ClosureTask;
+use stdClass;
 
 final class Loader extends PluginBase {
 
