@@ -41,6 +41,9 @@ class EditionFakerA extends Check {
 					$expectedOS->add(DeviceOS::IOS);
 					$expectedOS->add(DeviceOS::ANDROID);
 					break;
+				case "1810924247":
+					$expectedOS->add(DeviceOS::IOS);
+					break;
 			}
 			if($expectedOS->size() > 0) {
 				$passed = false;
