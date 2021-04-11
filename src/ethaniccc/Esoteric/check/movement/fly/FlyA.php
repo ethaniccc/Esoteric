@@ -29,7 +29,7 @@ class FlyA extends Check {
 				}
 			} else {
 				$this->reward();
-				$this->buffer = max($this->buffer - 0.25, 0);
+				$this->buffer = max($this->buffer - 0.65, 0);
 			}
 			$this->lastBlockAbove = $data->hasBlockAbove;
 		}

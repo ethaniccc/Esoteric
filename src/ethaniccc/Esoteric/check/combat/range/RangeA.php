@@ -37,7 +37,7 @@ class RangeA extends Check {
 						}
 					});
 
-					if ($distance > $this->option("max_reach", 3)) {
+					if ($distance > $this->option("max_reach", 3) && $distance !== 69) {
 						if (++$this->buffer >= 1.2) {
 							$this->flag($data, ["dist" => round($distance, 4)]);
 						}
