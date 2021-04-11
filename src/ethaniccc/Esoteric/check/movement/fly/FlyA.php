@@ -34,5 +34,4 @@ class FlyA extends Check {
 			$this->lastBlockAbove = $data->hasBlockAbove;
 		}
 	}
-
 }

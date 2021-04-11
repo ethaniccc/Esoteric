@@ -59,10 +59,9 @@ final class ProcessInbound {
 			$actualMoveY = $data->currentMoveDelta->y;
 			$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
 			$flag2 = $expectedMoveY < 0;
-			$data->isCollidedVertically = $flag1;
+			$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005;			$data->isCollidedVertically = $flag1;
 			$data->onGround = $packet->onGround;
 			$AABBCollision = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), true)) !== 0;
-			$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005;
 			$data->expectedOnGround = $AABBCollision;
 			$data->isCollidedHorizontally = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expand(0.5, -0.05, 0.5), true)) !== 0;
 
@@ -236,15 +235,15 @@ final class ProcessInbound {
 				}
 			}
 		} elseif ($packet instanceof InventoryTransactionPacket) {
-			switch ($packet->transactionType) {
+			switch ($packet->trData->getTypeId()) {
 				case InventoryTransactionPacket::TYPE_USE_ITEM:
-					switch ($packet->trData->actionType) {
-						case InventoryTransactionPacket::USE_ITEM_ACTION_CLICK_BLOCK:
-							$clickedBlockPos = new Vector3($packet->trData->x, $packet->trData->y, $packet->trData->z);
-							$newBlockPos = $clickedBlockPos->getSide($packet->trData->face);
-							$block = $packet->trData->itemInHand->getBlock();
-							if ($packet->trData->itemInHand->getId() < 0) {
-								$block = new UnknownBlock($packet->trData->itemInHand->getId(), 0);
+					switch ($packet->trData->getActionType()) {
+						case InventoryTransactionPacket::TYPE_NORMAL:
+							$clickedBlockPos = new Vector3($packet->trData->getClickPos()->x, $packet->trData->getClickPos()->y, $packet->trData->getClickPos()->z);
+							$newBlockPos = $clickedBlockPos->getSide($packet->trData->getFace());
+							$block = $packet->trData->getItemInHand()->getItemStack()->getBlock();
+							if ($packet->trData->getItemInHand()->getStackId() < 0) {
+								$block = new UnknownBlock($packet->trData->getItemInHand()->getStackId(), 0);
 							}
 							if (($block->canBePlaced() || $block instanceof UnknownBlock) && !in_array($newBlockPos, $this->blockPlaceVectors)) {
 								$this->blockPlaceVectors[] = $newBlockPos;
@@ -254,7 +253,7 @@ final class ProcessInbound {
 					break;
 				case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
 					switch ($packet->trData->actionType) {
-						case InventoryTransactionPacket::USE_ITEM_ON_ENTITY_ACTION_ATTACK:
+						case InventoryTransactionPacket::TYPE_MISMATCH:
 							$data->lastTarget = $data->target;
 							$data->target = $packet->trData->entityRuntimeId;
 							$data->attackTick = $data->currentTick;

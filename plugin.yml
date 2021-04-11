@@ -5,10 +5,10 @@ description: A private anti-cheat made for PocketMine-MP
 version: 1.1.0
 main: ethaniccc\Esoteric\Loader
 api: 3.16.0
-mcpe-protocol:
-  - 419
-  - 422
-  - 428
+# mcpe-protocol:
+#   - 419
+#   - 422
+#   - 428
 permissions:
   ac:
     description: Gives all anticheat permissions
@@ -32,4 +32,3 @@ permissions:
             default: op
           ac.command.delay:
             description: Access to change the alert delay
-...

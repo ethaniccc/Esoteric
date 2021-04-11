@@ -13,132 +13,111 @@
 #  Written by Benjamin <schooldocumentsandstuff@gmail.com>, March, 2021
 
 # Prefix for the anti-cheat when sending warnings.
-prefix: "§l§6Eso§fteric§7>§r"
+prefix: '§l§6Eso§fteric§7>§r'
 # Alert cooldown
 alert_cooldown: 0
 
 # Tags: {prefix}, {player}, {check_name}, {check_subtype}, {violations}, {data}
-alert_message: "{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]"
-
-# Tags: {prefix}, {code}
-kick_message: "{prefix} Kicked (code={code}) | Contact staff with a screenshot of this message if this issue persists"
-ban_message: "{prefix} Banned (code={code}) | Make a ticket with a screenshot of this message if this is a mistake"
+alert_message: '{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]'
 
 # Setback types: smooth, instant, or none
-setback_type: "instant"
+setback_type: 'instant'
 
 detections:
   # Autoclicker detections
   Autoclicker:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: ban
       max_vl: 5
-      code: Noah
       max_cps: 21
   # Aim detections
   Aim:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: ban
       max_vl: 5
-      code: Neck
     B:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 5
-      code: Hawkeye
   # Killaura detections
   Killaura:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 5
-      code: Lancelot
   # Range checks
   Range:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
       max_dist: 3
-      code: Aristotle
     B:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
-      code: Descartes
   # Fly detections
   Fly:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
-      code: Albatross
       diff_max: 0.015
       setback: true
     B:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
-      code: Hummingbird
       diff_max: 0.01
       setback: true
     C:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 2
-      code: Blackhawk
       setback: true
   # Motion detections
   Motion:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 10
-      code: Mach1
       setback: true
     B:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 10
-      code: Mach2
       setback: true
     C:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 10
-      code: Mach3
       setback: true
     D:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 5
-      code: Mach4
       setback: true
   # Ground spoof detection(s)
   GroundSpoof:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 10
-      code: Newton
   # Velocity detections
   Velocity:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
-      code: Hypersonic
     B:
       enabled: false
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
-      code: Lightspeed
   # EditionFaker detections
   EditionFaker:
     A:
       enabled: true
       punishment_type: kick
       max_vl: 1
-      code: Janus
