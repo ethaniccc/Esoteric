@@ -17,7 +17,7 @@ The versions this anti-cheat currently supports are 1.16.100, 1.16.201, 1.16.210
 - 422
 - 428
 - 431
-- 
+
 ## Planned Features
 
 - [ ] Banwaves - for the memes.
