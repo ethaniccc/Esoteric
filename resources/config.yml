@@ -23,6 +23,9 @@ alert_message: '{prefix} §e{player} §7failed §e{check_name} ({check_subtype})
 # Setback types: smooth, instant, or none
 setback_type: 'instant'
 
+# Discord webhook URL
+discord_webhook: none
+
 detections:
   # Autoclicker detections
   Autoclicker:

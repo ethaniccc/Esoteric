@@ -17,7 +17,7 @@ class ExecuteWebhookTask extends AsyncTask {
 	private $result;
 
 	/**
-	 * `content` should be an stdClass
+	 * `content` should be an stdClass or key array
 	 */
 	public function __construct(string $url, $content) {
 		$this->url = $url;
@@ -29,8 +29,6 @@ class ExecuteWebhookTask extends AsyncTask {
 	}
 
 	public function onCompletion(Server $server) {
-		// IDK
-		// $this->result
-		// @ethan help
+		print_r($this->result);
 	}
 }
