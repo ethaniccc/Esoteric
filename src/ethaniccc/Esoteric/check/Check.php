@@ -51,7 +51,7 @@ abstract class Check {
 		return $this->option("enabled");
 	}
 
-	public function getCodeName(): string{
+	public function getCodeName(): string {
 		return $this->option("code", "{$this->name}({$this->subType})");
 	}
 
@@ -64,7 +64,7 @@ abstract class Check {
 			++$this->violations;
 		$extraData["ping"] = $data->player->getPing();
 		$this->warn($data, $extraData);
-		if ($this->violations >= $this->option("max_vl", 25) && $this->canPunish()) {
+		if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
 			if ($data->player->hasPermission("ac.bypass")) {
 				$this->violations = 0;
 			} else {
@@ -88,6 +88,7 @@ abstract class Check {
 			if (microtime(true) - $other->lastAlertTime >= $other->alertCooldown) {
 				$other->lastAlertTime = microtime(true);
 				$other->player->sendMessage($string);
+				print_r("NOT SENDING");
 			}
 		}
 	}
@@ -97,7 +98,7 @@ abstract class Check {
 	}
 
 	protected function punish(PlayerData $data): void {
-		if($this->option("punishment_type") === "ban") {
+		if($this->option("punishment_type") === 'ban') {
 			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getBanMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new BanTask($data->player, $string), 1);
 		} elseif($this->option("punishment_type") === "kick") {

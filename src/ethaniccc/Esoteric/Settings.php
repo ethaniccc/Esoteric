@@ -49,5 +49,4 @@ final class Settings {
 	public function getBanMessage(): string {
 		return $this->data["ban_message"] ?? "{prefix} Banned (code={code}) | Make a ticket if this is a mistake";
 	}
-
 }

@@ -19,7 +19,7 @@ use pocketmine\utils\TextFormat;
 
 class PMMPListener implements Listener {
 
-	/**
+		/**
 	 * @param PlayerPreLoginEvent $event
 	 * @priority LOWEST
 	 */
