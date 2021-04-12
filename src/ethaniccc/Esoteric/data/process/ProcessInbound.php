@@ -107,7 +107,7 @@ final class ProcessInbound {
 			}
 
 			// how is 0.91 more effective here than 0.98 (assumed normal friction??)
-			if ($data->onGround) {
+			if ($data->offGroundTicks <= 2) {
 				$friction = 0.91 * $data->player->getLevel()->getBlockAt($data->lastLocation->x, $data->lastLocation->y - 1, $data->lastLocation->z, false, false)->getFrictionFactor();
 			} else {
 				$friction = 0.91;
@@ -138,22 +138,16 @@ final class ProcessInbound {
 				$vectorDir = $currVelocity->cross($yawVec)->dot(new Vector3(0, 1, 0)) >= 0;
 				$angle = ($vectorDir ? 1 : -1) * MathUtils::vectorAngle($currVelocity, $yawVec);
 				$deg = round(rad2deg($angle));
-				if (abs($deg) < 45) {
+				if (abs($deg) === 0.0 || abs($deg) === 45.0) {
 					$data->moveForward = 1.0;
-				} elseif (abs(abs($deg) - 180) <= 10) {
+				} elseif (abs($deg) === 180.0 || abs($deg) === 135.0) {
 					$data->moveForward = -1.0;
-				} elseif (abs($deg - 45) <= 45) {
-					$data->moveForward = 1.0;
-					$data->moveStrafe = 1.0;
-				} elseif (abs($deg + 45) <= 45) {
-					$data->moveForward = 1.0;
+				}
+
+				if ($deg === 90.0 || $deg === 135.0 || $deg === 45.0) {
 					$data->moveStrafe = -1.0;
-				} elseif (abs($deg - 135) <= 45) {
-					$data->moveForward = -1.0;
+				} elseif ($deg === -90.0 || $deg === -135.0 || $deg === -45.0) {
 					$data->moveStrafe = 1.0;
-				} elseif (abs($deg + 135) <= 45) {
-					$data->moveForward = -1.0;
-					$data->moveStrafe = -1.0;
 				}
 			}
 
@@ -172,25 +166,33 @@ final class ProcessInbound {
 			$data->moveForward *= $var3;
 			$data->moveStrafe *= $var3;
 
+			//$data->player->sendMessage("mF={$data->moveForward} mS={$data->moveStrafe}");
+
 			$this->knockbackMotion = null;
 
-			foreach (LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0, 0.5), $data->player->getLevel(), LevelUtils::SEARCH_TRANSPARENT) as $block) {
+			foreach (LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, -0.05, 0.5), $data->player->getLevel(), LevelUtils::SEARCH_TRANSPARENT) as $block) {
 				/** @var Block $block */
-				if ($block instanceof Liquid)
-					$liquids++; elseif ($block instanceof Cobweb)
+				if ($block instanceof Liquid) {
+					$liquids++;
+				} elseif ($block instanceof Cobweb) {
 					$cobweb++;
-				elseif ($block instanceof Ladder || $block instanceof Vine)
+				}
+				elseif ($block instanceof Ladder || $block instanceof Vine) {
 					$climbable++;
+				}
 			}
 
 			if ($liquids > 0)
-				$data->ticksSinceInLiquid = 0; else ++$data->ticksSinceInLiquid;
+				$data->ticksSinceInLiquid = 0;
+			else ++$data->ticksSinceInLiquid;
 
 			if ($cobweb > 0)
-				$data->ticksSinceInCobweb = 0; else ++$data->ticksSinceInCobweb;
+				$data->ticksSinceInCobweb = 0;
+			else ++$data->ticksSinceInCobweb;
 
 			if ($climbable > 0)
-				$data->ticksSinceInClimbable = 0; else ++$data->ticksSinceInClimbable;
+				$data->ticksSinceInClimbable = 0;
+			else ++$data->ticksSinceInClimbable;
 
 			$data->movementSpeed = $data->player->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->getValue();
 
@@ -214,13 +216,13 @@ final class ProcessInbound {
 			$possibleGhostBlock = $data->onGround && !$AABBCollision;
 			if ($possibleGhostBlock) {
 				foreach ($this->blockPlaceVectors as $blockVector) {
-					if (AABB::fromPosition($location)->expand(3, 3, 3)->isVectorInside($blockVector)) {
+					if (AABB::fromPosition($location)->expand(10, 10, 10)->isVectorInside($blockVector)) {
 						$data->expectedOnGround = true;
 						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $blockVector): void {
 							$pk = new UpdateBlockPacket();
-							$pk->x = $blockVector->x;
-							$pk->y = $blockVector->y;
-							$pk->z = $blockVector->z;
+							$pk->x = (int)$blockVector->x;
+							$pk->y = (int)$blockVector->y;
+							$pk->z = (int)$blockVector->z;
 							$pk->blockRuntimeId = 134;
 							$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 							$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
@@ -239,32 +241,29 @@ final class ProcessInbound {
 			}
 		} elseif ($packet instanceof InventoryTransactionPacket) {
 			$trData = $packet->trData;
-			switch ($packet->trData->getTypeId()) {
-				case InventoryTransactionPacket::TYPE_USE_ITEM:
-					/** @var UseItemTransactionData $trData */ switch ($trData->getActionType()) {
-					case InventoryTransactionPacket::TYPE_NORMAL:
-						$clickedBlockPos = new Vector3($trData->getClickPos()->x, $trData->getClickPos()->y, $trData->getClickPos()->z);
-						$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
-						$block = $trData->getItemInHand()->getItemStack()->getBlock();
-						if ($trData->getItemInHand()->getStackId() < 0) {
-							$block = new UnknownBlock($trData->getItemInHand()->getStackId(), 0);
-						}
-						if (($block->canBePlaced() || $block instanceof UnknownBlock) && !in_array($newBlockPos, $this->blockPlaceVectors)) {
-							$this->blockPlaceVectors[] = $newBlockPos;
-						}
-						break;
-				}
-					break;
+			switch ($trData->getTypeId()) {
 				case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
-					/** @var UseItemOnEntityTransactionData $trData */ switch ($trData->getActionType()) {
-					case InventoryTransactionPacket::TYPE_MISMATCH:
+					/** @var UseItemOnEntityTransactionData $trData */
+					if ($trData->getTypeId() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
 						$data->lastTarget = $data->target;
 						$data->target = $trData->getEntityRuntimeId();
 						$data->attackTick = $data->currentTick;
 						$data->attackPos = $trData->getPlayerPos();
-						break;
-				}
-					$this->click($data);
+					}
+					break;
+				case InventoryTransactionPacket::TYPE_USE_ITEM:
+					/** @var UseItemTransactionData $trData */
+					if ($trData->getActionType() === UseItemTransactionData::ACTION_CLICK_BLOCK) {
+						$clickedBlockPos = clone $trData->getBlockPos();
+						$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
+						$block = $trData->getItemInHand()->getItemStack()->getBlock();
+						if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
+							$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
+						}
+						if (($block->canBePlaced() || $block instanceof UnknownBlock) && !in_array($newBlockPos, $this->blockPlaceVectors)) {
+							$this->blockPlaceVectors[] = $newBlockPos;
+						}
+					}
 					break;
 			}
 		} elseif ($packet instanceof NetworkStackLatencyPacket) {
