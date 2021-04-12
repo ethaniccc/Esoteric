@@ -45,12 +45,12 @@ class WebhookThread extends Thread {
 
 	public function run() {
 		$this->registerClassLoader();
-		while($this->running) {
+		while ($this->running) {
 			while (($webhook = $this->queue->shift()) !== null) {
 				/** @var Webhook $webhook */
 				$ch = curl_init($webhook->getURL());
 				curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($webhook->getMessage()));
-				curl_setopt($ch, CURLOPT_POST,true);
+				curl_setopt($ch, CURLOPT_POST, true);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -76,7 +76,7 @@ class WebhookThread extends Thread {
 		$this->queue[] = $webhook;
 	}
 
-	public function getErrors(): Threaded{
+	public function getErrors(): Threaded {
 		return $this->errors;
 	}
 

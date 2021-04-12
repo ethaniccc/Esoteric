@@ -241,31 +241,29 @@ final class ProcessInbound {
 			$trData = $packet->trData;
 			switch ($packet->trData->getTypeId()) {
 				case InventoryTransactionPacket::TYPE_USE_ITEM:
-					/** @var UseItemTransactionData $trData */
-					switch ($trData->getActionType()) {
-						case InventoryTransactionPacket::TYPE_NORMAL:
-							$clickedBlockPos = new Vector3($trData->getClickPos()->x, $trData->getClickPos()->y, $trData->getClickPos()->z);
-							$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
-							$block = $trData->getItemInHand()->getItemStack()->getBlock();
-							if ($trData->getItemInHand()->getStackId() < 0) {
-								$block = new UnknownBlock($trData->getItemInHand()->getStackId(), 0);
-							}
-							if (($block->canBePlaced() || $block instanceof UnknownBlock) && !in_array($newBlockPos, $this->blockPlaceVectors)) {
-								$this->blockPlaceVectors[] = $newBlockPos;
-							}
-							break;
-					}
+					/** @var UseItemTransactionData $trData */ switch ($trData->getActionType()) {
+					case InventoryTransactionPacket::TYPE_NORMAL:
+						$clickedBlockPos = new Vector3($trData->getClickPos()->x, $trData->getClickPos()->y, $trData->getClickPos()->z);
+						$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
+						$block = $trData->getItemInHand()->getItemStack()->getBlock();
+						if ($trData->getItemInHand()->getStackId() < 0) {
+							$block = new UnknownBlock($trData->getItemInHand()->getStackId(), 0);
+						}
+						if (($block->canBePlaced() || $block instanceof UnknownBlock) && !in_array($newBlockPos, $this->blockPlaceVectors)) {
+							$this->blockPlaceVectors[] = $newBlockPos;
+						}
+						break;
+				}
 					break;
 				case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
-					/** @var UseItemOnEntityTransactionData $trData */
-					switch ($trData->getActionType()) {
-						case InventoryTransactionPacket::TYPE_MISMATCH:
-							$data->lastTarget = $data->target;
-							$data->target = $trData->getEntityRuntimeId();
-							$data->attackTick = $data->currentTick;
-							$data->attackPos = $trData->getPlayerPos();
-							break;
-					}
+					/** @var UseItemOnEntityTransactionData $trData */ switch ($trData->getActionType()) {
+					case InventoryTransactionPacket::TYPE_MISMATCH:
+						$data->lastTarget = $data->target;
+						$data->target = $trData->getEntityRuntimeId();
+						$data->attackTick = $data->currentTick;
+						$data->attackPos = $trData->getPlayerPos();
+						break;
+				}
 					$this->click($data);
 					break;
 			}

@@ -24,7 +24,7 @@
  * Intended for use on SynicadeNetwork <https://synicade.com>
  */
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace CortexPE\DiscordWebhookAPI;
 
@@ -35,12 +35,12 @@ class Webhook {
 	/** @var Message */
 	protected $message;
 
-	public function __construct(string $url, Message $message){
+	public function __construct(string $url, Message $message) {
 		$this->url = $url;
 		$this->message = $message;
 	}
 
-	public function getURL(): string{
+	public function getURL(): string {
 		return $this->url;
 	}
 
@@ -48,7 +48,7 @@ class Webhook {
 		return $this->message;
 	}
 
-	public function isValid(): bool{
+	public function isValid(): bool {
 		return filter_var($this->url, FILTER_VALIDATE_URL) !== false;
 	}
 

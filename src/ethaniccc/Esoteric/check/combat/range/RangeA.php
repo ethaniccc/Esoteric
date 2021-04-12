@@ -5,7 +5,6 @@ namespace ethaniccc\Esoteric\check\combat\range;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\AABB;
-use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\Ray;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
@@ -31,11 +30,11 @@ class RangeA extends Check {
 				if ($locationData !== null) {
 					if ($data->isMobile) {
 						$distance = 69;
-						$locationData->history->iterate(function (Vector3 $location) use(&$distance, $data): void {
+						$locationData->history->iterate(function (Vector3 $location) use (&$distance, $data): void {
 							$distance = min(AABB::fromPosition($location)->expand(0.1, 0.1, 0.1)->distanceFromVector($data->attackPos), $distance);
 						});
 						if ($distance !== 69 && $distance > 3.1) {
-							if(++$this->buffer >= 3) {
+							if (++$this->buffer >= 3) {
 								$this->flag($data, ["dist" => round($distance, 4), "type" => "raw"]);
 							}
 						}

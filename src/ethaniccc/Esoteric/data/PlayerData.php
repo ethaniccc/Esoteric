@@ -78,8 +78,6 @@ final class PlayerData {
 	public $currentTick = 0;
 	/** @var int */
 	public $ticksPerSecond = 0;
-	/** @var int[] */
-	private $ticks = [];
 	/** @var Vector3 - The current and previous locations of the player */
 	public $currentLocation, $lastLocation, $lastOnGroundLocation;
 	/** @var Vector3 - Movement deltas of the player */
@@ -138,6 +136,8 @@ final class PlayerData {
 	public $lastClickTick = 0;
 	/** @var bool */
 	public $isClickDataIsValid = true;
+	/** @var int[] */
+	private $ticks = [];
 
 	public function __construct(Player $player) {
 		if (self::$ZERO_VECTOR === null) {
@@ -188,14 +188,13 @@ final class PlayerData {
 			new VelocityA(), new VelocityB(),
 
 			# Edition faker checks
-			new EditionFakerA()
-		];
+			new EditionFakerA()];
 	}
 
 	public function tick(): void {
 		$this->entityLocationMap->executeTick($this);
 		$currentTime = microtime(true);
-		$this->ticks = array_filter($this->ticks, function (float $time) use($currentTime): bool {
+		$this->ticks = array_filter($this->ticks, function (float $time) use ($currentTime): bool {
 			return $currentTime - $time < 1;
 		});
 		$this->ticksPerSecond = count($this->ticks);
