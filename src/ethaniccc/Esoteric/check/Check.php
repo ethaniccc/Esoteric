@@ -3,14 +3,15 @@
 
 namespace ethaniccc\Esoteric\check;
 
+use CortexPE\DiscordWebhookAPI\Embed;
+use CortexPE\DiscordWebhookAPI\Message;
+use CortexPE\DiscordWebhookAPI\Webhook;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
 use ethaniccc\Esoteric\tasks\BanTask;
-use ethaniccc\Esoteric\tasks\ExecuteWebhookTask;
 use ethaniccc\Esoteric\tasks\KickTask;
 use pocketmine\network\mcpe\protocol\DataPacket;
-use stdClass;
 
 abstract class Check {
 
@@ -96,12 +97,47 @@ abstract class Check {
 	}
 
 	protected function punish(PlayerData $data): void {
+		$webhookLink = Esoteric::getInstance()->getSettings()->getWebhookLink();
 		if ($this->option("punishment_type") === 'ban') {
 			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getBanMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new BanTask($data->player, $string), 1);
+			if ($webhookLink !== null) {
+				$message = new Message();
+				$message->setContent("");
+
+				$embed = new Embed();
+				$embed->setTitle("Anti-cheat punishment");
+				$embed->setColor(0xFF0000);
+				$embed->setDescription("
+				Type: **`ban`**
+				Detection code: **`{$this->getCodeName()}`**
+				Detection name: **`{$this->name} ({$this->subType})`**
+				");
+				$message->addEmbed($embed);
+
+				$webhook = new Webhook($webhookLink, $message);
+				$webhook->send();
+			}
 		} elseif ($this->option("punishment_type") === "kick") {
 			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getKickMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, $string), 1);
+			if ($webhookLink !== null) {
+				$message = new Message();
+				$message->setContent("");
+
+				$embed = new Embed();
+				$embed->setTitle("Anti-cheat punishment");
+				$embed->setColor(0xFF0000);
+				$embed->setDescription("
+				Type: **`kick`**
+				Detection code: **`{$this->getCodeName()}`**
+				Detection name: **`{$this->name} ({$this->subType})`**
+				");
+				$message->addEmbed($embed);
+
+				$webhook = new Webhook($webhookLink, $message);
+				$webhook->send();
+			}
 		} else {
 			$this->violations = 0;
 		}
@@ -132,37 +168,6 @@ abstract class Check {
 
 	protected function reward(float $sub = 0.01): void {
 		$this->violations = max($this->violations - $sub, 0);
-	}
-
-	protected function sendWebhook(string $string) {
-		$url = Esoteric::getInstance()->getSettings()->getDiscordWebhook();
-		if($url) {
-			// $data = json_decode("
-			// 	{
-			// 		embeds: [
-			// 			{
-			// 				title: 'Esoteric-AC: Flag',
-			// 				fields: [
-			// 					{
-			// 						name: 'Info',
-			// 						value: {$string}
-			// 					}
-			// 				]
-			// 			}
-			// 		]
-			// 	}");
-			$data = new stdClass();
-			$data->embeds = [];
-			$embed = new stdClass();
-			$embed->title = "Esoteric Alert";
-			$embed->fields = [];
-			$field = new stdClass();
-			$field->name = "Information";
-			$field->value = $string;
-			array_push($embed->fields, $field);
-			array_push($data->embeds, $embed);
-			Esoteric::getInstance()->getServer()->getAsyncPool()->submitTask(new ExecuteWebhookTask($url, $data));
-		}
 	}
 
 }

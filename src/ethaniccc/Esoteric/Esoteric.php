@@ -2,11 +2,12 @@
 
 namespace ethaniccc\Esoteric;
 
+use CortexPE\DiscordWebhookAPI\Message;
+use CortexPE\DiscordWebhookAPI\Webhook;
 use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
 use ethaniccc\Esoteric\listener\PMMPListener;
-use ethaniccc\Esoteric\tasks\ExecuteWebhookTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
 use Exception;
 use pocketmine\event\HandlerList;

@@ -32,10 +32,10 @@ class Webhook {
 
 	/** @var string */
 	protected $url;
-	/** @var string */
-	protected $message = "";
+	/** @var Message */
+	protected $message;
 
-	public function __construct(string $url, string $message = ""){
+	public function __construct(string $url, Message $message){
 		$this->url = $url;
 		$this->message = $message;
 	}
@@ -44,7 +44,7 @@ class Webhook {
 		return $this->url;
 	}
 
-	public function getMessage(): string {
+	public function getMessage(): Message {
 		return $this->message;
 	}
 

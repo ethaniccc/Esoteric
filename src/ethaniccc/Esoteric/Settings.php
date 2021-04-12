@@ -50,7 +50,7 @@ final class Settings {
 		return $this->data["ban_message"] ?? "{prefix} Banned (code={code}) | Make a ticket if this is a mistake";
 	}
 
-	public function getDiscordWebhook(): ?string {
-		return $this->data["discord_webhook"] !== 'none' ? $this->data["discord_webhook"] : null;
+	public function getWebhookLink(): ?string {
+		return isset($this->data["discord_webhook"]) ? ($this->data["discord_webhook"] !== 'none' ? $this->data["discord_webhook"] : null) : null;
 	}
 }
