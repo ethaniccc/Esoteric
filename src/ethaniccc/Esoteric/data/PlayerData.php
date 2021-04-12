@@ -136,6 +136,8 @@ final class PlayerData {
 	public $lastClickTick = 0;
 	/** @var bool */
 	public $isClickDataIsValid = true;
+	/** @var bool */
+	public $isDataClosed = false;
 	/** @var int[] */
 	private $ticks = [];
 

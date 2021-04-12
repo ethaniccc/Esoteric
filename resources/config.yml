@@ -27,8 +27,13 @@ ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of 
 # Setback types: smooth, instant, or none
 setback_type: "instant"
 
-# Discord webhook URL
-discord_webhook: none
+webhook:
+  # Link to the webhook (leave as none to keep webhook functionallity disabled)
+  link: none
+  # If alerts should be sent in webhook messages
+  alerts: false
+  # If punishments should be sent in webhook messages
+  punishments: false
 
 detections:
   # Autoclicker detections

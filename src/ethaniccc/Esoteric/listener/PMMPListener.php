@@ -62,6 +62,9 @@ class PMMPListener implements Listener {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
+		if ($playerData->isDataClosed) {
+			return;
+		}
 		$playerData->inboundProcessor->execute($packet, $playerData);
 		foreach ($playerData->checks as $check)
 			if ($check->enabled())
@@ -77,6 +80,9 @@ class PMMPListener implements Listener {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
+		if ($playerData->isDataClosed) {
+			return;
+		}
 		if ($packet instanceof BatchPacket) {
 			$locationList = [];
 			$key = null;

@@ -62,7 +62,9 @@ class WebhookThread extends Thread {
 					$this->logger->debug("($responseCode) $error");
 				}
 				curl_close($ch);
-				usleep(25000);
+				if ($this->running) {
+					usleep(500000);
+				}
 			}
 			usleep(50000);
 		}
