@@ -27,6 +27,9 @@ ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of 
 # Setback types: smooth, instant, or none
 setback_type: "instant"
 
+# Discord webhook URL
+discord_webhook: none
+
 detections:
   # Autoclicker detections
   Autoclicker:

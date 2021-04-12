@@ -14,6 +14,7 @@ use ethaniccc\Esoteric\check\movement\fly\FlyA;
 use ethaniccc\Esoteric\check\movement\fly\FlyB;
 use ethaniccc\Esoteric\check\movement\fly\FlyC;
 use ethaniccc\Esoteric\check\movement\groundspoof\GroundSpoofA;
+use ethaniccc\Esoteric\check\movement\jesus\JesusA;
 use ethaniccc\Esoteric\check\movement\motion\MotionA;
 use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\motion\MotionC;
@@ -180,11 +181,15 @@ final class PlayerData {
 			# Motion checks
 			new MotionA(), new MotionB(), new MotionC(), new MotionD(),
 
+			#Jesus checks
+			new JesusA(),
+
 			# Velocity checks
 			new VelocityA(), new VelocityB(),
 
 			# Edition faker checks
-			new EditionFakerA(),];
+			new EditionFakerA()
+		];
 	}
 
 	public function tick(): void {

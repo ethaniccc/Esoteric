@@ -7,8 +7,10 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
 use ethaniccc\Esoteric\tasks\BanTask;
+use ethaniccc\Esoteric\tasks\ExecuteWebhookTask;
 use ethaniccc\Esoteric\tasks\KickTask;
 use pocketmine\network\mcpe\protocol\DataPacket;
+use stdClass;
 
 abstract class Check {
 
@@ -130,6 +132,37 @@ abstract class Check {
 
 	protected function reward(float $sub = 0.01): void {
 		$this->violations = max($this->violations - $sub, 0);
+	}
+
+	protected function sendWebhook(string $string) {
+		$url = Esoteric::getInstance()->getSettings()->getDiscordWebhook();
+		if($url) {
+			// $data = json_decode("
+			// 	{
+			// 		embeds: [
+			// 			{
+			// 				title: 'Esoteric-AC: Flag',
+			// 				fields: [
+			// 					{
+			// 						name: 'Info',
+			// 						value: {$string}
+			// 					}
+			// 				]
+			// 			}
+			// 		]
+			// 	}");
+			$data = new stdClass();
+			$data->embeds = [];
+			$embed = new stdClass();
+			$embed->title = "Esoteric Alert";
+			$embed->fields = [];
+			$field = new stdClass();
+			$field->name = "Information";
+			$field->value = $string;
+			array_push($embed->fields, $field);
+			array_push($data->embeds, $embed);
+			Esoteric::getInstance()->getServer()->getAsyncPool()->submitTask(new ExecuteWebhookTask($url, $data));
+		}
 	}
 
 }

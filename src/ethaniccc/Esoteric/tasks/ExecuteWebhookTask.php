@@ -11,19 +11,24 @@ class ExecuteWebhookTask extends AsyncTask {
 
 	/** @var Player */
 	private $url;
-	/** @var string */
+	/** @var stdClass */
 	private $content;
+	/** @var mixed */
+	private $result;
 
+	/**
+	 * `content` should be an stdClass or key array
+	 */
 	public function __construct(string $url, $content) {
 		$this->url = $url;
 		$this->content = $content;
 	}
 
 	public function onRun() {
-		Internet::postURL($this->url, json_encode($this->content), 10, ['Content-Type: application/json']);
+		$this->result = Internet::postURL($this->url, json_encode($this->content), 10, ['Content-Type: application/json']);
 	}
 
 	public function onCompletion(Server $server) {
-		// TODO: Do something, idk @ethanicc
+		print_r($this->result);
 	}
 }
