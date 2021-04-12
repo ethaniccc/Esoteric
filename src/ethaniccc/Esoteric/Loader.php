@@ -28,7 +28,7 @@ final class Loader extends PluginBase {
 		} catch (\Exception $e) {
 			$this->getLogger()->error("Unable to stop esoteric [{$e->getMessage()}]");
 		}
-		if (!Server::getInstance()->isRunning()) {
+		if (!Server::getInstance()->isRunning() && WebhookThread::valid()) {
 			WebhookThread::getInstance()->stop();
 		}
 	}
