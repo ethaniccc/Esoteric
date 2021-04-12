@@ -99,11 +99,6 @@ class PMMPListener implements Listener {
 				} elseif ($pk instanceof NetworkStackLatencyPacket) {
 					$key = $pk->timestamp;
 				}
-
-				$playerData->outboundProcessor->execute($pk, $playerData);
-				foreach ($playerData->checks as $check)
-					if ($check->handleOut())
-						$check->outbound($pk, $playerData);
 				$gen->next();
 			}
 			if ($playerData->loggedIn) {
@@ -114,6 +109,28 @@ class PMMPListener implements Listener {
 							$playerData->entityLocationMap->add($p);
 						}
 					}
+				}
+			}
+
+			if (!$event->isCancelled()) {
+				$gen = PacketUtils::getAllInBatch($packet);
+				while (($buff = $gen->current()) !== null) {
+					$pk = PacketPool::getPacket($buff);
+					try {
+						try {
+							$pk->decode();
+						} catch (\RuntimeException $e) {
+							$gen->next();
+							continue;
+						}
+					} catch (\LogicException $e) {
+						$gen->next();
+						continue;
+					}
+					foreach($playerData->checks as $check)
+						if($check->handleOut()) $check->outbound($packet, $playerData);
+					$playerData->outboundProcessor->execute($packet, $playerData);
+					$gen->next();
 				}
 			}
 		}

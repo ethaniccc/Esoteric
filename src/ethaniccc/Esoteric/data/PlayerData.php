@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\data;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\check\combat\aim\AimA;
+use ethaniccc\Esoteric\check\combat\aim\AimB;
 use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerA;
 use ethaniccc\Esoteric\check\combat\killaura\KillAuraA;
 use ethaniccc\Esoteric\check\combat\range\RangeA;
@@ -74,6 +75,10 @@ final class PlayerData {
 	public $effects = [];
 	/** @var int */
 	public $currentTick = 0;
+	/** @var int */
+	public $ticksPerSecond = 0;
+	/** @var int[] */
+	private $ticks = [];
 	/** @var Vector3 - The current and previous locations of the player */
 	public $currentLocation, $lastLocation, $lastOnGroundLocation;
 	/** @var Vector3 - Movement deltas of the player */
@@ -158,7 +163,7 @@ final class PlayerData {
 			new AutoClickerA(),
 
 			# Aim checks
-			new AimA(),
+			new AimA(), new AimB(),
 
 			# Range checks
 			new RangeA(), new RangeB(),
@@ -184,6 +189,12 @@ final class PlayerData {
 
 	public function tick(): void {
 		$this->entityLocationMap->executeTick($this);
+		$currentTime = microtime(true);
+		$this->ticks = array_filter($this->ticks, function (float $time) use($currentTime): bool {
+			return $currentTime - $time < 1;
+		});
+		$this->ticksPerSecond = count($this->ticks);
+		$this->ticks[] = $currentTime;
 	}
 
 }

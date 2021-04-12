@@ -27,6 +27,8 @@ use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
 use pocketmine\network\mcpe\protocol\SetLocalPlayerAsInitializedPacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 
 final class ProcessInbound {
@@ -236,15 +238,17 @@ final class ProcessInbound {
 				}
 			}
 		} elseif ($packet instanceof InventoryTransactionPacket) {
+			$trData = $packet->trData;
 			switch ($packet->trData->getTypeId()) {
 				case InventoryTransactionPacket::TYPE_USE_ITEM:
-					switch ($packet->trData->getActionType()) {
+					/** @var UseItemTransactionData $trData */
+					switch ($trData->getActionType()) {
 						case InventoryTransactionPacket::TYPE_NORMAL:
-							$clickedBlockPos = new Vector3($packet->trData->getClickPos()->x, $packet->trData->getClickPos()->y, $packet->trData->getClickPos()->z);
-							$newBlockPos = $clickedBlockPos->getSide($packet->trData->getFace());
-							$block = $packet->trData->getItemInHand()->getItemStack()->getBlock();
-							if ($packet->trData->getItemInHand()->getStackId() < 0) {
-								$block = new UnknownBlock($packet->trData->getItemInHand()->getStackId(), 0);
+							$clickedBlockPos = new Vector3($trData->getClickPos()->x, $trData->getClickPos()->y, $trData->getClickPos()->z);
+							$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
+							$block = $trData->getItemInHand()->getItemStack()->getBlock();
+							if ($trData->getItemInHand()->getStackId() < 0) {
+								$block = new UnknownBlock($trData->getItemInHand()->getStackId(), 0);
 							}
 							if (($block->canBePlaced() || $block instanceof UnknownBlock) && !in_array($newBlockPos, $this->blockPlaceVectors)) {
 								$this->blockPlaceVectors[] = $newBlockPos;
@@ -253,12 +257,13 @@ final class ProcessInbound {
 					}
 					break;
 				case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
-					switch ($packet->trData->actionType) {
+					/** @var UseItemOnEntityTransactionData $trData */
+					switch ($trData->getActionType()) {
 						case InventoryTransactionPacket::TYPE_MISMATCH:
 							$data->lastTarget = $data->target;
-							$data->target = $packet->trData->entityRuntimeId;
+							$data->target = $trData->getEntityRuntimeId();
 							$data->attackTick = $data->currentTick;
-							$data->attackPos = $packet->trData->playerPos;
+							$data->attackPos = $trData->getPlayerPos();
 							break;
 					}
 					$this->click($data);
@@ -316,13 +321,14 @@ final class ProcessInbound {
 			try {
 				$data->cps = 20 / MathUtils::getAverage($data->clickSamples);
 				if ($data->cps === 100.0) {
-					// ticked once... lol
+					// ticked once...?
 					$data->isClickDataIsValid = false;
 				}
 			} catch (\ErrorException $e) {
 				$data->cps = INF;
 				$data->isClickDataIsValid = false;
 			}
+
 			$data->kurtosis = MathUtils::getKurtosis($data->clickSamples);
 			$data->skewness = MathUtils::getSkewness($data->clickSamples);
 			$data->deviation = MathUtils::getDeviation($data->clickSamples);

@@ -10,6 +10,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 
 class RangeB extends Check {
 
@@ -20,7 +21,7 @@ class RangeB extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === InventoryTransactionPacket::USE_ITEM_ON_ENTITY_ACTION_ATTACK && !$data->isMobile) {
+		if ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK && !$data->isMobile) {
 			$this->waiting = true;
 		} elseif ($packet instanceof MovePlayerPacket && $this->waiting) {
 			if ($data->currentTick - $data->attackTick <= 1) {

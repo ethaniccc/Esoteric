@@ -16,10 +16,11 @@ class MotionA extends Check {
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof MovePlayerPacket && !$data->onGround && $data->ticksSinceFlight >= 10) {
 			$currentYMovement = $data->currentMoveDelta->y;
-			if ($data->ticksSinceJump <= 1) {
+			if ($data->ticksSinceJump === 1) {
 				$currentYMovement -= $data->jumpVelocity;
 			}
-			if ($data->ticksSinceMotion <= 1) {
+			// possible 1 tick offset (wtf)
+			if ($data->ticksSinceMotion <= 2) {
 				$currentYMovement -= $data->motion->y;
 			}
 			$lastYMovement = $data->lastMoveDelta->y;

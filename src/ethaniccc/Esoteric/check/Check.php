@@ -80,11 +80,11 @@ abstract class Check {
 			$i++;
 		}
 		$string = str_replace(["{prefix}", "{player}", "{check_name}", "{check_subtype}", "{violations}", "{data}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->subType, var_export(round($this->violations, 2), true), $dataString], Esoteric::getInstance()->getSettings()->getAlertMessage());
+		Esoteric::getInstance()->getPlugin()->getLogger()->debug($string);
 		foreach (Esoteric::getInstance()->hasAlerts as $other) {
 			if (microtime(true) - $other->lastAlertTime >= $other->alertCooldown) {
 				$other->lastAlertTime = microtime(true);
 				$other->player->sendMessage($string);
-				print_r("NOT SENDING");
 			}
 		}
 	}
