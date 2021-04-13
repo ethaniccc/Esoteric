@@ -23,10 +23,10 @@ class ProcessOutbound {
 			}
 		} elseif ($packet instanceof UpdateBlockPacket) {
 			$blockVector = new Vector3($packet->x, $packet->y, $packet->z);
-			if ($packet->blockRuntimeId !== 134 && in_array($blockVector, $data->inboundProcessor->blockPlaceVectors)) {
-				foreach ($data->inboundProcessor->blockPlaceVectors as $key => $vector) {
+			if ($packet->blockRuntimeId !== 134) {
+				foreach ($data->inboundProcessor->placedBlocks as $key => $vector) {
 					if ($blockVector->equals($vector)) {
-						unset($data->inboundProcessor->blockPlaceVectors[$key]);
+						unset($data->inboundProcessor->placedBlocks[$key]);
 					}
 				}
 			}

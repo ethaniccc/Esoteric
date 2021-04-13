@@ -29,6 +29,7 @@ use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
+use pocketmine\block\Block;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\Player;
@@ -106,6 +107,8 @@ final class PlayerData {
 	public $ticksSinceInLiquid = 0, $ticksSinceInCobweb = 0, $ticksSinceInClimbable = 0;
 	/** @var int - Movements passed since the user teleported. */
 	public $ticksSinceTeleport = 0;
+	/** @var bool - Boolean value for if the player is in the void. */
+	public $isInVoid = false;
 	/** @var bool */
 	public $teleported = false;
 	/** @var int - The amount of movements that have passed since the player has disabled flight. */
@@ -118,6 +121,10 @@ final class PlayerData {
 	public $ticksSinceJump = 0;
 	/** @var bool */
 	public $hasMovementSuppressed = false;
+	/** @var Block[] */
+	public $blocksBelow = [];
+	/** @var Block[] */
+	public $lastBlocksBelow = [];
 	/** @var int - Current gamemode of the player. */
 	public $gamemode = 0;
 	public $isSprinting = false;

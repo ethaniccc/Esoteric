@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
+use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
@@ -16,6 +17,9 @@ use pocketmine\block\Vine;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
 use pocketmine\level\Location;
+use pocketmine\level\particle\DustParticle;
+use pocketmine\level\particle\FlameParticle;
+use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
@@ -30,16 +34,18 @@ use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
+use pocketmine\Server;
 
 final class ProcessInbound {
 
-	/** @var Vector3[] */
-	public $blockPlaceVectors = [];
+	/** @var Block[] */
+	public $placedBlocks = [];
 	/** @var Vector3 */
 	public $knockbackMotion;
 
 	public function execute(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof MovePlayerPacket) {
+			$data->lastBlocksBelow = $data->blocksBelow;
 			$location = Location::fromObject($packet->position->subtract(0, 1.62, 0), $data->player->getLevel(), $packet->yaw, $packet->pitch);
 			$data->teleported = false;
 			$data->hasMovementSuppressed = false;
@@ -61,12 +67,19 @@ final class ProcessInbound {
 			$actualMoveY = $data->currentMoveDelta->y;
 			$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
 			$flag2 = $expectedMoveY < 0;
-			$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && !$data->teleported;
+			$AABB1 = $data->boundingBox->expandedCopy(0, 0.1, 0);
+			$AABB1->minY = $data->boundingBox->maxY - 0.2;
+			$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && count($data->player->getLevel()->getCollisionBlocks($AABB1, true)) !== 0;
 			$data->isCollidedVertically = $flag1;
 			$data->onGround = $packet->onGround;
 			$AABBCollision = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), true)) !== 0;
 			$data->expectedOnGround = $AABBCollision;
 			$data->isCollidedHorizontally = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expand(0.5, -0.05, 0.5), true)) !== 0;
+			$data->isInVoid = $location->y <= -35;
+			$AABB2 = $data->boundingBox->expandedCopy(0.5, 0.2, 0.5);
+			$AABB2->maxY = $AABB2->minY + 0.4;
+			$data->blocksBelow = [];
+			$data->blocksBelow = $location->getLevel()->getCollisionBlocks($AABB2);
 
 			if ($data->onGround) {
 				++$data->onGroundTicks;
@@ -219,24 +232,25 @@ final class ProcessInbound {
 			 * we should remove it to prevent possible false-flags with a GroundSpoof check.
 			 */
 
-			$possibleGhostBlock = $data->onGround && !$AABBCollision;
+			$possibleGhostBlock = $data->onGround && $data->player->getLevel()->getBlockAt($location->x, $location->y - 1, $location->z, false, false)->getId() === 0;
 			if ($possibleGhostBlock) {
-				foreach ($this->blockPlaceVectors as $blockVector) {
-					if (AABB::fromPosition($location)->expand(10, 10, 10)->isVectorInside($blockVector)) {
+				foreach ($this->placedBlocks as $blockVector) {
+					if ($data->boundingBox->expandedCopy(3, 3, 3)->isVectorInside($blockVector->asVector3())) {
 						$data->expectedOnGround = true;
+						$data->blocksBelow[] = $blockVector;
 						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $blockVector): void {
 							$pk = new UpdateBlockPacket();
-							$pk->x = (int) $blockVector->x;
-							$pk->y = (int) $blockVector->y;
-							$pk->z = (int) $blockVector->z;
+							$pk->x = $blockVector->x;
+							$pk->y = $blockVector->y;
+							$pk->z = $blockVector->z;
 							$pk->blockRuntimeId = 134;
 							$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 							$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 							$data->player->dataPacket($pk);
 							NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($blockVector): void {
-								foreach ($this->blockPlaceVectors as $key => $vector) {
-									if ($vector->equals($blockVector)) {
-										unset($this->blockPlaceVectors[$key]);
+								foreach ($this->placedBlocks as $key => $vector) {
+									if ($vector->equals($blockVector->asVector3())) {
+										unset($this->placedBlocks[$key]);
 										break;
 									}
 								}
@@ -245,29 +259,63 @@ final class ProcessInbound {
 					}
 				}
 			}
+
+			foreach ($this->placedBlocks as $blockVector) {
+				if ($location->distance($blockVector->asVector3()) >= 5) {
+					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $blockVector): void {
+						$pk = new UpdateBlockPacket();
+						$pk->x = $blockVector->x;
+						$pk->y = $blockVector->y;
+						$pk->z = $blockVector->z;
+						$pk->blockRuntimeId = 134;
+						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
+						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+						$data->player->dataPacket($pk);
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($blockVector): void {
+							foreach ($this->placedBlocks as $key => $vector) {
+								if ($vector->equals($blockVector->asVector3())) {
+									unset($this->placedBlocks[$key]);
+									break;
+								}
+							}
+						});
+					});
+				}
+			}
 		} elseif ($packet instanceof InventoryTransactionPacket) {
 			$trData = $packet->trData;
 			switch ($trData->getTypeId()) {
 				case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
-					/** @var UseItemOnEntityTransactionData $trData */ if ($trData->getTypeId() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
-					$data->lastTarget = $data->target;
-					$data->target = $trData->getEntityRuntimeId();
-					$data->attackTick = $data->currentTick;
-					$data->attackPos = $trData->getPlayerPos();
-				}
+					/** @var UseItemOnEntityTransactionData $trData */
+					if ($trData->getTypeId() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
+						$data->lastTarget = $data->target;
+						$data->target = $trData->getEntityRuntimeId();
+						$data->attackTick = $data->currentTick;
+						$data->attackPos = $trData->getPlayerPos();
+					}
 					break;
 				case InventoryTransactionPacket::TYPE_USE_ITEM:
-					/** @var UseItemTransactionData $trData */ if ($trData->getActionType() === UseItemTransactionData::ACTION_CLICK_BLOCK) {
-					$clickedBlockPos = clone $trData->getBlockPos();
-					$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
-					$block = $trData->getItemInHand()->getItemStack()->getBlock();
-					if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
-						$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
+					/** @var UseItemTransactionData $trData */
+					if ($trData->getActionType() === UseItemTransactionData::ACTION_CLICK_BLOCK) {
+						$clickedBlockPos = $trData->getBlockPos();
+						$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
+						$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
+						if ($blockToReplace->canBeReplaced()) {
+							$block = $trData->getItemInHand()->getItemStack()->getBlock();
+							if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
+								$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
+							}
+							foreach ($this->placedBlocks as $other) {
+								if($other->asVector3()->equals($blockToReplace->asVector3())) {
+									return;
+								}
+							}
+							if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
+								$block->position($blockToReplace->asPosition());
+								$this->placedBlocks[] = clone $block;
+							}
+						}
 					}
-					if (($block->canBePlaced() || $block instanceof UnknownBlock) && !in_array($newBlockPos, $this->blockPlaceVectors)) {
-						$this->blockPlaceVectors[] = $newBlockPos;
-					}
-				}
 					break;
 			}
 		} elseif ($packet instanceof NetworkStackLatencyPacket) {

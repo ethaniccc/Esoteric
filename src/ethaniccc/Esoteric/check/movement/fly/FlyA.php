@@ -23,13 +23,12 @@ class FlyA extends Check {
 			if ($difference > $this->option("diff_max", 0.015) && !$data->teleported && $data->ticksSinceMotion > 1 && $data->ticksSinceInLiquid >= 5 && $data->ticksSinceInClimbable >= 5 && $data->ticksSinceInCobweb >= 5 && abs($predictedYMovement) > 0.005 && !$data->isCollidedHorizontally) {
 				if (++$this->buffer >= 2) {
 					$this->flag($data, ["diff" => round($difference, 4)]);
-					$data->player->sendMessage("given={$data->currentMoveDelta->y} last={$data->lastMoveDelta->y} expected=$predictedYMovement blockAbove=" . var_export($this->lastBlockAbove, true));
 					$this->setback($data);
 					$this->buffer = min($this->buffer, 4);
 				}
 			} else {
 				$this->reward();
-				$this->buffer = max($this->buffer - 0.65, 0);
+				$this->buffer = max($this->buffer - 0.25, 0);
 			}
 			$this->lastBlockAbove = $data->hasBlockAbove;
 		}

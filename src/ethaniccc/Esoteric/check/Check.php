@@ -59,6 +59,7 @@ abstract class Check {
 	}
 
 	protected function flag(PlayerData $data, array $extraData = []): void {
+		$extraData["ping"] = $data->player->getPing();
 		if (!$this->experimental) {
 			++$this->violations;
 			$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
@@ -66,6 +67,16 @@ abstract class Check {
 			if ($canSend) {
 				$message = new Message();
 				$message->setContent("");
+
+				$dataString = "";
+				$n = count($extraData);
+				$i = 1;
+				foreach ($extraData as $name => $value) {
+					$dataString .= "$name=$value";
+					if ($i !== $n)
+						$dataString .= " ";
+					$i++;
+				}
 
 				$embed = new Embed();
 				$embed->setTitle("Anti-cheat alert");
@@ -75,6 +86,7 @@ abstract class Check {
 				Violations: **`{$this->violations}`**
 				Codename: **`{$this->getCodeName()}`**
 				Detection name: **`{$this->name} ({$this->subType})`**
+				Debug data: **`$dataString`**
 				");
 				$message->addEmbed($embed);
 
@@ -82,7 +94,6 @@ abstract class Check {
 				$webhook->send();
 			}
 		}
-		$extraData["ping"] = $data->player->getPing();
 		$this->warn($data, $extraData);
 		if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
 			if ($data->player->hasPermission("ac.bypass")) {
