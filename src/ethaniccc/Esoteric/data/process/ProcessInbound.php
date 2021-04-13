@@ -4,7 +4,6 @@ namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
-use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
@@ -17,9 +16,6 @@ use pocketmine\block\Vine;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
 use pocketmine\level\Location;
-use pocketmine\level\particle\DustParticle;
-use pocketmine\level\particle\FlameParticle;
-use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
@@ -34,7 +30,6 @@ use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
-use pocketmine\Server;
 
 final class ProcessInbound {
 
@@ -286,36 +281,34 @@ final class ProcessInbound {
 			$trData = $packet->trData;
 			switch ($trData->getTypeId()) {
 				case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
-					/** @var UseItemOnEntityTransactionData $trData */
-					if ($trData->getTypeId() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
-						$data->lastTarget = $data->target;
-						$data->target = $trData->getEntityRuntimeId();
-						$data->attackTick = $data->currentTick;
-						$data->attackPos = $trData->getPlayerPos();
-					}
+					/** @var UseItemOnEntityTransactionData $trData */ if ($trData->getTypeId() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
+					$data->lastTarget = $data->target;
+					$data->target = $trData->getEntityRuntimeId();
+					$data->attackTick = $data->currentTick;
+					$data->attackPos = $trData->getPlayerPos();
+				}
 					break;
 				case InventoryTransactionPacket::TYPE_USE_ITEM:
-					/** @var UseItemTransactionData $trData */
-					if ($trData->getActionType() === UseItemTransactionData::ACTION_CLICK_BLOCK) {
-						$clickedBlockPos = $trData->getBlockPos();
-						$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
-						$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
-						if ($blockToReplace->canBeReplaced()) {
-							$block = $trData->getItemInHand()->getItemStack()->getBlock();
-							if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
-								$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
-							}
-							foreach ($this->placedBlocks as $other) {
-								if($other->asVector3()->equals($blockToReplace->asVector3())) {
-									return;
-								}
-							}
-							if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
-								$block->position($blockToReplace->asPosition());
-								$this->placedBlocks[] = clone $block;
+					/** @var UseItemTransactionData $trData */ if ($trData->getActionType() === UseItemTransactionData::ACTION_CLICK_BLOCK) {
+					$clickedBlockPos = $trData->getBlockPos();
+					$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
+					$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
+					if ($blockToReplace->canBeReplaced()) {
+						$block = $trData->getItemInHand()->getItemStack()->getBlock();
+						if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
+							$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
+						}
+						foreach ($this->placedBlocks as $other) {
+							if ($other->asVector3()->equals($blockToReplace->asVector3())) {
+								return;
 							}
 						}
+						if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
+							$block->position($blockToReplace->asPosition());
+							$this->placedBlocks[] = clone $block;
+						}
 					}
+				}
 					break;
 			}
 		} elseif ($packet instanceof NetworkStackLatencyPacket) {

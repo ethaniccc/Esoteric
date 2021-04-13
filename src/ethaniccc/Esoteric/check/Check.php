@@ -63,7 +63,8 @@ abstract class Check {
 		if (!$this->experimental) {
 			++$this->violations;
 			$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
-			$webhookLink = $webhookSettings["link"]; $canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
+			$webhookLink = $webhookSettings["link"];
+			$canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
 			if ($canSend) {
 				$message = new Message();
 				$message->setContent("");
@@ -104,6 +105,10 @@ abstract class Check {
 		}
 	}
 
+	public function getCodeName(): string {
+		return $this->option("code", "{$this->name}({$this->subType})");
+	}
+
 	protected function warn(PlayerData $data, array $extraData): void {
 		$dataString = "";
 		$n = count($extraData);
@@ -130,7 +135,8 @@ abstract class Check {
 
 	protected function punish(PlayerData $data): void {
 		$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
-		$webhookLink = $webhookSettings["link"]; $canSend = $webhookSettings["punishments"] && $webhookLink !== "none";
+		$webhookLink = $webhookSettings["link"];
+		$canSend = $webhookSettings["punishments"] && $webhookLink !== "none";
 		if ($this->option("punishment_type") === 'ban') {
 			$data->isDataClosed = true;
 			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getBanMessage());
@@ -178,10 +184,6 @@ abstract class Check {
 		} else {
 			$this->violations = 0;
 		}
-	}
-
-	public function getCodeName(): string {
-		return $this->option("code", "{$this->name}({$this->subType})");
 	}
 
 	protected function setback(PlayerData $data): void {

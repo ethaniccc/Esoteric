@@ -107,8 +107,8 @@ class PMMPListener implements Listener {
 				}
 
 				$playerData->outboundProcessor->execute($pk, $playerData);
-				foreach($playerData->checks as $check)
-					if($check->handleOut())
+				foreach ($playerData->checks as $check)
+					if ($check->handleOut())
 						$check->outbound($pk, $playerData);
 				$gen->next();
 			}

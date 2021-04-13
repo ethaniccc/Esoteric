@@ -7,7 +7,6 @@ use ethaniccc\Esoteric\data\PlayerData;
 use pocketmine\block\BlockIds;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
-use pocketmine\Server;
 
 class MotionA extends Check {
 
@@ -41,7 +40,7 @@ class MotionA extends Check {
 
 				$lastYMovement = $data->lastMoveDelta->y;
 				if ($currentYMovement > $lastYMovement && $currentYMovement > $this->lastPreviousYMovement && $currentYMovement > 0.005 && !$data->isCollidedHorizontally && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10 && !$data->teleported) {
-					$this->flag($data, ["current" => round($currentYMovement, 3), "last" => round($lastYMovement, 3), "preV" => $this->lastPreviousYMovement, "tick" => Server::getInstance()->getTick()]);
+					$this->flag($data, ["current" => round($currentYMovement, 3), "last" => round($lastYMovement, 3), "preV" => round($this->lastPreviousYMovement, 3)]);
 					$this->setback($data);
 				} else {
 					$this->reward(0.02);
