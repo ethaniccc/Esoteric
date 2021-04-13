@@ -38,8 +38,12 @@ class MotionA extends Check {
 					}
 				}
 
+				if ($data->ticksSinceInClimbable) {
+					$currentYMovement -= 0.2;
+				}
+
 				$lastYMovement = $data->lastMoveDelta->y;
-				if ($currentYMovement > $lastYMovement && $currentYMovement > $this->lastPreviousYMovement && $currentYMovement > 0.005 && !$data->isCollidedHorizontally && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10 && !$data->teleported) {
+				if ($currentYMovement > $lastYMovement && $currentYMovement > $this->lastPreviousYMovement && $currentYMovement > 0.005 && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10 && !$data->teleported) {
 					$this->flag($data, ["current" => round($currentYMovement, 3), "last" => round($lastYMovement, 3), "preV" => round($this->lastPreviousYMovement, 3)]);
 					$this->setback($data);
 				} else {

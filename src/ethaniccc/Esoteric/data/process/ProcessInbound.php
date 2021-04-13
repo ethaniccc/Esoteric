@@ -11,12 +11,14 @@ use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
+use pocketmine\block\Solid;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
 use pocketmine\level\Location;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
@@ -227,24 +229,26 @@ final class ProcessInbound {
 			 * we should remove it to prevent possible false-flags with a GroundSpoof check.
 			 */
 
-			$possibleGhostBlock = $data->onGround && $data->player->getLevel()->getBlockAt($location->x, $location->y - 1, $location->z, false, false)->getId() === 0;
-			if ($possibleGhostBlock) {
+			// TODO: There's a stupid bug where setting a block with UpdateBlockPacket won't do anything, make future attempts to fix this BS.
+
+			if ($data->onGround) {
 				foreach ($this->placedBlocks as $blockVector) {
-					if ($data->boundingBox->expandedCopy(3, 3, 3)->isVectorInside($blockVector->asVector3())) {
+					if ($data->boundingBox->expandedCopy(4, 4, 4)->isVectorInside($blockVector->asVector3())) {
 						$data->expectedOnGround = true;
 						$data->blocksBelow[] = $blockVector;
-						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $blockVector): void {
+						$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $realBlock): void {
 							$pk = new UpdateBlockPacket();
-							$pk->x = $blockVector->x;
-							$pk->y = $blockVector->y;
-							$pk->z = $blockVector->z;
-							$pk->blockRuntimeId = 134;
+							$pk->x = $realBlock->x;
+							$pk->y = $realBlock->y;
+							$pk->z = $realBlock->z;
+							$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
 							$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
-							$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+							$pk->dataLayerId = $realBlock instanceof Liquid ? UpdateBlockPacket::DATA_LAYER_LIQUID : UpdateBlockPacket::DATA_LAYER_NORMAL;
 							$data->player->dataPacket($pk);
-							NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($blockVector): void {
+							NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($realBlock): void {
 								foreach ($this->placedBlocks as $key => $vector) {
-									if ($vector->equals($blockVector->asVector3())) {
+									if ($vector->equals($realBlock->asVector3())) {
 										unset($this->placedBlocks[$key]);
 										break;
 									}
@@ -256,19 +260,20 @@ final class ProcessInbound {
 			}
 
 			foreach ($this->placedBlocks as $blockVector) {
-				if ($location->distance($blockVector->asVector3()) >= 5) {
-					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $blockVector): void {
+				if ($location->distance($blockVector->asVector3()) >= 4) {
+					$realBlock = $data->player->getLevel()->getBlock($blockVector->asVector3(), false, false);
+					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $realBlock): void {
 						$pk = new UpdateBlockPacket();
-						$pk->x = $blockVector->x;
-						$pk->y = $blockVector->y;
-						$pk->z = $blockVector->z;
-						$pk->blockRuntimeId = 134;
+						$pk->x = $realBlock->x;
+						$pk->y = $realBlock->y;
+						$pk->z = $realBlock->z;
+						$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
 						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
-						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+						$pk->dataLayerId = $realBlock instanceof Liquid ? UpdateBlockPacket::DATA_LAYER_LIQUID : UpdateBlockPacket::DATA_LAYER_NORMAL;
 						$data->player->dataPacket($pk);
-						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($blockVector): void {
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($realBlock): void {
 							foreach ($this->placedBlocks as $key => $vector) {
-								if ($vector->equals($blockVector->asVector3())) {
+								if ($vector->equals($realBlock->asVector3())) {
 									unset($this->placedBlocks[$key]);
 									break;
 								}
@@ -305,6 +310,7 @@ final class ProcessInbound {
 						}
 						if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
 							$block->position($blockToReplace->asPosition());
+							$data->player->sendMessage("(pre-place) block @ ({$blockToReplace->x}, {$blockToReplace->y}, {$blockToReplace->z}) id is {$blockToReplace->getId()}");
 							$this->placedBlocks[] = clone $block;
 						}
 					}

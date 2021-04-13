@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\data\process;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -23,11 +24,9 @@ class ProcessOutbound {
 			}
 		} elseif ($packet instanceof UpdateBlockPacket) {
 			$blockVector = new Vector3($packet->x, $packet->y, $packet->z);
-			if ($packet->blockRuntimeId !== 134) {
-				foreach ($data->inboundProcessor->placedBlocks as $key => $vector) {
-					if ($blockVector->equals($vector)) {
-						unset($data->inboundProcessor->placedBlocks[$key]);
-					}
+			foreach ($data->inboundProcessor->placedBlocks as $key => $block) {
+				if ($blockVector->equals($block) && RuntimeBlockMapping::toStaticRuntimeId($block->getId(), $block->getDamage()) === $packet->blockRuntimeId) {
+					unset($data->inboundProcessor->placedBlocks[$key]);
 				}
 			}
 		} elseif ($packet instanceof SetActorMotionPacket && $packet->entityRuntimeId === $data->player->getId()) {
