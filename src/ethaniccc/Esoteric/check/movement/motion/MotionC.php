@@ -27,7 +27,7 @@ class MotionC extends Check {
 					$blockFriction = $block->getFrictionFactor();
 				} elseif ($block->getFrictionFactor() !== $blockFriction) {
 					// two different blocks
-					$data->player->sendMessage("sus {$block->getFrictionFactor()} vs $blockFriction");
+					// $data->player->sendMessage("sus {$block->getFrictionFactor()} vs $blockFriction");
 					return;
 				}
 			}

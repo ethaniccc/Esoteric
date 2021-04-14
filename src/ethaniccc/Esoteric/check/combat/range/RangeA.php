@@ -25,31 +25,30 @@ class RangeA extends Check {
 		if ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
 			$this->waiting = true;
 		} elseif ($packet instanceof MovePlayerPacket && $this->waiting) {
-			if ($data->currentTick - $data->attackTick <= 1) {
+			if ($data->currentTick - $data->attackTick <= 2) {
 				$locationData = $data->entityLocationMap->get($data->target);
 				if ($locationData !== null) {
-					if ($data->isMobile) {
-						$distance = 69;
-						$locationData->history->iterate(function (Vector3 $location) use (&$distance, $data): void {
-							$distance = min(AABB::fromPosition($location)->expand(0.1, 0.1, 0.1)->distanceFromVector($data->attackPos), $distance);
-						});
-						if ($distance !== 69 && $distance > 3.1) {
-							if (++$this->buffer >= 3) {
-								$this->flag($data, ["dist" => round($distance, 4), "type" => "raw"]);
-							}
+					$distance = 69;
+					$locationData->history->iterate(function (Vector3 $location) use (&$distance, $data): void {
+						$distance = min(AABB::fromPosition($location)->expand(0.1, 0.1, 0.1)->distanceFromVector($data->attackPos), $distance);
+					});
+					if ($distance !== 69 && $distance > $this->option("max_reach", 3.1)) {
+						if (++$this->buffer >= 3) {
+							$this->flag($data, ["dist" => round($distance, 4), "type" => "raw"]);
 						}
-					} else {
+					}
+					if (!$data->isMobile) {
 						$ray = new Ray($data->attackPos, $data->directionVector);
 						$distance = 69;
 						$locationData->history->iterate(function (Vector3 $location) use (&$distance, $ray): void {
-							$AABB = AABB::fromPosition($location)->expand(0.10325, 0.10325, 0.1325);
+							$AABB = AABB::fromPosition($location)->expand(0.10325, 0.10325, 0.10325);
 							$intersection = $AABB->calculateIntercept($ray->getOrigin(), $ray->traverse(20));
 							if ($intersection !== null) {
 								$AABB->isVectorInside($ray->getOrigin()) ? $distance = 0 : $distance = min($intersection->getHitVector()->distance($ray->getOrigin()), $distance);
 							}
 						});
 
-						if ($distance > $this->option("max_reach", 3) && $distance !== 69) {
+						if ($distance > $this->option("max_reach", 3.1) && $distance !== 69) {
 							if (++$this->buffer >= 3) {
 								$this->flag($data, ["dist" => round($distance, 4), "type" => "raycast"]);
 							}

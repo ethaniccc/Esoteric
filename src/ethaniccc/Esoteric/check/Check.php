@@ -23,6 +23,9 @@ abstract class Check {
 	public $violations = 0;
 	public $buffer = 0;
 
+	/** @var int[] */
+	private static $TOTAL_VIOLATIONS = [];
+
 	public function __construct(string $name, string $subType, string $description, bool $experimental = false) {
 		$this->name = $name;
 		$this->subType = $subType;
@@ -62,6 +65,15 @@ abstract class Check {
 		$extraData["ping"] = $data->player->getPing();
 		if (!$this->experimental) {
 			++$this->violations;
+			if (!isset(self::$TOTAL_VIOLATIONS[$data->player->getName()])) {
+				self::$TOTAL_VIOLATIONS[$data->player->getName()] = 0;
+			}
+			self::$TOTAL_VIOLATIONS[$data->player->getName()] += 1;
+			$banwaveSettings = Esoteric::getInstance()->getSettings()->getWaveSettings();
+			if ($banwaveSettings["enabled"] && self::$TOTAL_VIOLATIONS[$data->player->getName()] >= $banwaveSettings["violations"] && !$data->player->hasPermission("ac.bypass")) {
+				$wave = Esoteric::getInstance()->getBanwave();
+				$wave->add($data->player->getName(), $this->getCodeName());
+			}
 			$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
 			$webhookLink = $webhookSettings["link"];
 			$canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
@@ -95,7 +107,13 @@ abstract class Check {
 				$webhook->send();
 			}
 		}
-		$this->warn($data, $extraData);
+		if (!$this->experimental) {
+			if ($this->violations >= 2) {
+				$this->warn($data, $extraData);
+			}
+		} else {
+			$this->warn($data, $extraData);
+		}
 		if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
 			if ($data->player->hasPermission("ac.bypass")) {
 				$this->violations = 0;

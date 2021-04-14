@@ -32,3 +32,7 @@ permissions:
             default: op
           ac.command.delay:
             description: Access to change the alert delay
+            default: op
+          ac.command.banwave:
+            description: Handle Esoteric ban waves
+            default: op

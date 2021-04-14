@@ -43,15 +43,19 @@ final class Settings {
 	}
 
 	public function getKickMessage(): string {
-		return $this->data["kick_message"] ?? "{prefix} Kicked (code={code}) | Contact staff if this issue persists";
+		return $this->data["kick_message"] ?? "{prefix} Kicked (code={code})\nContact staff if this issue persists";
 	}
 
 	public function getBanMessage(): string {
-		return $this->data["ban_message"] ?? "{prefix} Banned (code={code}) | Make a ticket if this is a mistake";
+		return $this->data["ban_message"] ?? "{prefix} Banned (code={code})\nMake a ticket if this is a mistake";
 	}
 
 	public function getWebhookSettings(): array {
 		return $this->data["webhook"] ?? ["link" => "none", "alerts" => false, "punishments" => false];
+	}
+
+	public function getWaveSettings(): array {
+		return $this->data["banwaves"] ?? ["enabled" => false, "violations" => -1];
 	}
 
 }

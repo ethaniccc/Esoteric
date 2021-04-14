@@ -3,11 +3,15 @@
 namespace ethaniccc\Esoteric\command;
 
 use ethaniccc\Esoteric\Esoteric;
+use ethaniccc\Esoteric\tasks\AsyncClosureTask;
+use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
+use ethaniccc\Esoteric\utils\banwave\Banwave;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\PluginIdentifiableCommand;
 use pocketmine\Player;
 use pocketmine\plugin\Plugin;
+use pocketmine\Server;
 use pocketmine\utils\TextFormat;
 
 class EsotericCommand extends Command implements PluginIdentifiableCommand {
@@ -101,6 +105,74 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 					} else {
 						$sender->sendMessage($this->getPermissionMessage());
 					}
+				}
+				break;
+			case "banwave":
+				if ($sender->hasPermission("ac.command.banwave")) {
+					if (Esoteric::getInstance()->getBanwave() === null) {
+						$sender->sendMessage(TextFormat::RED . "Banwaves are disabled");
+					}
+					$sub = $args[1] ?? null;
+					if ($sub === null) {
+						$sender->sendMessage(TextFormat::RED . "Available sub commands: execute, undo, add, remove");
+					} else {
+						switch ($sub) {
+							case "execute":
+								Esoteric::getInstance()->getBanwave()->execute();
+								break;
+							case "undo":
+								$selected = $args[2] ?? null;
+								if ($selected === null) {
+									$sender->sendMessage(TextFormat::RED . "You need to specify a ban wave to undo");
+									return;
+								}
+								$selected = (int) $selected;
+								if (!in_array($selected, range(1, Esoteric::getInstance()->getBanwave()->getId()))) {
+									$sender->sendMessage(TextFormat::RED . "Invalid ban wave. Current ban wave ID is " . Esoteric::getInstance()->getBanwave()->getId());
+									return;
+								}
+								Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask(Esoteric::getInstance()->getPlugin()->getDataFolder() . "banwaves/banwave-$selected.json", function (Banwave $banwave) use($sender): void {
+									if (count($banwave->getBannedPlayers()) === 0) {
+										$sender->sendMessage(TextFormat::RED . "No banned players found in this ban wave");
+									} else {
+										$players = [];
+										foreach($banwave->getBannedPlayers() as $bannedPlayer) {
+											$players[] = $bannedPlayer;
+											Server::getInstance()->getNameBans()->remove($bannedPlayer);
+											$banwave->removeFromBanned($bannedPlayer);
+										}
+										$sender->sendMessage(TextFormat::GREEN . "Players unbanned: " . implode(", ", $players));
+										$banwave = serialize($banwave);
+										Server::getInstance()->getAsyncPool()->submitTask(new AsyncClosureTask(function () use($banwave): void {
+											$banwave = unserialize($banwave);
+											/** @var Banwave $banwave */
+											$banwave->update();
+										}));
+									}
+								}));
+								break;
+							case "remove":
+								$selected = $args[2] ?? null;
+								if ($selected === null) {
+									$sender->sendMessage(TextFormat::RED . "You need to specify a player to remove from the ban wave");
+									return;
+								}
+								Esoteric::getInstance()->getBanwave()->removeFromList($selected);
+								$sender->sendMessage(TextFormat::GREEN . $selected . " was removed from the ban wave");
+								break;
+							case "add":
+								$selected = $args[2] ?? null;
+								if ($selected === null) {
+									$sender->sendMessage(TextFormat::RED . "You need to specify a player to add to the ban wave");
+									return;
+								}
+								Esoteric::getInstance()->getBanwave()->add($selected, "manual");
+								$sender->sendMessage(TextFormat::GREEN . $selected . " was added to the ban wave");
+								break;
+						}
+					}
+				} else {
+					$sender->sendMessage($this->getPermissionMessage());
 				}
 				break;
 		}

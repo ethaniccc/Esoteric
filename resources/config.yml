@@ -27,6 +27,18 @@ ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of 
 # Setback types: smooth, instant, or none
 setback_type: "instant"
 
+banwaves:
+  # Choose if banwaves should be enabled on your server
+  enabled: false
+  # Total violations someone should be added to a ban-wave
+  violations: 40
+  # Message for when the ban-wave starts
+  start_message: "§eThe ban wave has §6commenced"
+  # Message to broadcast when a player is banned in the ban-wave
+  ban_message: "§g{player} §ewas §6caught §ein the ban wave §7[Wave {id}]"
+  # Message to broadcast when the ban wave has concluded
+  end_message: "§eThe §gban wave §ehas §6concluded§e - remember to play legit!"
+
 webhook:
   # Link to the webhook (leave as none to keep webhook functionality disabled)
   link: none
@@ -69,7 +81,7 @@ detections:
       enabled: true
       punishment_type: kick
       max_vl: 20
-      max_dist: 3
+      max_dist: 3.1
       code: Aristotle
     B:
       enabled: true

@@ -121,6 +121,12 @@ final class PlayerData {
 	public $ticksSinceJump = 0;
 	/** @var bool */
 	public $hasMovementSuppressed = false;
+	/** @var bool - Boolean value for if the player is in a chunk they've received */
+	public $hasLoadedChunk = false;
+	/** @var array - A list of chunks the player has received */
+	public $loadedChunks = [];
+	/** @var bool */
+	public $immobile = false;
 	/** @var Block[] */
 	public $blocksBelow = [];
 	/** @var Block[] */

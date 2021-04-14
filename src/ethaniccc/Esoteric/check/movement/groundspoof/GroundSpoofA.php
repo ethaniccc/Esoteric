@@ -15,7 +15,7 @@ class GroundSpoofA extends Check {
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof MovePlayerPacket && $data->onGround && !$data->expectedOnGround && $data->ticksSinceFlight >= 10 && !$data->teleported && !$data->isInVoid) {
-			$this->flag($data);
+			$this->flag($data, ["teleport" => $data->ticksSinceTeleport]);
 		}
 	}
 

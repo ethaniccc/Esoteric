@@ -68,7 +68,7 @@ final class ProcessInbound {
 			$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
 			$flag2 = $expectedMoveY < 0;
 			$AABB1 = $data->boundingBox->expandedCopy(0, 0.1, 0);
-			$AABB1->minY = $data->boundingBox->maxY - 0.2;
+			$AABB1->minY = $data->boundingBox->maxY - 0.4;
 			$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && count($data->player->getLevel()->getCollisionBlocks($AABB1, true)) !== 0;
 			$data->isCollidedVertically = $flag1;
 			$data->onGround = $packet->onGround;
@@ -193,7 +193,7 @@ final class ProcessInbound {
 
 			$this->knockbackMotion = null;
 
-			foreach (LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, -0.05, 0.5), $data->player->getLevel(), LevelUtils::SEARCH_TRANSPARENT) as $block) {
+			foreach (LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.25, 0.2, 0.25), $data->player->getLevel(), LevelUtils::SEARCH_TRANSPARENT) as $block) {
 				/** @var Block $block */
 				if ($block instanceof Liquid) {
 					$liquids++;
@@ -289,34 +289,35 @@ final class ProcessInbound {
 			$trData = $packet->trData;
 			switch ($trData->getTypeId()) {
 				case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
-					/** @var UseItemOnEntityTransactionData $trData */ if ($trData->getTypeId() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
-					$data->lastTarget = $data->target;
-					$data->target = $trData->getEntityRuntimeId();
-					$data->attackTick = $data->currentTick;
-					$data->attackPos = $trData->getPlayerPos();
-				}
+					/** @var UseItemOnEntityTransactionData $trData */
+					if ($trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
+						$data->lastTarget = $data->target;
+						$data->target = $trData->getEntityRuntimeId();
+						$data->attackTick = $data->currentTick;
+						$data->attackPos = $trData->getPlayerPos();
+					}
 					break;
 				case InventoryTransactionPacket::TYPE_USE_ITEM:
-					/** @var UseItemTransactionData $trData */ if ($trData->getActionType() === UseItemTransactionData::ACTION_CLICK_BLOCK) {
-					$clickedBlockPos = $trData->getBlockPos();
-					$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
-					$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
-					if ($blockToReplace->canBeReplaced()) {
-						$block = $trData->getItemInHand()->getItemStack()->getBlock();
-						if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
-							$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
-						}
-						foreach ($this->placedBlocks as $other) {
-							if ($other->asVector3()->equals($blockToReplace->asVector3())) {
-								return;
+					if ($trData->getActionType() === UseItemTransactionData::ACTION_CLICK_BLOCK) {
+						$clickedBlockPos = $trData->getBlockPos();
+						$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
+						$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
+						if ($blockToReplace->canBeReplaced()) {
+							$block = $trData->getItemInHand()->getItemStack()->getBlock();
+							if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
+								$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
+							}
+							foreach ($this->placedBlocks as $other) {
+								if ($other->asVector3()->equals($blockToReplace->asVector3())) {
+									return;
+								}
+							}
+							if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
+								$block->position($blockToReplace->asPosition());
+								$this->placedBlocks[] = clone $block;
 							}
 						}
-						if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
-							$block->position($blockToReplace->asPosition());
-							$this->placedBlocks[] = clone $block;
-						}
 					}
-				}
 					break;
 			}
 		} elseif ($packet instanceof NetworkStackLatencyPacket) {

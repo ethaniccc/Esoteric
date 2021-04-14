@@ -6,7 +6,9 @@ use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
 use ethaniccc\Esoteric\listener\PMMPListener;
+use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
+use ethaniccc\Esoteric\utils\banwave\Banwave;
 use Exception;
 use pocketmine\event\HandlerList;
 use pocketmine\plugin\PluginBase;
@@ -27,6 +29,8 @@ final class Esoteric {
 	public $hasAlerts = [];
 	/** @var string[] */
 	public $logCache = [];
+	/** @var Banwave|null */
+	public $banwave;
 	/** @var TickingTask */
 	private $tickingTask;
 	/** @var EsotericCommand */
@@ -70,6 +74,22 @@ final class Esoteric {
 		$this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
 		$this->command = new EsotericCommand();
 		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
+		if ($this->settings->getWaveSettings()["enabled"]) {
+			@mkdir($this->getPlugin()->getDataFolder() . "banwaves");
+			$count = count(scandir($this->getPlugin()->getDataFolder() . "banwaves")) - 2;
+			if ($count === 0) {
+				Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask($this->getPlugin()->getDataFolder() . "banwaves/banwave-1.json", function (Banwave $banwave): void {
+					$this->banwave = $banwave;
+				}));
+			} else {
+				$filtered = array_filter(scandir($this->getPlugin()->getDataFolder() . "banwaves"), function (string $file): bool {
+					return strtolower(($array = explode(".", $file))[count($array) - 1]) === "json";
+				});
+				Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask($this->getPlugin()->getDataFolder() . "banwaves/" . $filtered[max(array_keys($filtered))], function (Banwave $banwave): void {
+					$this->banwave = $banwave;
+				}));
+			}
+		}
 	}
 
 	public static function getInstance(): ?self {
@@ -85,6 +105,9 @@ final class Esoteric {
 		$this->plugin->getScheduler()->cancelTask($this->tickingTask->getTaskId());
 		Server::getInstance()->getCommandMap()->unregister($this->command);
 		HandlerList::unregisterAll($this->listener);
+		if ($this->getBanwave() !== null) {
+			$this->getBanwave()->update();
+		}
 	}
 
 	public function getServer(): Server {
@@ -93,6 +116,10 @@ final class Esoteric {
 
 	public function getSettings(): Settings {
 		return $this->settings;
+	}
+
+	public function getBanwave(): ?Banwave{
+		return $this->banwave;
 	}
 
 }
