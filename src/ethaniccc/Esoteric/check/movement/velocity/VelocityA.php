@@ -23,7 +23,7 @@ class VelocityA extends Check {
 			}
 
 			if ($this->yMotion > 0.005) {
-				if ($data->hasBlockAbove) {
+				if ($data->hasBlockAbove || $data->immobile) {
 					$this->yMotion = 0.0;
 					$this->buffer = 0;
 					return;
@@ -43,7 +43,7 @@ class VelocityA extends Check {
 						$this->flag($data, ["pct" => round($percentage, 5) . "%",]);
 					}
 				} else {
-					$this->buffer = max($this->buffer - 0.25, 0);
+					$this->buffer = 0;
 					$this->reward();
 				}
 

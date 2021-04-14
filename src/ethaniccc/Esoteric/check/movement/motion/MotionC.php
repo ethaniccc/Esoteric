@@ -17,7 +17,7 @@ class MotionC extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof MovePlayerPacket && $data->onGroundTicks >= 3 && $data->ticksSinceFlight >= 10) {
+		if ($packet instanceof MovePlayerPacket && $data->onGroundTicks >= 3 && $data->ticksSinceFlight >= 10 && $data->inLoadedChunk) {
 			$friction = MovementConstants::FRICTION;
 			$blockFriction = null;
 			$AABB = new AABB($data->currentLocation->x - 0.5, $data->currentLocation->y - 1, $data->currentLocation->z - 0.5, $data->currentLocation->x + 0.5, $data->currentLocation->y, $data->currentLocation->z + 0.5);

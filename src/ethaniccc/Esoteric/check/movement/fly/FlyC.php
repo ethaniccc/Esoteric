@@ -14,7 +14,7 @@ class FlyC extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof PlayerActionPacket && $packet->action === PlayerActionPacket::ACTION_JUMP && !$data->onGround) {
+		if ($packet instanceof PlayerActionPacket && $packet->action === PlayerActionPacket::ACTION_JUMP && !$data->onGround && !$data->immobile) {
 			$this->flag($data);
 			$this->setback($data);
 		}

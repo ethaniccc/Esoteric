@@ -111,6 +111,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				if ($sender->hasPermission("ac.command.banwave")) {
 					if (Esoteric::getInstance()->getBanwave() === null) {
 						$sender->sendMessage(TextFormat::RED . "Banwaves are disabled");
+						return;
 					}
 					$sub = $args[1] ?? null;
 					if ($sub === null) {

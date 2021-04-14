@@ -16,7 +16,7 @@ class MotionD extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof MovePlayerPacket && $data->ticksSinceJump <= 4 && !$data->teleported && $data->ticksSinceMotion > 4) {
+		if ($packet instanceof MovePlayerPacket && $data->ticksSinceJump === 1 && !$data->teleported && $data->ticksSinceMotion > 4) {
 			$currentXZ = MathUtils::hypot($data->currentMoveDelta->x, $data->currentMoveDelta->z);
 			$last = $data->lastMoveDelta;
 			if ($data->isSprinting) {

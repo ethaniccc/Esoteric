@@ -108,7 +108,7 @@ abstract class Check {
 			}
 		}
 		if (!$this->experimental) {
-			if ($this->violations >= 2) {
+			if ($this->violations >= 3) {
 				$this->warn($data, $extraData);
 			}
 		} else {

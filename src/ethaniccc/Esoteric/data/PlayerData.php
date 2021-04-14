@@ -122,9 +122,9 @@ final class PlayerData {
 	/** @var bool */
 	public $hasMovementSuppressed = false;
 	/** @var bool - Boolean value for if the player is in a chunk they've received */
-	public $hasLoadedChunk = false;
-	/** @var array - A list of chunks the player has received */
-	public $loadedChunks = [];
+	public $inLoadedChunk = false;
+	/** @var Vector3 - Position sent in NetworkChunkPublisherUpdatePacket */
+	public $chunkSendPosition;
 	/** @var bool */
 	public $immobile = false;
 	/** @var Block[] */
@@ -197,7 +197,7 @@ final class PlayerData {
 			new MotionA(), new MotionB(), new MotionC(), new MotionD(),
 
 			#Jesus checks
-			new JesusA(),
+			//new JesusA(),
 
 			# Velocity checks
 			new VelocityA(), new VelocityB(),

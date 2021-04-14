@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\listener;
 
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\PacketUtils;
+use pocketmine\event\entity\EntityLevelChangeEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
@@ -14,6 +15,7 @@ use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
+use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat;
 
@@ -123,6 +125,17 @@ class PMMPListener implements Listener {
 				}
 			}
 
+		}
+	}
+
+	public function onLevelChange(EntityLevelChangeEvent $event): void {
+		$entity = $event->getEntity();
+		if ($entity instanceof Player) {
+			$data = Esoteric::getInstance()->dataManager->get($entity);
+			if ($data === null) {
+				return;
+			}
+			$data->inLoadedChunk = false;
 		}
 	}
 

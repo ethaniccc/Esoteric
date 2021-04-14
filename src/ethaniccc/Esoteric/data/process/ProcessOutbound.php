@@ -7,8 +7,12 @@ use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\LevelChunkPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\NetworkChunkPublisherUpdatePacket;
+use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
+use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
@@ -69,6 +73,25 @@ class ProcessOutbound {
 					$data->isFlying = $data->hasFlyFlag;
 				}
 			});
+		} elseif ($packet instanceof SetActorDataPacket && $data->player->getId() === $packet->entityRuntimeId) {
+			if ($data->immobile !== ($currentImmobile = $data->player->isImmobile())) {
+				NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($data, $currentImmobile): void {
+					$data->immobile = $currentImmobile;
+				});
+			}
+		} elseif ($packet instanceof NetworkChunkPublisherUpdatePacket) {
+			if (!$data->loggedIn) {
+				$data->inLoadedChunk = true;
+				$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
+			} else {
+				if ($data->chunkSendPosition->distance($data->currentLocation->floor()) > $data->player->getViewDistance() * 16) {
+					$data->inLoadedChunk = false;
+					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($packet, $data): void {
+						$data->inLoadedChunk = true;
+						$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
+					});
+				}
+			}
 		}
 	}
 

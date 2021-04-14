@@ -42,8 +42,12 @@ final class ProcessInbound {
 
 	public function execute(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof MovePlayerPacket) {
+			if (!$data->loggedIn) {
+				return;
+			}
 			$data->lastBlocksBelow = $data->blocksBelow;
 			$location = Location::fromObject($packet->position->subtract(0, 1.62, 0), $data->player->getLevel(), $packet->yaw, $packet->pitch);
+			$data->inLoadedChunk = $data->chunkSendPosition->distance($data->currentLocation->floor()) <= $data->player->getViewDistance() * 16;
 			$data->teleported = false;
 			$data->hasMovementSuppressed = false;
 			$data->boundingBox = AABB::fromPosition($location->asVector3());
