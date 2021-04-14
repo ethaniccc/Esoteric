@@ -28,7 +28,7 @@ ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of 
 setback_type: "instant"
 
 webhook:
-  # Link to the webhook (leave as none to keep webhook functionallity disabled)
+  # Link to the webhook (leave as none to keep webhook functionality disabled)
   link: none
   # If alerts should be sent in webhook messages
   alerts: false

@@ -57,8 +57,11 @@ final class ProcessInbound {
 			$data->currentPitch = $packet->pitch;
 			$data->lastYawDelta = $data->currentYawDelta;
 			$data->lastPitchDelta = $data->currentPitchDelta;
-			$data->currentYawDelta = abs(abs($data->currentYaw) - abs($data->previousYaw));
-			$data->currentPitchDelta = abs(abs($data->currentPitch) - abs($data->previousPitch));
+			$data->currentYawDelta = abs($data->currentYaw - $data->previousYaw);
+			if ($data->currentYawDelta > 180) {
+				$data->currentYawDelta = 360 - $data->currentYawDelta;
+			}
+			$data->currentPitchDelta = abs($data->currentPitch - $data->previousPitch);
 			$data->directionVector = MathUtils::directionVectorFromValues($data->currentYaw, $data->currentPitch);
 			$expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
 			$actualMoveY = $data->currentMoveDelta->y;
@@ -310,7 +313,6 @@ final class ProcessInbound {
 						}
 						if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
 							$block->position($blockToReplace->asPosition());
-							$data->player->sendMessage("(pre-place) block @ ({$blockToReplace->x}, {$blockToReplace->y}, {$blockToReplace->z}) id is {$blockToReplace->getId()}");
 							$this->placedBlocks[] = clone $block;
 						}
 					}

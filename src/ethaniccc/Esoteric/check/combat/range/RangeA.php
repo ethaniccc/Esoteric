@@ -61,13 +61,6 @@ class RangeA extends Check {
 				}
 			}
 			$this->waiting = false;
-		} elseif ($packet instanceof InteractPacket && $packet->action === InteractPacket::ACTION_MOUSEOVER && $packet->target !== 0 && !$data->teleported) {
-			$intersection = new Vector3($packet->x, $packet->y, $packet->z);
-			$distance = $data->lastLocation->add(0, ($data->isSneaking ? 1.54 : 1.62), 0)->distance($intersection);
-			if ($distance > 3.0) {
-				// can this be an auto-ban?
-				$this->flag($data, ["dist" => round($distance, 4), "type" => "interact"]);
-			}
 		}
 	}
 
