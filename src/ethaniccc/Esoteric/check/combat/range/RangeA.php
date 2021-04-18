@@ -34,10 +34,13 @@ class RangeA extends Check {
 					});
 					if ($distance !== 69 && $distance > $this->option("max_reach", 3.1)) {
 						if (++$this->buffer >= 3) {
-							$this->flag($data, ["dist" => round($distance, 4), "type" => "raw"]);
+							$this->flag($data, ["dist" => round($distance, 4)]);
 						}
+					} else {
+						$this->buffer = max($this->buffer - 0.01, 0);
+						$this->reward(0.0075);
 					}
-					if (!$data->isMobile) {
+					/* if (!$data->isMobile) {
 						$ray = new Ray($data->attackPos, $data->directionVector);
 						$distance = 69;
 						$locationData->history->iterate(function (Vector3 $location) use (&$distance, $ray): void {
@@ -56,7 +59,7 @@ class RangeA extends Check {
 							$this->buffer = max($this->buffer - 0.04, 0);
 							$this->reward(0.0075);
 						}
-					}
+					} */
 				}
 			}
 			$this->waiting = false;

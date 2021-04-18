@@ -93,9 +93,9 @@ final class LocationMap {
 			} else {
 				if ($locationData->newPosRotationIncrements > 0) {
 					$locationData->lastLocation = clone $locationData->currentLocation;
-					$locationData->currentLocation->x = MathUtils::getLiteralFloat($locationData->currentLocation->x + (($locationData->receivedLocation->x - $locationData->currentLocation->x) / $locationData->newPosRotationIncrements));
-					$locationData->currentLocation->y = MathUtils::getLiteralFloat($locationData->currentLocation->y + (($locationData->receivedLocation->y - $locationData->currentLocation->y) / $locationData->newPosRotationIncrements));
-					$locationData->currentLocation->z = MathUtils::getLiteralFloat($locationData->currentLocation->z + (($locationData->receivedLocation->z - $locationData->currentLocation->z) / $locationData->newPosRotationIncrements));
+					$locationData->currentLocation->x = ($locationData->currentLocation->x + (($locationData->receivedLocation->x - $locationData->currentLocation->x) / $locationData->newPosRotationIncrements));
+					$locationData->currentLocation->y = ($locationData->currentLocation->y + (($locationData->receivedLocation->y - $locationData->currentLocation->y) / $locationData->newPosRotationIncrements));
+					$locationData->currentLocation->z = ($locationData->currentLocation->z + (($locationData->receivedLocation->z - $locationData->currentLocation->z) / $locationData->newPosRotationIncrements));
 				} elseif ($locationData->newPosRotationIncrements === 0) {
 					// don't need to clone all the time... lol
 					$locationData->lastLocation = clone $locationData->currentLocation;

@@ -20,7 +20,7 @@ The versions this anti-cheat currently supports are 1.16.100, 1.16.201, 1.16.210
 
 ## Planned Features
 
-- [ ] Banwaves - for the memes.
+- [x] Banwaves - for the memes.
 - [x] Discord webhook alerts.
 - [x] Commands to edit alert delay, turn on/off alerts, and get player logs.
 - [ ] Create a functional exempt list for each detection.

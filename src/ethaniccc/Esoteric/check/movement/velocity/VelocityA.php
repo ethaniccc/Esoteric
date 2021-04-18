@@ -23,7 +23,7 @@ class VelocityA extends Check {
 			}
 
 			if ($this->yMotion > 0.005) {
-				if ($data->hasBlockAbove || $data->immobile) {
+				if ($data->hasBlockAbove || $data->immobile || !$data->player->isAlive()) {
 					$this->yMotion = 0.0;
 					$this->buffer = 0;
 					return;

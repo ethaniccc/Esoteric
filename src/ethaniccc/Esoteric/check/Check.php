@@ -12,10 +12,12 @@ use ethaniccc\Esoteric\Settings;
 use ethaniccc\Esoteric\tasks\BanTask;
 use ethaniccc\Esoteric\tasks\KickTask;
 use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\timings\TimingsHandler;
 
 abstract class Check {
 
 	public static $settings = [];
+	public static $timings = [];
 	public $name;
 	public $subType;
 	public $description;
@@ -38,10 +40,17 @@ abstract class Check {
 			}
 			self::$settings["$name:$subType"] = $settings;
 		}
+		if (!isset(self::$timings["$name:$subType"])) {
+			self::$timings["$name:$subType"] = new TimingsHandler("Esoteric Check $name($subType)", Esoteric::getInstance()->listener->checkTimings);
+		}
 	}
 
 	public function getData(): array {
 		return ["violations" => $this->violations, "description" => $this->description, "full_name" => $this->name . " ({$this->subType})", "name" => $this->name, "subType" => $this->subType];
+	}
+
+	public function getTimings(): TimingsHandler {
+		return self::$timings["{$this->name}:{$this->subType}"];
 	}
 
 	public abstract function inbound(DataPacket $packet, PlayerData $data): void;

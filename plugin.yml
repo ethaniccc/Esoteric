@@ -36,3 +36,6 @@ permissions:
           ac.command.banwave:
             description: Handle Esoteric ban waves
             default: op
+          ac.command.timings:
+            description: Enable timings for a certain period of time to see server performance with Esoteric
+            default: op

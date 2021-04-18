@@ -2,16 +2,22 @@
 
 namespace ethaniccc\Esoteric\command;
 
+use CortexPE\DiscordWebhookAPI\WebhookThread;
+use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\tasks\AsyncClosureTask;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\command\ConsoleCommandSender;
 use pocketmine\command\PluginIdentifiableCommand;
 use pocketmine\Player;
 use pocketmine\plugin\Plugin;
+use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
+use pocketmine\Thread;
 use pocketmine\utils\TextFormat;
 
 class EsotericCommand extends Command implements PluginIdentifiableCommand {
@@ -30,7 +36,12 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 		switch ($subCommand) {
 			case "help":
 				if ($sender->hasPermission("ac.command.help")) {
-					$helpMessage = TextFormat::GRAY . str_repeat("-", 8) . " " . TextFormat::BOLD . TextFormat::GRAY . "[" . TextFormat::YELLOW . "Eso" . TextFormat::GOLD . "teric" . TextFormat::GRAY . "] " . TextFormat::RESET . TextFormat::GRAY . str_repeat("-", 8) . PHP_EOL . TextFormat::YELLOW . "/ac logs <player> - Get the anti-cheat logs of the specified player (permission=ac.command.logs)" . PHP_EOL . TextFormat::GOLD . "/ac delay <delay> - Set your alert cooldown delay (permission=ac.command.delay)";
+					$helpMessage = TextFormat::GRAY . str_repeat("-", 8) . " " . TextFormat::BOLD . TextFormat::GRAY . "[" . TextFormat::YELLOW . "Eso" . TextFormat::GOLD . "teric" . TextFormat::GRAY . "] " . TextFormat::RESET . TextFormat::GRAY . str_repeat("-", 8) .
+						PHP_EOL . TextFormat::YELLOW . "/ac logs <player> - Get the anti-cheat logs of the specified player (permission=ac.command.logs)" .
+						PHP_EOL . TextFormat::GOLD . "/ac delay <delay> - Set your alert cooldown delay (permission=ac.command.delay)" .
+						PHP_EOL . TextFormat::YELLOW . "/ac alerts <on/off> - Toggle alerts on or off (permission=ac.alerts)" .
+						PHP_EOL . TextFormat::GOLD . "/ac banwave <subcommand> - Do actions with banwaves (permission=ac.command.banwave)" .
+						PHP_EOL . TextFormat::YELLOW . "/ac timings <seconds> - Enable timings for a certain amount of seconds to see performance (permission=ac.command.timings)";
 					$sender->sendMessage($helpMessage);
 				} else {
 					$sender->sendMessage($this->getPermissionMessage());
@@ -174,6 +185,22 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 					}
 				} else {
 					$sender->sendMessage($this->getPermissionMessage());
+				}
+				break;
+			case "timings":
+				if ($sender->hasPermission("ac.command.timings")) {
+					$time = (int) ($args[1] ?? 60);
+					Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings on");
+					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new ClosureTask(function (int $currentTick): void {
+						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings paste");
+						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings off");
+					}), $time * 20);
+				} else {
+					$sender->sendMessage($this->getPermissionMessage());
+				}
+				break;
+			case "test":
+				if ($sender->isOp() && $sender instanceof Player) {
 				}
 				break;
 		}

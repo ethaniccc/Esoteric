@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\check\combat\range;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\AABB;
+use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\Ray;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
@@ -27,20 +28,7 @@ class RangeB extends Check {
 			if ($data->currentTick - $data->attackTick <= 1) {
 				$locationData = $data->entityLocationMap->get($data->target);
 				if ($locationData !== null) {
-					$ray = new Ray($data->attackPos, $data->directionVector);
-					$hasCollision = false;
-					$locationData->history->iterate(function (Vector3 $location) use (&$hasCollision, $ray): void {
-						if (!$hasCollision) {
-							$hasCollision = AABB::fromPosition($location)->expand(0.1, 0.1, 0.1)->calculateIntercept($ray->getOrigin(), $ray->traverse(20)) !== null;
-						}
-					});
-					if (!$hasCollision) {
-						if (++$this->buffer >= 10) {
-							$this->flag($data);
-						}
-					} else {
-						$this->buffer = max($this->buffer - 1.5, 0);
-					}
+
 				}
 			}
 			$this->waiting = false;

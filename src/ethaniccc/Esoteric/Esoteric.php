@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric;
 
+use CortexPE\DiscordWebhookAPI\WebhookThread;
 use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
@@ -13,6 +14,7 @@ use Exception;
 use pocketmine\event\HandlerList;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
+use pocketmine\Thread;
 use pocketmine\utils\Config;
 
 final class Esoteric {
@@ -32,11 +34,11 @@ final class Esoteric {
 	/** @var Banwave|null */
 	public $banwave;
 	/** @var TickingTask */
-	private $tickingTask;
+	public $tickingTask;
 	/** @var EsotericCommand */
-	private $command;
+	public $command;
 	/** @var PMMPListener */
-	private $listener;
+	public $listener;
 
 	public function __construct(PluginBase $plugin, Config $config) {
 		$this->plugin = $plugin;
@@ -71,6 +73,9 @@ final class Esoteric {
 			throw new Exception("Esoteric has not been initialized");
 		$this->listener = new PMMPListener();
 		Server::getInstance()->getPluginManager()->registerEvents($this->listener, $this->plugin);
+		if (!WebhookThread::valid()) {
+			WebhookThread::init();
+		}
 		$this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
 		$this->command = new EsotericCommand();
 		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);

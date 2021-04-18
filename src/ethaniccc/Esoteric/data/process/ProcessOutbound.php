@@ -16,10 +16,20 @@ use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
+use pocketmine\timings\TimingsHandler;
 
 class ProcessOutbound {
 
+	public static $baseTimings;
+
+	public function __construct() {
+		if (self::$baseTimings === null) {
+			self::$baseTimings = new TimingsHandler("Esoteric Outbound Handling");
+		}
+	}
+
 	public function execute(DataPacket $packet, PlayerData $data): void {
+		self::$baseTimings->startTiming();
 		if ($packet instanceof MovePlayerPacket) {
 			if ($packet->entityRuntimeId === $data->player->getId() && ($packet->mode === MovePlayerPacket::MODE_TELEPORT || $packet->mode === MovePlayerPacket::MODE_RESET)) {
 				NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data): void {
@@ -93,6 +103,7 @@ class ProcessOutbound {
 				}
 			}
 		}
+		self::$baseTimings->stopTiming();
 	}
 
 }

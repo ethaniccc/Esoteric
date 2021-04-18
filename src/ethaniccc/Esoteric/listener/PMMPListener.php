@@ -3,6 +3,7 @@
 namespace ethaniccc\Esoteric\listener;
 
 use ethaniccc\Esoteric\Esoteric;
+use ethaniccc\Esoteric\utils\GeneralUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\event\entity\EntityLevelChangeEvent;
 use pocketmine\event\Listener;
@@ -11,15 +12,26 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\BatchPacket;
+use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\Player;
 use pocketmine\Server;
+use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\TextFormat;
 
 class PMMPListener implements Listener {
+
+	/** @var TimingsHandler */
+	public $checkTimings;
+	public $sendTimings;
+
+	public function __construct() {
+		$this->checkTimings = new TimingsHandler("Esoteric Checks");
+		$this->sendTimings = new TimingsHandler("Esoteric Listener Outbound");
+	}
 
 	/**
 	 * @param PlayerPreLoginEvent $event
@@ -68,9 +80,15 @@ class PMMPListener implements Listener {
 			return;
 		}
 		$playerData->inboundProcessor->execute($packet, $playerData);
-		foreach ($playerData->checks as $check)
-			if ($check->enabled())
+		$this->checkTimings->startTiming();
+		foreach ($playerData->checks as $check) {
+			if ($check->enabled()) {
+				$check->getTimings()->startTiming();
 				$check->inbound($packet, $playerData);
+				$check->getTimings()->stopTiming();
+			}
+		}
+		$this->checkTimings->stopTiming();
 	}
 
 	/**
@@ -81,25 +99,27 @@ class PMMPListener implements Listener {
 	public function outbound(DataPacketSendEvent $event): void {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
-		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
+		$playerData = Esoteric::getInstance()->dataManager->get($player);
+		if ($playerData === null) {
+			return;
+		}
 		if ($playerData->isDataClosed) {
 			return;
 		}
 		if ($packet instanceof BatchPacket) {
+			$this->sendTimings->startTiming();
 			$locationList = [];
 			$key = null;
-			$gen = PacketUtils::getAllInBatch($packet);
-			while (($buff = $gen->current()) !== null) {
+			$packets = [];
+			foreach (PacketUtils::getAllInBatch($packet) as $buff) {
 				$pk = PacketPool::getPacket($buff);
 				try {
 					try {
 						$pk->decode();
 					} catch (\RuntimeException $e) {
-						$gen->next();
 						continue;
 					}
 				} catch (\LogicException $e) {
-					$gen->next();
 					continue;
 				}
 				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
@@ -107,13 +127,9 @@ class PMMPListener implements Listener {
 				} elseif ($pk instanceof NetworkStackLatencyPacket) {
 					$key = $pk->timestamp;
 				}
-
-				$playerData->outboundProcessor->execute($pk, $playerData);
-				foreach ($playerData->checks as $check)
-					if ($check->handleOut())
-						$check->outbound($pk, $playerData);
-				$gen->next();
+				$packets[] = clone $pk;
 			}
+
 			if ($playerData->loggedIn) {
 				if ($playerData->entityLocationMap->key !== null) {
 					if ($key !== $playerData->entityLocationMap->key && count($locationList) > 0) {
@@ -125,6 +141,15 @@ class PMMPListener implements Listener {
 				}
 			}
 
+			if (!$event->isCancelled()) {
+				foreach ($packets as $pk) {
+					$playerData->outboundProcessor->execute($pk, $playerData);
+					foreach ($playerData->checks as $check)
+						if ($check->handleOut())
+							$check->outbound($pk, $playerData);
+				}
+			}
+			$this->sendTimings->stopTiming();
 		}
 	}
 

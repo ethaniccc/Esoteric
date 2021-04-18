@@ -174,7 +174,7 @@ final class MathUtils {
 			$par0 += 360.0;
 		}
 
-		return MathUtils::getLiteralFloat($par0);
+		return $par0;
 	}
 
 	public static function getLiteralFloat(float $float): float {

@@ -32,19 +32,45 @@ use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
+use pocketmine\timings\TimingsHandler;
 
 final class ProcessInbound {
 
 	/** @var Block[] */
 	public $placedBlocks = [];
-	/** @var Vector3 */
-	public $knockbackMotion;
+
+	/** @var TimingsHandler */
+	public static $timings;
+	/** @var TimingsHandler */
+	public static $inventoryTransactionTimings;
+	/** @var TimingsHandler */
+	public static $networkStackLatencyTimings;
+	/** @var TimingsHandler */
+	public static $clickTimings;
+
+	/** @var TimingsHandler */
+	public static $movementTimings;
+	/** @var TimingsHandler */
+	public static $collisionTimings;
+
+	public function __construct() {
+		if (self::$timings === null) {
+			self::$timings = new TimingsHandler("Esoteric Inbound Handling");
+			self::$movementTimings = new TimingsHandler("Esoteric Movement Handling", self::$timings);
+			self::$collisionTimings = new TimingsHandler("Esoteric Movement Collisions", self::$movementTimings);
+			self::$inventoryTransactionTimings = new TimingsHandler("Esoteric Transaction Handling", self::$timings);
+			self::$networkStackLatencyTimings = new TimingsHandler("Esoteric NetworkStackLatency Handling", self::$timings);
+			self::$clickTimings = new TimingsHandler("Esoteric Click Handling", self::$timings);
+		}
+	}
 
 	public function execute(DataPacket $packet, PlayerData $data): void {
+		self::$timings->startTiming();
 		if ($packet instanceof MovePlayerPacket) {
 			if (!$data->loggedIn) {
 				return;
 			}
+			self::$movementTimings->startTiming();
 			$data->lastBlocksBelow = $data->blocksBelow;
 			$location = Location::fromObject($packet->position->subtract(0, 1.62, 0), $data->player->getLevel(), $packet->yaw, $packet->pitch);
 			$data->inLoadedChunk = $data->chunkSendPosition->distance($data->currentLocation->floor()) <= $data->player->getViewDistance() * 16;
@@ -76,14 +102,40 @@ final class ProcessInbound {
 			$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && count($data->player->getLevel()->getCollisionBlocks($AABB1, true)) !== 0;
 			$data->isCollidedVertically = $flag1;
 			$data->onGround = $packet->onGround;
-			$AABBCollision = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), true)) !== 0;
-			$data->expectedOnGround = $AABBCollision;
-			$data->isCollidedHorizontally = count($location->getLevel()->getCollisionBlocks($data->boundingBox->expand(0.5, -0.05, 0.5), true)) !== 0;
-			$data->isInVoid = $location->y <= -35;
-			$AABB2 = $data->boundingBox->expandedCopy(0.5, 0.2, 0.5);
-			$AABB2->maxY = $AABB2->minY + 0.4;
+
+			self::$collisionTimings->startTiming();
+			// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
+			// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
+			$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), $location->getLevel(), LevelUtils::SEARCH_ALL, false);
+			$data->expectedOnGround = $blocks->valid();
 			$data->blocksBelow = [];
-			$data->blocksBelow = $location->getLevel()->getCollisionBlocks($AABB2);
+			$data->isCollidedHorizontally = false;
+			$data->isCollidedVertically = false;
+			$liquids = 0;
+			$climbable = 0;
+			$cobweb = 0;
+			foreach ($blocks as $block) {
+				/** @var Block $block */
+				if (!$data->isCollidedHorizontally) {
+					$data->isCollidedHorizontally = $block->collidesWithBB($data->boundingBox) && $block->y > $location->y;
+				}
+				if (!$data->isCollidedVertically) {
+					$data->isCollidedVertically = $block->collidesWithBB($data->boundingBox);
+				}
+				if ($block->y <= $location->y && $block->collidesWithBB($data->boundingBox)) {
+					$data->blocksBelow[] = $block;
+				}
+				if ($block instanceof Liquid) {
+					$liquids++;
+				} elseif ($block instanceof Cobweb) {
+					$cobweb++;
+				} elseif ($block instanceof Ladder || $block instanceof Vine) {
+					$climbable++;
+				}
+			}
+			self::$collisionTimings->stopTiming();
+
+			$data->isInVoid = $location->y <= -35;
 
 			if ($data->onGround) {
 				++$data->onGroundTicks;
@@ -94,7 +146,7 @@ final class ProcessInbound {
 				$data->onGroundTicks = 0;
 			}
 			++$data->ticksSinceMotion;
-			if ($data->ticksSinceTeleport <= 2) {
+			if ($data->ticksSinceTeleport <= 1) {
 				$data->teleported = true;
 				if ($data->ticksSinceTeleport === 0) {
 					$data->currentMoveDelta = clone PlayerData::$ZERO_VECTOR;
@@ -110,17 +162,15 @@ final class ProcessInbound {
 			}
 			++$data->ticksSinceJump;
 
-			$liquids = 0;
-			$climbable = 0;
-			$cobweb = 0;
-
 			$data->moveForward = 0.0;
 			$data->moveStrafe = 0.0;
+
+			/* $knockbackMotion = null;
 
 			// here we want to predict the moveForward and moveStrafing values of the player
 			// reference: https://www.spigotmc.org/threads/player-moveforward-movestrafe-aispeed.441073/#post-3819915
 			if ($data->ticksSinceMotion === 1) {
-				$this->knockbackMotion = clone $data->motion;
+				$knockbackMotion = clone $data->motion;
 			}
 
 			// how is 0.91 more effective here than 0.98 (assumed normal friction??)
@@ -133,8 +183,8 @@ final class ProcessInbound {
 			$currVelocity = new Vector3($data->currentMoveDelta->x, 0, $data->currentMoveDelta->z);
 			$prevVelocity = new Vector3($data->lastMoveDelta->x, 0, $data->lastMoveDelta->z);
 
-			if ($this->knockbackMotion !== null) {
-				$prevVelocity = clone $this->knockbackMotion;
+			if ($knockbackMotion !== null) {
+				$prevVelocity = $knockbackMotion;
 			}
 
 			if (abs($prevVelocity->x * $friction) < 0.005) {
@@ -186,27 +236,14 @@ final class ProcessInbound {
 			}
 
 			if ($data->isSneaking) {
-				$var2 = MathUtils::getLiteralFloat(0.3);
+				$var2 = 0.3;
 				$data->moveForward *= $var2;
 				$data->moveStrafe *= $var2;
 			}
 
-			$var3 = MathUtils::getLiteralFloat(0.98);
+			$var3 = 0.98;
 			$data->moveForward *= $var3;
-			$data->moveStrafe *= $var3;
-
-			$this->knockbackMotion = null;
-
-			foreach (LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.25, 0.2, 0.25), $data->player->getLevel(), LevelUtils::SEARCH_TRANSPARENT) as $block) {
-				/** @var Block $block */
-				if ($block instanceof Liquid) {
-					$liquids++;
-				} elseif ($block instanceof Cobweb) {
-					$cobweb++;
-				} elseif ($block instanceof Ladder || $block instanceof Vine) {
-					$climbable++;
-				}
-			}
+			$data->moveStrafe *= $var3; */
 
 			if ($liquids > 0)
 				$data->ticksSinceInLiquid = 0; else ++$data->ticksSinceInLiquid;
@@ -265,31 +302,9 @@ final class ProcessInbound {
 					}
 				}
 			}
-
-			foreach ($this->placedBlocks as $blockVector) {
-				if ($location->distance($blockVector->asVector3()) >= 4) {
-					$realBlock = $data->player->getLevel()->getBlock($blockVector->asVector3(), false, false);
-					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $realBlock): void {
-						$pk = new UpdateBlockPacket();
-						$pk->x = $realBlock->x;
-						$pk->y = $realBlock->y;
-						$pk->z = $realBlock->z;
-						$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
-						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
-						$pk->dataLayerId = $realBlock instanceof Liquid ? UpdateBlockPacket::DATA_LAYER_LIQUID : UpdateBlockPacket::DATA_LAYER_NORMAL;
-						$data->player->dataPacket($pk);
-						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($realBlock): void {
-							foreach ($this->placedBlocks as $key => $vector) {
-								if ($vector->equals($realBlock->asVector3())) {
-									unset($this->placedBlocks[$key]);
-									break;
-								}
-							}
-						});
-					});
-				}
-			}
+			self::$movementTimings->stopTiming();
 		} elseif ($packet instanceof InventoryTransactionPacket) {
+			self::$inventoryTransactionTimings->startTiming();
 			$trData = $packet->trData;
 			switch ($trData->getTypeId()) {
 				case InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY:
@@ -313,7 +328,7 @@ final class ProcessInbound {
 							}
 							foreach ($this->placedBlocks as $other) {
 								if ($other->asVector3()->equals($blockToReplace->asVector3())) {
-									return;
+									break;
 								}
 							}
 							if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
@@ -324,8 +339,11 @@ final class ProcessInbound {
 					}
 					break;
 			}
+			self::$inventoryTransactionTimings->stopTiming();
 		} elseif ($packet instanceof NetworkStackLatencyPacket) {
+			self::$networkStackLatencyTimings->startTiming();
 			NetworkStackLatencyHandler::execute($data, $packet->timestamp);
+			self::$networkStackLatencyTimings->stopTiming();
 		} elseif ($packet instanceof SetLocalPlayerAsInitializedPacket) {
 			$data->hasAlerts = $data->player->hasPermission("ac.alerts");
 			$data->loggedIn = true;
@@ -364,9 +382,11 @@ final class ProcessInbound {
 				$this->click($data);
 			}
 		}
+		self::$timings->stopTiming();
 	}
 
 	private function click(PlayerData $data) {
+		self::$clickTimings->startTiming();
 		if (count($data->clickSamples) === 20) {
 			$data->clickSamples = [];
 			$data->runClickChecks = false;
@@ -378,6 +398,8 @@ final class ProcessInbound {
 				if ($data->cps === 100.0) {
 					// ticked once...?
 					$data->isClickDataIsValid = false;
+				} else {
+					$data->isClickDataIsValid = true;
 				}
 			} catch (\ErrorException $e) {
 				$data->cps = INF;
@@ -392,6 +414,7 @@ final class ProcessInbound {
 			$data->runClickChecks = true;
 		}
 		$data->lastClickTick = $data->currentTick;
+		self::$clickTimings->stopTiming();
 	}
 
 }

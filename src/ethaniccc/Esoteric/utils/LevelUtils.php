@@ -20,14 +20,14 @@ final class LevelUtils {
 	 * @param bool $first
 	 * @return Generator
 	 */
-	public static function checkBlocksInAABB(AxisAlignedBB $AABB, Level $level, int $searchOption, bool $first = false): Generator {
+	public static function checkBlocksInAABB(AxisAlignedBB $AABB, Level $level, int $searchOption, bool $first = false): ?Generator {
 		$minX = (int) floor($AABB->minX);
 		$maxX = (int) ceil($AABB->maxX);
 		$minY = (int) floor($AABB->minY);
 		$maxY = (int) ceil($AABB->maxY);
 		$minZ = (int) floor($AABB->minZ);
 		$maxZ = (int) ceil($AABB->maxZ);
-		$curr = $level->getBlockAt($minX, $minY, $minZ, false, false);
+		$curr = $level->getBlockAt($minX, $minY, $minZ);
 		if ($first) {
 			switch ($searchOption) {
 				case self::SEARCH_ALL:
@@ -41,7 +41,7 @@ final class LevelUtils {
 					for ($x = $minX; $x < $maxX; $x++) {
 						for ($y = $minY; $y < $maxY; $y++) {
 							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z, false, false);
+								$block = $level->getBlockAt($x, $y, $z);
 								if ($block->hasEntityCollision()) {
 									yield $block;
 									return;
@@ -58,7 +58,7 @@ final class LevelUtils {
 					for ($x = $minX; $x < $maxX; $x++) {
 						for ($y = $minY; $y < $maxY; $y++) {
 							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z, false, false);
+								$block = $level->getBlockAt($x, $y, $z);
 								if ($block->isSolid() || $block instanceof UnknownBlock) {
 									yield $block;
 									return;
@@ -75,7 +75,7 @@ final class LevelUtils {
 					for ($x = $minX; $x < $maxX; $x++) {
 						for ($y = $minY; $y < $maxY; $y++) {
 							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z, false, false);
+								$block = $level->getBlockAt($x, $y, $z);
 								yield $block;
 							}
 						}
@@ -88,7 +88,7 @@ final class LevelUtils {
 					for ($x = $minX; $x < $maxX; $x++) {
 						for ($y = $minY; $y < $maxY; $y++) {
 							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z, false, false);
+								$block = $level->getBlockAt($x, $y, $z);
 								if ($block->hasEntityCollision()) {
 									yield $block;
 								}
@@ -103,7 +103,7 @@ final class LevelUtils {
 					for ($x = $minX; $x < $maxX; $x++) {
 						for ($y = $minY; $y < $maxY; $y++) {
 							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z, false, false);
+								$block = $level->getBlockAt($x, $y, $z);
 								if ($block->isSolid() || $block instanceof UnknownBlock) {
 									yield $block;
 								}

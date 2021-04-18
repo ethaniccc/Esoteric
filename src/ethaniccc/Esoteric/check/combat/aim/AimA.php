@@ -16,7 +16,7 @@ class AimA extends Check {
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof MovePlayerPacket) {
-			$expectedHeadYaw = MathUtils::getLiteralFloat(fmod(($packet->yaw > 0 ? 0 : 360) + $packet->yaw, 360));
+			$expectedHeadYaw = fmod(($packet->yaw > 0 ? 0 : 360) + $packet->yaw, 360);
 			$diff = abs($expectedHeadYaw - $packet->headYaw);
 			if ($diff > 5E-5 && $packet->headYaw > 0) {
 				if (++$this->buffer >= 3) {

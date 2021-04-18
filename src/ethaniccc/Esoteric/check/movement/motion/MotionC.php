@@ -20,9 +20,7 @@ class MotionC extends Check {
 		if ($packet instanceof MovePlayerPacket && $data->onGroundTicks >= 3 && $data->ticksSinceFlight >= 10 && $data->inLoadedChunk) {
 			$friction = MovementConstants::FRICTION;
 			$blockFriction = null;
-			$AABB = new AABB($data->currentLocation->x - 0.5, $data->currentLocation->y - 1, $data->currentLocation->z - 0.5, $data->currentLocation->x + 0.5, $data->currentLocation->y, $data->currentLocation->z + 0.5);
-			$blocks = $data->player->getLevel()->getCollisionBlocks($AABB);
-			foreach ($blocks as $block) {
+			foreach ($data->blocksBelow as $block) {
 				if ($blockFriction === null) {
 					$blockFriction = $block->getFrictionFactor();
 				} elseif ($block->getFrictionFactor() !== $blockFriction) {

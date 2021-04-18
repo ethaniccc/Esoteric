@@ -84,7 +84,7 @@ detections:
       max_dist: 3.1
       code: Aristotle
     B:
-      enabled: true
+      enabled: false
       punishment_type: kick
       max_vl: 20
       code: Descartes
