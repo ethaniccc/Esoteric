@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
+use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\LevelChunkPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
@@ -77,11 +78,6 @@ class ProcessOutbound {
 			$mode = $packet->gamemode;
 			NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $mode): void {
 				$data->gamemode = $mode;
-				if ($mode === 3 || $mode === 4) {
-					$data->isFlying = true;
-				} else {
-					$data->isFlying = $data->hasFlyFlag;
-				}
 			});
 		} elseif ($packet instanceof SetActorDataPacket && $data->player->getId() === $packet->entityRuntimeId) {
 			if ($data->immobile !== ($currentImmobile = $data->player->isImmobile())) {
@@ -102,6 +98,11 @@ class ProcessOutbound {
 					});
 				}
 			}
+		} elseif ($packet instanceof AdventureSettingsPacket) {
+			// sometimes the client doesn't send AdventureSettingsPacket back??
+			NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($packet, $data): void {
+				$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
+			});
 		}
 		self::$baseTimings->stopTiming();
 	}

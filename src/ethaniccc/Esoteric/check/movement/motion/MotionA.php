@@ -23,8 +23,8 @@ class MotionA extends Check {
 				if ($data->ticksSinceJump === 1) {
 					$currentYMovement -= $data->jumpVelocity;
 				}
-				// possible 1 tick offset (wtf)
-				if ($data->ticksSinceMotion <= 2) {
+				// possible 1 (max possibly 2) tick offset wtf
+				if ($data->ticksSinceMotion <= 3) {
 					$currentYMovement -= $data->motion->y;
 				}
 
@@ -41,6 +41,11 @@ class MotionA extends Check {
 				if ($data->ticksSinceInClimbable) {
 					$currentYMovement -= 0.2;
 				}
+
+				// TODO: Make a better solution for this, this is a temporary hack to eliminate some weird shitty false positive
+				/* if (round($currentYMovement, 3) === 0.2) {
+					return;
+				} */
 
 				$lastYMovement = $data->lastMoveDelta->y;
 				if ($currentYMovement > $lastYMovement && $currentYMovement > $this->lastPreviousYMovement && $currentYMovement > 0.005 && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10 && !$data->teleported) {

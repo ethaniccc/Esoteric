@@ -28,38 +28,46 @@ class RangeA extends Check {
 			if ($data->currentTick - $data->attackTick <= 2) {
 				$locationData = $data->entityLocationMap->get($data->target);
 				if ($locationData !== null) {
-					$distance = 69;
-					$locationData->history->iterate(function (Vector3 $location) use (&$distance, $data): void {
-						$distance = min(AABB::fromPosition($location)->expand(0.1, 0.1, 0.1)->distanceFromVector($data->attackPos), $distance);
+					$rawDistance = 69;
+					$locationData->history->iterate(function (Vector3 $location) use (&$rawDistance, $data): void {
+						$rawDistance = min(AABB::fromPosition($location)->expand(0.1, 0.1, 0.1)->distanceFromVector($data->attackPos), $rawDistance);
 					});
-					if ($distance !== 69 && $distance > $this->option("max_reach", 3.1)) {
-						if (++$this->buffer >= 3) {
-							$this->flag($data, ["dist" => round($distance, 4)]);
-						}
-					} else {
-						$this->buffer = max($this->buffer - 0.01, 0);
-						$this->reward(0.0075);
+					if ($rawDistance === 69) {
+						return;
 					}
-					/* if (!$data->isMobile) {
-						$ray = new Ray($data->attackPos, $data->directionVector);
-						$distance = 69;
-						$locationData->history->iterate(function (Vector3 $location) use (&$distance, $ray): void {
-							$AABB = AABB::fromPosition($location)->expand(0.10325, 0.10325, 0.10325);
-							$intersection = $AABB->calculateIntercept($ray->getOrigin(), $ray->traverse(20));
-							if ($intersection !== null) {
-								$AABB->isVectorInside($ray->getOrigin()) ? $distance = 0 : $distance = min($intersection->getHitVector()->distance($ray->getOrigin()), $distance);
-							}
-						});
-
-						if ($distance > $this->option("max_reach", 3.1) && $distance !== 69) {
+					if ($data->isMobile) {
+						if ($rawDistance > $this->option("max_raw", 3.05)) {
 							if (++$this->buffer >= 3) {
-								$this->flag($data, ["dist" => round($distance, 4), "type" => "raycast"]);
+								$this->flag($data, ["dist" => round($rawDistance, 3), "type" => "raw"]);
 							}
 						} else {
-							$this->buffer = max($this->buffer - 0.04, 0);
-							$this->reward(0.0075);
+							$this->buffer = max($this->buffer - 0.05, 0);
 						}
-					} */
+					} else {
+						$raycastDistance = 69;
+						$locationData->history->iterate(function (Vector3 $location) use (&$raycastDistance, $data): void {
+							$AABB = AABB::fromPosition($location)->expand(0.1, 0.1, 0.1);
+							if ($AABB->isVectorInside($data->attackPos)) {
+								$raycastDistance = 0;
+							} else {
+								$intersection = $AABB->calculateIntercept($data->attackPos, $data->attackPos->add($data->directionVector->multiply(20)));
+								if ($intersection !== null) {
+									$raycastDistance = min($intersection->getHitVector()->distance($data->attackPos), $raycastDistance);
+								}
+							}
+						});
+						if ($raycastDistance === 69) {
+							return;
+						}
+						if ($raycastDistance > 3 && $rawDistance > 2.7) {
+							if (++$this->buffer >= 2.5) {
+								$this->flag($data, ["dist" => round($raycastDistance, 3), "type" => "raycast"]);
+							}
+						} else {
+							$this->buffer = max($this->buffer - 0.03, 0);
+							$this->reward(0.0035);
+						}
+					}
 				}
 			}
 			$this->waiting = false;

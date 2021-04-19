@@ -349,8 +349,7 @@ final class ProcessInbound {
 			$data->loggedIn = true;
 			$data->gamemode = $data->player->getGamemode();
 		} elseif ($packet instanceof AdventureSettingsPacket) {
-			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING);
-			$data->hasFlyFlag = $data->isFlying;
+			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 		} elseif ($packet instanceof PlayerActionPacket) {
 			switch ($packet->action) {
 				case PlayerActionPacket::ACTION_START_SPRINT:

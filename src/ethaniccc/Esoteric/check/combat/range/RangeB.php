@@ -28,7 +28,7 @@ class RangeB extends Check {
 			if ($data->currentTick - $data->attackTick <= 1) {
 				$locationData = $data->entityLocationMap->get($data->target);
 				if ($locationData !== null) {
-
+					// TODO: Do this lmao
 				}
 			}
 			$this->waiting = false;

@@ -17,7 +17,7 @@ class MotionC extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof MovePlayerPacket && $data->onGroundTicks >= 3 && $data->ticksSinceFlight >= 10 && $data->inLoadedChunk) {
+		if ($packet instanceof MovePlayerPacket && $data->onGroundTicks >= 3 && $data->ticksSinceFlight >= 10 && $data->inLoadedChunk && !$data->teleported) {
 			$friction = MovementConstants::FRICTION;
 			$blockFriction = null;
 			foreach ($data->blocksBelow as $block) {

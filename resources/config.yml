@@ -56,6 +56,13 @@ detections:
       max_vl: 5
       code: Noah
       max_cps: 21
+    B:
+      enabled: true
+      punishment_type: kick
+      max_vl: 3
+      code: Crocodile
+      samples: 10
+      max_duplicates: 4
   # Aim detections
   Aim:
     A:

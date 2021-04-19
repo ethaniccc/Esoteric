@@ -116,13 +116,7 @@ abstract class Check {
 				$webhook->send();
 			}
 		}
-		if (!$this->experimental) {
-			if ($this->violations >= 3) {
-				$this->warn($data, $extraData);
-			}
-		} else {
-			$this->warn($data, $extraData);
-		}
+		$this->warn($data, $extraData);
 		if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
 			if ($data->player->hasPermission("ac.bypass")) {
 				$this->violations = 0;
