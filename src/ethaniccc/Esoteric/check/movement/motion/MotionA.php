@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\check\movement\motion;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use pocketmine\block\BlockIds;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -23,8 +24,8 @@ class MotionA extends Check {
 				if ($data->ticksSinceJump === 1) {
 					$currentYMovement -= $data->jumpVelocity;
 				}
-				// possible 1 (max possibly 2) tick offset wtf
-				if ($data->ticksSinceMotion <= 3) {
+				// possible 1  tick offset wtf
+				if ($data->ticksSinceMotion <= 2) {
 					$currentYMovement -= $data->motion->y;
 				}
 
@@ -42,10 +43,14 @@ class MotionA extends Check {
 					$currentYMovement -= 0.2;
 				}
 
-				// TODO: Make a better solution for this, this is a temporary hack to eliminate some weird shitty false positive
-				/* if (round($currentYMovement, 3) === 0.2) {
+				// TODO: Make a better solution for this, this is a temporary hack to eliminate some weird shitty false positive I can't find the cause behind
+				if (round($currentYMovement, 3) === 0.2 || round($currentYMovement, 3) === 0.17) {
 					return;
-				} */
+				}
+
+				if ($data->isCollidedHorizontally) {
+					$currentYMovement -= MovementConstants::STEP_HEIGHT;
+				}
 
 				$lastYMovement = $data->lastMoveDelta->y;
 				if ($currentYMovement > $lastYMovement && $currentYMovement > $this->lastPreviousYMovement && $currentYMovement > 0.005 && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10 && !$data->teleported) {

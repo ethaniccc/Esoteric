@@ -23,7 +23,7 @@ class VelocityA extends Check {
 			}
 
 			if ($this->yMotion > 0.005) {
-				if ($data->hasBlockAbove || $data->immobile || !$data->player->isAlive()) {
+				if ($data->hasBlockAbove || $data->immobile || !$data->player->isAlive() || $data->teleported) {
 					$this->yMotion = 0.0;
 					$this->buffer = 0;
 					return;
@@ -31,7 +31,7 @@ class VelocityA extends Check {
 
 				$percentage = ($data->currentMoveDelta->y / $this->yMotion) * 100;
 				$diff = $data->currentMoveDelta->y - $this->yMotion;
-				if ($diff < -4.26E-7 && !$data->teleported && !$data->hasBlockAbove && $data->ticksSinceInCobweb >= 5 && $data->ticksSinceFlight >= 10 && $data->ticksSinceInLiquid >= 5 && $data->ticksSinceInClimbable >= 5) {
+				if ($diff < -4.26E-7 && $data->inLoadedChunk && !$data->hasBlockAbove && $data->ticksSinceInCobweb >= 5 && $data->ticksSinceFlight >= 10 && $data->ticksSinceInLiquid >= 5 && $data->ticksSinceInClimbable >= 5) {
 					if (++$this->buffer > 4) {
 						$this->flag($data, ["pct" => round($percentage, 5) . "%",]);
 					}

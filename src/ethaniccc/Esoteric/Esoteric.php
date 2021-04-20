@@ -12,10 +12,12 @@ use ethaniccc\Esoteric\tasks\TickingTask;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use Exception;
 use pocketmine\event\HandlerList;
+use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
 use pocketmine\Thread;
 use pocketmine\utils\Config;
+use raklib\server\ServerHandler;
 
 final class Esoteric {
 

@@ -15,8 +15,12 @@ use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\NetworkChunkPublisherUpdatePacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
+use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\StartGamePacket;
+use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
 use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\timings\TimingsHandler;
@@ -94,60 +98,48 @@ class PMMPListener implements Listener {
 	/**
 	 * @param DataPacketSendEvent $event
 	 * @priority LOWEST
-	 * @ignoreCancelled true
 	 */
 	public function outbound(DataPacketSendEvent $event): void {
+		$this->sendTimings->startTiming();
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player);
 		if ($playerData === null) {
+			$this->sendTimings->stopTiming();
 			return;
 		}
 		if ($playerData->isDataClosed) {
+			$this->sendTimings->stopTiming();
 			return;
 		}
 		if ($packet instanceof BatchPacket) {
-			$this->sendTimings->startTiming();
-			$locationList = [];
-			$key = null;
-			$packets = [];
-			foreach (PacketUtils::getAllInBatch($packet) as $buff) {
-				$pk = PacketPool::getPacket($buff);
+			$gen = PacketUtils::getFirst($packet);
+			if ($gen->getX() !== "" && $gen->getY()) {
+				$targetPacket = PacketPool::getPacket($gen->getX());
 				try {
 					try {
-						$pk->decode();
+						$targetPacket->decode();
 					} catch (\RuntimeException $e) {
-						continue;
+						$this->sendTimings->stopTiming();
+						return;
 					}
 				} catch (\LogicException $e) {
-					continue;
+					$this->sendTimings->stopTiming();
+					return;
 				}
-				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
-					$locationList[] = clone $pk;
-				} elseif ($pk instanceof NetworkStackLatencyPacket) {
-					$key = $pk->timestamp;
-				}
-				$packets[] = clone $pk;
+			} else {
+				$this->sendTimings->stopTiming();
+				return;
 			}
 
-			if ($playerData->loggedIn) {
-				if ($playerData->entityLocationMap->key !== null) {
-					if ($key !== $playerData->entityLocationMap->key && count($locationList) > 0) {
-						$event->setCancelled();
-						foreach ($locationList as $p) {
-							$playerData->entityLocationMap->add($p);
-						}
-					}
-				}
+			if ($playerData->loggedIn && ($targetPacket instanceof MovePlayerPacket && $targetPacket->entityRuntimeId !== $player->getId() || $targetPacket instanceof MoveActorDeltaPacket)) {
+				$playerData->entityLocationMap->add($targetPacket);
+				$event->setCancelled();
 			}
 
 			if (!$event->isCancelled()) {
-				foreach ($packets as $pk) {
-					$playerData->outboundProcessor->execute($pk, $playerData);
-					foreach ($playerData->checks as $check)
-						if ($check->handleOut())
-							$check->outbound($pk, $playerData);
-				}
+				$playerData->outboundProcessor->execute($targetPacket, $playerData);
+				// foreach ($playerData->checks as $check) if ($check->handleOut()) $check->outbound($targetPacket, $playerData);
 			}
 			$this->sendTimings->stopTiming();
 		}

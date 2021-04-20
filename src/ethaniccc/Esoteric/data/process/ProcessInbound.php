@@ -289,7 +289,7 @@ final class ProcessInbound {
 							$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
 							$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 							$pk->dataLayerId = $realBlock instanceof Liquid ? UpdateBlockPacket::DATA_LAYER_LIQUID : UpdateBlockPacket::DATA_LAYER_NORMAL;
-							$data->player->dataPacket($pk);
+							$data->player->batchDataPacket($pk);
 							NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($realBlock): void {
 								foreach ($this->placedBlocks as $key => $vector) {
 									if ($vector->equals($realBlock->asVector3())) {

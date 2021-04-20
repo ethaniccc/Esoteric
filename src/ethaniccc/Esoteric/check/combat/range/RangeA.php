@@ -5,12 +5,11 @@ namespace ethaniccc\Esoteric\check\combat\range;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\AABB;
-use ethaniccc\Esoteric\utils\Ray;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
-use pocketmine\network\mcpe\protocol\InteractPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 
 class RangeA extends Check {
@@ -22,12 +21,15 @@ class RangeA extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
+		if ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK && in_array($data->gamemode, [GameMode::SURVIVAL, GameMode::ADVENTURE])) {
 			$this->waiting = true;
 		} elseif ($packet instanceof MovePlayerPacket && $this->waiting) {
 			if ($data->currentTick - $data->attackTick <= 2) {
 				$locationData = $data->entityLocationMap->get($data->target);
 				if ($locationData !== null) {
+					if ($locationData->isSynced <= 10) {
+						return;
+					}
 					$rawDistance = 69;
 					$locationData->history->iterate(function (Vector3 $location) use (&$rawDistance, $data): void {
 						$rawDistance = min(AABB::fromPosition($location)->expand(0.1, 0.1, 0.1)->distanceFromVector($data->attackPos), $rawDistance);

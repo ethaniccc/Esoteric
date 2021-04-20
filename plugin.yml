@@ -2,13 +2,10 @@
 name: Esoteric
 author: ethaniccc
 description: A private anti-cheat made for PocketMine-MP
-version: 1.1.0
+version: 1.2.0
 main: ethaniccc\Esoteric\Loader
-api: 3.16.0
-# mcpe-protocol:
-#   - 419
-#   - 422
-#   - 428
+api: 3.19.0
+mcpe-protocol: [431]
 permissions:
   ac:
     description: Gives all anticheat permissions

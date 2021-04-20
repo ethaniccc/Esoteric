@@ -19,7 +19,7 @@ final class NetworkStackLatencyHandler {
 	public static function send(PlayerData $data, NetworkStackLatencyPacket $packet, callable $onResponse): void {
 		if ($packet->needResponse) {
 			$timestamp = $packet->timestamp;
-			$data->player->dataPacket($packet);
+			$data->player->batchDataPacket($packet);
 			if (!isset(self::$list[$data->hash])) {
 				self::$list[$data->hash] = [];
 			}
