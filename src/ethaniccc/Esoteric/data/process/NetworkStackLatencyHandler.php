@@ -3,6 +3,8 @@
 namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\utils\PacketUtils;
+use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 
 final class NetworkStackLatencyHandler {
@@ -19,7 +21,10 @@ final class NetworkStackLatencyHandler {
 	public static function send(PlayerData $data, NetworkStackLatencyPacket $packet, callable $onResponse): void {
 		if ($packet->needResponse) {
 			$timestamp = $packet->timestamp;
-			$data->player->batchDataPacket($packet);
+			$pk = new BatchPacket();
+			$pk->addPacket($packet);
+			$pk->encode();
+			PacketUtils::sendPacketSilent($data, $pk);
 			if (!isset(self::$list[$data->hash])) {
 				self::$list[$data->hash] = [];
 			}

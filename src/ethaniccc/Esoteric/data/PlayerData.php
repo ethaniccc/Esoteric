@@ -44,6 +44,8 @@ final class PlayerData {
 	public $player;
 	/** @var string - The spl_object_hash identifier of the player. */
 	public $hash;
+	/** @var string - Identifier used in network interface */
+	public $networkIdentifier;
 	/** @var int - The current protocol of the player. */
 	public $protocol = ProtocolInfo::CURRENT_PROTOCOL;
 	/** @var bool - Boolean value for if the player is logged in. */
@@ -161,6 +163,7 @@ final class PlayerData {
 		}
 		$this->player = $player;
 		$this->hash = spl_object_hash($player);
+		$this->networkIdentifier = "{$player->getAddress()} {$player->getPort()}";
 		$zeroVec = clone self::$ZERO_VECTOR;
 
 		// AIDS START

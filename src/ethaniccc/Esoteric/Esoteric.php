@@ -41,6 +41,8 @@ final class Esoteric {
 	public $command;
 	/** @var PMMPListener */
 	public $listener;
+	/** @var ServerHandler */
+	public $serverHandler;
 
 	public function __construct(PluginBase $plugin, Config $config) {
 		$this->plugin = $plugin;
@@ -95,6 +97,14 @@ final class Esoteric {
 				Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask($this->getPlugin()->getDataFolder() . "banwaves/" . $filtered[max(array_keys($filtered))], function (Banwave $banwave): void {
 					$this->banwave = $banwave;
 				}));
+			}
+		}
+		foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {
+			if ($interface instanceof RakLibInterface) {
+				$reflection = new \ReflectionProperty($interface, "interface");
+				$reflection->setAccessible(true);
+				$this->serverHandler = $reflection->getValue($interface);
+				break;
 			}
 		}
 	}

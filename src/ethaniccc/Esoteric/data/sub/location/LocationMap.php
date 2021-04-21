@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\MathUtils;
+use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -64,7 +65,8 @@ final class LocationMap {
 		$this->needSend = new BatchPacket();
 		$this->needSendArray = [];
 		$this->key = $pk->timestamp;
-		$data->player->sendDataPacket($batch, false, true);
+		// $data->player->sendDataPacket($batch, false, true);
+		PacketUtils::sendPacketSilent($data, $batch);
 		NetworkStackLatencyHandler::forceHandle($data, $pk->timestamp, function (int $timestamp) use ($locations): void {
 			foreach ($locations as $entityRuntimeId => $location) {
 				if (!isset($this->locations[$entityRuntimeId])) {

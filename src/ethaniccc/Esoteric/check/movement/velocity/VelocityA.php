@@ -18,7 +18,7 @@ class VelocityA extends Check {
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof MovePlayerPacket) {
-			if ($data->ticksSinceMotion <= 1) {
+			if ($data->ticksSinceMotion <= 1 && $data->ticksSinceJump > 1) {
 				$this->yMotion = $data->motion->y;
 			}
 
@@ -36,12 +36,6 @@ class VelocityA extends Check {
 						$this->flag($data, ["pct" => round($percentage, 5) . "%",]);
 					}
 					$this->buffer = min($this->buffer, 16);
-				} elseif ($data->onGround) {
-					// it's impossible for the client to say that they are on the ground after taking motion
-					// regardless, give some leniency
-					if (++$this->buffer >= 2) {
-						$this->flag($data, ["pct" => round($percentage, 5) . "%",]);
-					}
 				} else {
 					$this->buffer = 0;
 					$this->reward();

@@ -49,7 +49,7 @@ class MotionA extends Check {
 				}
 
 				if ($data->isCollidedHorizontally) {
-					$currentYMovement -= MovementConstants::STEP_HEIGHT;
+					$currentYMovement -= MovementConstants::STEP_HEIGHT * 1.5;
 				}
 
 				$lastYMovement = $data->lastMoveDelta->y;

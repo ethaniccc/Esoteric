@@ -7,6 +7,7 @@ use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
+use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
@@ -20,6 +21,7 @@ use pocketmine\level\Location;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
+use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
@@ -32,7 +34,9 @@ use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
+use pocketmine\Server;
 use pocketmine\timings\TimingsHandler;
+use pocketmine\utils\Binary;
 
 final class ProcessInbound {
 
@@ -162,19 +166,21 @@ final class ProcessInbound {
 			}
 			++$data->ticksSinceJump;
 
+			$previousMoveForward = $data->moveForward;
+			$previousMoveStrafe = $data->moveStrafe;
 			$data->moveForward = 0.0;
 			$data->moveStrafe = 0.0;
 
-			/* $knockbackMotion = null;
+			$knockbackMotion = null;
 
 			// here we want to predict the moveForward and moveStrafing values of the player
 			// reference: https://www.spigotmc.org/threads/player-moveforward-movestrafe-aispeed.441073/#post-3819915
-			if ($data->ticksSinceMotion === 1) {
+			if ($data->ticksSinceMotion <= 1) {
 				$knockbackMotion = clone $data->motion;
 			}
 
 			// how is 0.91 more effective here than 0.98 (assumed normal friction??)
-			if ($data->offGroundTicks <= 2) {
+			if ($data->offGroundTicks <= 1) {
 				$friction = 0.91 * (($block = $data->player->getLevel()->getBlockAt($data->lastLocation->x, $data->lastLocation->y - 1, $data->lastLocation->z, false, false))->getId() === 0 ? 0.6 : $block->getFrictionFactor());
 			} else {
 				$friction = 0.91;
@@ -184,7 +190,7 @@ final class ProcessInbound {
 			$prevVelocity = new Vector3($data->lastMoveDelta->x, 0, $data->lastMoveDelta->z);
 
 			if ($knockbackMotion !== null) {
-				$prevVelocity = $knockbackMotion;
+				$prevVelocity = clone $knockbackMotion;
 			}
 
 			if (abs($prevVelocity->x * $friction) < 0.005) {
@@ -243,7 +249,13 @@ final class ProcessInbound {
 
 			$var3 = 0.98;
 			$data->moveForward *= $var3;
-			$data->moveStrafe *= $var3; */
+			$data->moveStrafe *= $var3;
+
+			if ($knockbackMotion !== null) {
+				$rCM = $currVelocity->round(7);
+				$rM = $knockbackMotion->round(7);
+				//$data->player->sendMessage("mF={$data->moveForward} mS={$data->moveStrafe} curr=$rCM motion=$rM");
+			}
 
 			if ($liquids > 0)
 				$data->ticksSinceInLiquid = 0; else ++$data->ticksSinceInLiquid;
@@ -314,6 +326,7 @@ final class ProcessInbound {
 						$data->target = $trData->getEntityRuntimeId();
 						$data->attackTick = $data->currentTick;
 						$data->attackPos = $trData->getPlayerPos();
+						$this->click($data);
 					}
 					break;
 				case InventoryTransactionPacket::TYPE_USE_ITEM:

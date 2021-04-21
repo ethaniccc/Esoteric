@@ -20,10 +20,13 @@ use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
+use pocketmine\network\mcpe\protocol\TextPacket;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
+use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\timings\TimingsHandler;
+use pocketmine\utils\Binary;
 use pocketmine\utils\TextFormat;
 
 class PMMPListener implements Listener {
@@ -100,46 +103,43 @@ class PMMPListener implements Listener {
 	 * @priority LOWEST
 	 */
 	public function outbound(DataPacketSendEvent $event): void {
-		$this->sendTimings->startTiming();
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player);
 		if ($playerData === null) {
-			$this->sendTimings->stopTiming();
 			return;
 		}
 		if ($playerData->isDataClosed) {
-			$this->sendTimings->stopTiming();
 			return;
 		}
 		if ($packet instanceof BatchPacket) {
-			$gen = PacketUtils::getFirst($packet);
-			if ($gen->getX() !== "" && $gen->getY()) {
-				$targetPacket = PacketPool::getPacket($gen->getX());
+			$this->sendTimings->startTiming();
+			$gen = PacketUtils::getAllInBatch($packet);
+			foreach ($gen as $buff) {
+				$pk = PacketPool::getPacket($buff);
 				try {
 					try {
-						$targetPacket->decode();
+						$pk->decode();
 					} catch (\RuntimeException $e) {
-						$this->sendTimings->stopTiming();
-						return;
+						continue;
 					}
 				} catch (\LogicException $e) {
-					$this->sendTimings->stopTiming();
-					return;
+					continue;
 				}
-			} else {
-				$this->sendTimings->stopTiming();
-				return;
-			}
-
-			if ($playerData->loggedIn && ($targetPacket instanceof MovePlayerPacket && $targetPacket->entityRuntimeId !== $player->getId() || $targetPacket instanceof MoveActorDeltaPacket)) {
-				$playerData->entityLocationMap->add($targetPacket);
-				$event->setCancelled();
-			}
-
-			if (!$event->isCancelled()) {
-				$playerData->outboundProcessor->execute($targetPacket, $playerData);
-				// foreach ($playerData->checks as $check) if ($check->handleOut()) $check->outbound($targetPacket, $playerData);
+				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
+					$playerData->entityLocationMap->add($pk);
+					$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
+					if (count($gen) === 1) {
+						// since there's no actual packets in the batch packet, if this BS is sent to the client, the client will crash
+						$event->setCancelled();
+					}
+				}
+				if (!$event->isCancelled()) {
+					$playerData->outboundProcessor->execute($pk, $playerData);
+					foreach ($playerData->checks as $check)
+						if ($check->handleOut())
+							$check->outbound($pk, $playerData);
+				}
 			}
 			$this->sendTimings->stopTiming();
 		}
