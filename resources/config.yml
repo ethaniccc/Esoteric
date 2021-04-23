@@ -35,7 +35,7 @@ banwaves:
   # Message for when the ban-wave starts
   start_message: "§eThe ban wave has §6commenced"
   # Message to broadcast when a player is banned in the ban-wave
-  ban_message: "§g{player} §ewas §6caught §ein the ban wave §7[Wave {id}]"
+  ban_message: "§g{player} §ehas §6been §ebanned in the ban wave §7[Wave {id}]"
   # Message to broadcast when the ban wave has concluded
   end_message: "§eThe §gban wave §ehas §6concluded§e - remember to play legit!"
 

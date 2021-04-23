@@ -9,7 +9,7 @@ I'm deciding to not disclose to the public.
 
 ## Supported Versions
 
-The versions this anti-cheat currently supports are 1.16.100, 1.16.201, 1.16.210, 1.16.220
+The versions this anti-cheat currently supports are 1.16.100, 1.16.201, 1.16.210, 1.16.220.
 
 **Protocol List:**
 
