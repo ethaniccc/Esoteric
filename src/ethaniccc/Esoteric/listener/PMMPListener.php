@@ -34,10 +34,12 @@ class PMMPListener implements Listener {
 	/** @var TimingsHandler */
 	public $checkTimings;
 	public $sendTimings;
+	public $decodingTimings;
 
 	public function __construct() {
 		$this->checkTimings = new TimingsHandler("Esoteric Checks");
 		$this->sendTimings = new TimingsHandler("Esoteric Listener Outbound");
+		$this->decodingTimings = new TimingsHandler("Esoteric Batch Decoding");
 	}
 
 	/**
@@ -117,6 +119,7 @@ class PMMPListener implements Listener {
 			$gen = PacketUtils::getAllInBatch($packet);
 			foreach ($gen as $buff) {
 				$pk = PacketPool::getPacket($buff);
+				$this->decodingTimings->startTiming();
 				try {
 					try {
 						$pk->decode();
@@ -126,11 +129,12 @@ class PMMPListener implements Listener {
 				} catch (\LogicException $e) {
 					continue;
 				}
+				$this->decodingTimings->stopTiming();
 				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
 					$playerData->entityLocationMap->add($pk);
 					$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
 					if (count($gen) === 1) {
-						// since there's no actual packets in the batch packet, if this BS is sent to the client, the client will crash
+						// if this BS is sent to the client, the client will crash
 						$event->setCancelled();
 					}
 				}

@@ -175,13 +175,15 @@ final class ProcessInbound {
 
 			// here we want to predict the moveForward and moveStrafing values of the player
 			// reference: https://www.spigotmc.org/threads/player-moveforward-movestrafe-aispeed.441073/#post-3819915
-			if ($data->ticksSinceMotion <= 1) {
+			if ($data->ticksSinceMotion <= 2) {
 				$knockbackMotion = clone $data->motion;
 			}
 
 			// how is 0.91 more effective here than 0.98 (assumed normal friction??)
-			if ($data->offGroundTicks <= 1) {
+			if ($data->offGroundTicks <= 2 && $data->ticksSinceMotion > 1) {
 				$friction = 0.91 * (($block = $data->player->getLevel()->getBlockAt($data->lastLocation->x, $data->lastLocation->y - 1, $data->lastLocation->z, false, false))->getId() === 0 ? 0.6 : $block->getFrictionFactor());
+			} elseif($data->ticksSinceMotion === 1) {
+				$friction = 0.98;
 			} else {
 				$friction = 0.91;
 			}
@@ -251,11 +253,7 @@ final class ProcessInbound {
 			$data->moveForward *= $var3;
 			$data->moveStrafe *= $var3;
 
-			if ($knockbackMotion !== null) {
-				$rCM = $currVelocity->round(7);
-				$rM = $knockbackMotion->round(7);
-				//$data->player->sendMessage("mF={$data->moveForward} mS={$data->moveStrafe} curr=$rCM motion=$rM");
-			}
+			$data->player->sendMessage("mF={$data->moveForward} mS={$data->moveStrafe}");
 
 			if ($liquids > 0)
 				$data->ticksSinceInLiquid = 0; else ++$data->ticksSinceInLiquid;
