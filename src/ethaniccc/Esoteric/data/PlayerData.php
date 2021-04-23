@@ -8,7 +8,21 @@ use ethaniccc\Esoteric\check\combat\aim\AimB;
 use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerA;
 use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerB;
 use ethaniccc\Esoteric\check\combat\killaura\KillAuraA;
+use ethaniccc\Esoteric\check\combat\killaura\KillAuraB;
 use ethaniccc\Esoteric\check\combat\range\RangeA;
+use ethaniccc\Esoteric\check\misc\editionfaker\EditionFakerA;
+use ethaniccc\Esoteric\check\misc\packets\PacketsA;
+use ethaniccc\Esoteric\check\misc\packets\PacketsB;
+use ethaniccc\Esoteric\check\misc\packets\PacketsC;
+use ethaniccc\Esoteric\check\movement\fly\FlyA;
+use ethaniccc\Esoteric\check\movement\fly\FlyB;
+use ethaniccc\Esoteric\check\movement\fly\FlyC;
+use ethaniccc\Esoteric\check\movement\motion\MotionA;
+use ethaniccc\Esoteric\check\movement\motion\MotionB;
+use ethaniccc\Esoteric\check\movement\motion\MotionC;
+use ethaniccc\Esoteric\check\movement\motion\MotionD;
+use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
+use ethaniccc\Esoteric\check\movement\velocity\VelocityB;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
@@ -105,8 +119,6 @@ final class PlayerData {
 	public $ticksSinceFlight = 0;
 	/** @var bool - Boolean value for if the player is flying. */
 	public $isFlying = false;
-	/** @var bool */
-	public $hasFlyFlag = false;
 	/** @var int - Movements that have passed since the user has jumped. */
 	public $ticksSinceJump = 0;
 	/** @var bool */
@@ -172,9 +184,19 @@ final class PlayerData {
 			# Autoclicker checks
 			new AutoClickerA(), new AutoClickerB(),
 			# Killaura checks
-			new KillAuraA(),
+			new KillAuraA(), new KillAuraB(),
 			# Range checks
 			new RangeA(),
+			# Fly checks
+			new FlyA(), new FlyB(), new FlyC(),
+			# Motion checks
+			new MotionA(), new MotionB(), new MotionC(), new MotionD(),
+			# Velocity checks
+			new VelocityA(),
+			# Packet checks
+			new PacketsA(), new PacketsB(), new PacketsC(),
+			# EditionFaker checks
+			new EditionFakerA(),
 		];
 	}
 

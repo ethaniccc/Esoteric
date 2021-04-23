@@ -1,24 +1,29 @@
 <?php
 
-namespace ethaniccc\Esoteric\check\movement\velocity;
+namespace ethaniccc\Esoteric\check\misc\packets;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use ethaniccc\Esoteric\utils\MathUtils;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 
-class VelocityB extends Check {
+class PacketsB extends Check {
+
+	private $delay = 0;
 
 	public function __construct() {
-		parent::__construct("Velocity", "B", "Checks if the player takes an abnormal amount of horizontal knockback", true);
+		parent::__construct("Packets", "B", "Checks if the player is sending the wrong movement packet", false);
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket) {
+			++$this->delay;
+		} elseif ($packet instanceof MovePlayerPacket) {
+			if ($this->delay < 2) {
+				$this->flag($data);
+			}
+			$this->delay = 0;
 		}
 	}
 

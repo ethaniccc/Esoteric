@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\check\movement\motion;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
+use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\network\mcpe\protocol\DataPacket;
@@ -17,7 +18,7 @@ class MotionC extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof MovePlayerPacket && $data->onGroundTicks >= 3 && $data->ticksSinceFlight >= 10 && $data->inLoadedChunk && !$data->teleported) {
+		if ($packet instanceof PlayerAuthInputPacket && $data->onGroundTicks >= 3 && $data->ticksSinceFlight >= 10 && $data->inLoadedChunk && !$data->teleported) {
 			$friction = MovementConstants::FRICTION;
 			$blockFriction = null;
 			foreach ($data->blocksBelow as $block) {
@@ -39,7 +40,7 @@ class MotionC extends Check {
 			$estimatedXZ = $lastMoveDeltaXZ * $friction;
 			$diff = ($currentMoveDeltaXZ - $estimatedXZ) - $data->movementSpeed;
 			if (!$data->isCollidedHorizontally) {
-				if ($diff > 0.025) {
+				if ($diff > 0.03) {
 					// bad boi - most of the time, the difference is negative
 					// $data->player->sendMessage("diff=$diff");
 					// if this turns out to still false positive, I'll put back the buffer.

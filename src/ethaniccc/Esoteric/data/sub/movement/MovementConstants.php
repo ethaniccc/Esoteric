@@ -22,7 +22,7 @@ final class MovementConstants {
 
 	public const UNKNOWN_1 = 0.017453292;
 
-	public const MOVEMENT_THRESHOLD = 0.03;
-	public const MOVEMENT_THRESHOLD_SQUARED = 0.03 ** 2;
+	public const MOVEMENT_THRESHOLD = 0.001;
+	public const MOVEMENT_THRESHOLD_SQUARED = 0.001 ** 2;
 
 }

@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\check\movement\velocity;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
+use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 
@@ -17,8 +18,8 @@ class VelocityA extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof MovePlayerPacket) {
-			if ($data->ticksSinceMotion <= 1 && $data->ticksSinceJump > 1) {
+		if ($packet instanceof PlayerAuthInputPacket) {
+			if ($data->ticksSinceMotion === 1 && $data->ticksSinceJump !== 1) {
 				$this->yMotion = $data->motion->y;
 			}
 

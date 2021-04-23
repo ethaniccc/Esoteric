@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\check\movement\motion;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
+use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -16,7 +17,7 @@ class MotionD extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof MovePlayerPacket && $data->ticksSinceJump === 1 && !$data->teleported && $data->ticksSinceMotion > 4) {
+		if ($packet instanceof PlayerAuthInputPacket && $data->ticksSinceJump === 1 && !$data->teleported && $data->ticksSinceMotion > 4) {
 			$currentXZ = MathUtils::hypot($data->currentMoveDelta->x, $data->currentMoveDelta->z);
 			$last = $data->lastMoveDelta;
 			if ($data->isSprinting) {

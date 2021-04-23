@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\check\movement\motion;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
+use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use pocketmine\block\BlockIds;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -18,8 +19,8 @@ class MotionA extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof MovePlayerPacket) {
-			if (!$data->onGround && $data->ticksSinceFlight >= 10) {
+		if ($packet instanceof PlayerAuthInputPacket) {
+			if ($data->ticksSinceFlight >= 10) {
 				$currentYMovement = $data->currentMoveDelta->y;
 				if ($data->ticksSinceJump === 1) {
 					$currentYMovement -= $data->jumpVelocity;
@@ -41,11 +42,6 @@ class MotionA extends Check {
 
 				if ($data->ticksSinceInClimbable) {
 					$currentYMovement -= 0.2;
-				}
-
-				// TODO: Make a better solution for this, this is a temporary hack to eliminate some weird shitty false positive I can't find the cause behind
-				if (round($currentYMovement, 3) === 0.2 || round($currentYMovement, 3) === 0.17) {
-					return;
 				}
 
 				if ($data->isCollidedHorizontally) {

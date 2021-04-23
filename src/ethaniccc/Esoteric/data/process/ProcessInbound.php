@@ -244,6 +244,9 @@ final class ProcessInbound {
 						case Effect::JUMP_BOOST:
 							$data->jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION + ($effectData->amplifier / 10);
 							break;
+						case Effect::LEVITATION:
+							$data->ticksSinceFlight = 0;
+							break;
 					}
 				}
 			}
@@ -258,6 +261,7 @@ final class ProcessInbound {
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
 				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), $location->getLevel(), LevelUtils::SEARCH_ALL, false);
 				$data->expectedOnGround = $blocks->valid();
+				$data->lastBlocksBelow = $data->blocksBelow;
 				$data->blocksBelow = [];
 				$data->isCollidedHorizontally = false;
 				$data->isCollidedVertically = false;
@@ -267,12 +271,9 @@ final class ProcessInbound {
 				foreach ($blocks as $block) {
 					/** @var Block $block */
 					if (!$data->isCollidedHorizontally) {
-						$data->isCollidedHorizontally = $block->collidesWithBB($data->boundingBox) && $block->y > $location->y;
+						$data->isCollidedHorizontally = $block->y > $location->y && $block->isSolid();
 					}
-					if (!$data->isCollidedVertically) {
-						$data->isCollidedVertically = $block->collidesWithBB($data->boundingBox);
-					}
-					if ($block->y <= $location->y && $block->collidesWithBB($data->boundingBox)) {
+					if ($block->y <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0, 0.05, 0))) {
 						$data->blocksBelow[] = $block;
 					}
 					if ($block instanceof Liquid) {
@@ -283,6 +284,7 @@ final class ProcessInbound {
 						$climbable++;
 					}
 				}
+				$data->isCollidedVertically = count($data->blocksBelow) > 0;
 				if ($liquids > 0)
 					$data->ticksSinceInLiquid = 0; else ++$data->ticksSinceInLiquid;
 
@@ -301,9 +303,18 @@ final class ProcessInbound {
 				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && count($data->player->getLevel()->getCollisionBlocks($AABB1, true)) !== 0;
 				$data->isCollidedVertically = $flag1;
 				$predictedMoveY = $this->lastPredictedY;
+				if ($data->ticksSinceMotion === 0) {
+					$predictedMoveY = $data->motion->y;
+				}
+				if ($data->ticksSinceJump === 0) {
+					$predictedMoveY = $data->jumpVelocity;
+				}
 				$flag3 = abs($predictedMoveY - $actualMoveY) > 0.001;
 				$flag4 = $predictedMoveY < 0;
 				$data->onGround = $flag3 && $flag4 && $data->expectedOnGround;
+				if ($data->ticksSinceTeleport === 0) {
+					$data->onGround = true;
+				}
 
 				$pk = new MovePlayerPacket();
 				$pk->entityRuntimeId = $data->player->getId();
