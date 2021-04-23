@@ -21,6 +21,7 @@ use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\TextPacket;
+use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
 use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\Player;
@@ -98,6 +99,9 @@ class PMMPListener implements Listener {
 			}
 		}
 		$this->checkTimings->stopTiming();
+		if ($packet instanceof PlayerAuthInputPacket) {
+			$event->setCancelled();
+		}
 	}
 
 	/**
@@ -131,21 +135,23 @@ class PMMPListener implements Listener {
 				}
 				$this->decodingTimings->stopTiming();
 				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
-					$playerData->entityLocationMap->add($pk);
 					$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
+					$packet->payload = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->payload);
 					if (count($gen) === 1) {
 						// if this BS is sent to the client, the client will crash
 						$event->setCancelled();
 					}
+					$playerData->entityLocationMap->add($pk);
 				}
-				if (!$event->isCancelled()) {
-					$playerData->outboundProcessor->execute($pk, $playerData);
-					foreach ($playerData->checks as $check)
-						if ($check->handleOut())
-							$check->outbound($pk, $playerData);
-				}
+				$playerData->outboundProcessor->execute($pk, $playerData);
+				foreach ($playerData->checks as $check)
+					if ($check->handleOut())
+						$check->outbound($pk, $playerData);
 			}
 			$this->sendTimings->stopTiming();
+		} elseif ($packet instanceof StartGamePacket) {
+			$movementSettings = new PlayerMovementSettings(PlayerMovementType::SERVER_AUTHORITATIVE_V2_REWIND, 0, false);
+			$packet->playerMovementSettings = $movementSettings;
 		}
 	}
 
@@ -153,10 +159,9 @@ class PMMPListener implements Listener {
 		$entity = $event->getEntity();
 		if ($entity instanceof Player) {
 			$data = Esoteric::getInstance()->dataManager->get($entity);
-			if ($data === null) {
-				return;
+			if ($data !== null) {
+				$data->inLoadedChunk = false;
 			}
-			$data->inLoadedChunk = false;
 		}
 	}
 

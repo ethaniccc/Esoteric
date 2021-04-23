@@ -15,7 +15,7 @@ use pocketmine\Server;
 /**
  * Class LocationMap
  * @package ethaniccc\Esoteric\data\sub
- * LocationMap is a class that stores estimated client side locations in an array. This will be used in checks such as Range.
+ * LocationMap is a class that stores estimated client side locations in an array. This will be used in some combat checks.
  */
 final class LocationMap {
 
@@ -89,7 +89,8 @@ final class LocationMap {
 
 	function executeTick(PlayerData $data): void {
 		foreach ($this->locations as $entityRuntimeId => $locationData) {
-			if (($entity = Server::getInstance()->findEntity($entityRuntimeId)) === null) {
+			if (Server::getInstance()->findEntity($entityRuntimeId) === null) {
+				// entity go brrt !
 				unset($this->locations[$entityRuntimeId]);
 				unset($this->needSendArray[$entityRuntimeId]);
 			} else {

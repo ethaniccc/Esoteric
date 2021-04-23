@@ -55,6 +55,7 @@ class ProcessOutbound {
 					case MobEffectPacket::EVENT_ADD:
 						$effectData = new EffectData();
 						$effectData->effectId = $packet->effectId;
+						$effectData->ticks = $packet->duration - 1;
 						$effectData->amplifier = $packet->amplifier + 1;
 						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $effectData): void {
 							$data->effects[$effectData->effectId] = $effectData;
@@ -66,11 +67,16 @@ class ProcessOutbound {
 							return;
 						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($effectData, $packet): void {
 							$effectData->amplifier = $packet->amplifier + 1;
+							$effectData->ticks = $packet->amplifier - 1;
 						});
 						break;
 					case MobEffectPacket::EVENT_REMOVE:
-						// assume the client has already removed effects client-side
-						unset($data->effects[$packet->effectId]);
+						if (isset($data->effects[$packet->effectId])) {
+							// removed before the effect duration has wore off client-side
+							NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $packet): void {
+								unset($data->effects[$packet->effectId]);
+							});
+						}
 						break;
 				}
 			}

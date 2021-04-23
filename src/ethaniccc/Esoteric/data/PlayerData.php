@@ -3,25 +3,6 @@
 namespace ethaniccc\Esoteric\data;
 
 use ethaniccc\Esoteric\check\Check;
-use ethaniccc\Esoteric\check\combat\aim\AimA;
-use ethaniccc\Esoteric\check\combat\aim\AimB;
-use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerA;
-use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerB;
-use ethaniccc\Esoteric\check\combat\killaura\KillAuraA;
-use ethaniccc\Esoteric\check\combat\range\RangeA;
-use ethaniccc\Esoteric\check\combat\range\RangeB;
-use ethaniccc\Esoteric\check\misc\editionfaker\EditionFakerA;
-use ethaniccc\Esoteric\check\movement\fly\FlyA;
-use ethaniccc\Esoteric\check\movement\fly\FlyB;
-use ethaniccc\Esoteric\check\movement\fly\FlyC;
-use ethaniccc\Esoteric\check\movement\groundspoof\GroundSpoofA;
-use ethaniccc\Esoteric\check\movement\jesus\JesusA;
-use ethaniccc\Esoteric\check\movement\motion\MotionA;
-use ethaniccc\Esoteric\check\movement\motion\MotionB;
-use ethaniccc\Esoteric\check\movement\motion\MotionC;
-use ethaniccc\Esoteric\check\movement\motion\MotionD;
-use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
-use ethaniccc\Esoteric\check\movement\velocity\VelocityB;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
@@ -179,39 +160,11 @@ final class PlayerData {
 		$this->alertCooldown = Esoteric::getInstance()->getSettings()->getAlertCooldown();
 		$this->lastAlertTime = microtime(true);
 
-		$this->checks = [
-			# Autoclicker checks
-			new AutoClickerA(), new AutoClickerB(),
-
-			# Aim checks
-			new AimA(), new AimB(),
-
-			# Range checks
-			new RangeA(), new RangeB(),
-
-			# Killaura checks
-			new KillAuraA(),
-
-			# Fly checks
-			new FlyA(), new FlyB(), new FlyC(),
-
-			# Ground spoof checks
-			new GroundSpoofA(),
-
-			# Motion checks
-			new MotionA(), new MotionB(), new MotionC(), new MotionD(),
-
-			#Jesus checks
-			//new JesusA(),
-
-			# Velocity checks
-			new VelocityA(), new VelocityB(),
-
-			# Edition faker checks
-			new EditionFakerA()];
+		$this->checks = [];
 	}
 
 	public function tick(): void {
+		$this->currentTick++;
 		$this->entityLocationMap->executeTick($this);
 		$currentTime = microtime(true);
 		$this->ticks = array_filter($this->ticks, function (float $time) use ($currentTime): bool {

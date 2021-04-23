@@ -24,7 +24,7 @@ class KillAuraA extends Check {
 			$this->lastTick = $data->currentTick;
 		} elseif ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
 			$tickDiff = $data->currentTick - $this->lastTick;
-			if ($tickDiff > 20) {
+			if ($tickDiff > 4) {
 				$this->flag($data, ["diff" => $tickDiff]);
 			}
 		}

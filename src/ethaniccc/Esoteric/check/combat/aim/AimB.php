@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
 class AimB extends Check {
 
@@ -14,7 +15,7 @@ class AimB extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof MovePlayerPacket && $data->currentYawDelta > 0.0065) {
+		if ($packet instanceof PlayerAuthInputPacket && $data->currentYawDelta > 0.0065) {
 			$roundedDiff = abs(round($data->currentYawDelta, 1) - round($data->currentYawDelta, 5));
 			if ($roundedDiff <= 3E-5) {
 				if (++$this->buffer >= 3) {

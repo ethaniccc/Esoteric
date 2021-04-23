@@ -9,6 +9,7 @@ use pocketmine\network\mcpe\NetworkBinaryStream;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use raklib\protocol\PacketReliability;
 use raklib\RakLib;
+use pocketmine\network\mcpe\RakLibInterface;
 
 class PacketUtils {
 

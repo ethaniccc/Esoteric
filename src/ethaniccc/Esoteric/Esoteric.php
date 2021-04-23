@@ -6,12 +6,14 @@ use CortexPE\DiscordWebhookAPI\WebhookThread;
 use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
+use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\listener\PMMPListener;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use Exception;
 use pocketmine\event\HandlerList;
+use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
@@ -80,6 +82,7 @@ final class Esoteric {
 		if (!WebhookThread::valid()) {
 			WebhookThread::init();
 		}
+		PacketPool::registerPacket(new PlayerAuthInputPacket());
 		$this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
 		$this->command = new EsotericCommand();
 		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
