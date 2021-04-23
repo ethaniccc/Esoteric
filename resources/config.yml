@@ -48,3 +48,56 @@ webhook:
   punishments: false
 
 detections:
+  # Autoclicker detections
+  Autoclicker:
+    A:
+      enabled: true
+      punishment_type: kick
+      max_vl: 5
+      code: Noah
+      max_cps: 21
+    B:
+      enabled: true
+      punishment_type: kick
+      max_vl: 3
+      code: Crocodile
+      samples: 10
+      max_duplicates: 4
+  # Aim detections
+  Aim:
+    A:
+      enabled: true
+      punishment_type: kick
+      max_vl: 5
+      code: Neck
+    B:
+      enabled: true
+      punishment_type: kick
+      max_vl: 5
+      code: Hawkeye
+  # Killaura detections
+  Killaura:
+    A:
+      enabled: true
+      punishment_type: kick
+      max_vl: 5
+      code: Lancelot
+    B:
+      enabled: true
+      punishment_type: kick
+      max_vl: 10
+      code: Inkingmistake
+  # Range checks
+  Range:
+    A:
+      enabled: true
+      punishment_type: kick
+      max_vl: 20
+      max_raw: 3.05
+      max_dist: 3.01
+      code: Aristotle
+    B:
+      enabled: false
+      punishment_type: kick
+      max_vl: 20
+      code: Descartes

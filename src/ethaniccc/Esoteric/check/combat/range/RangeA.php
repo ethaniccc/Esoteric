@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\check\combat\range;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\AABB;
+use ethaniccc\Esoteric\utils\Ray;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
@@ -31,44 +32,30 @@ class RangeA extends Check {
 					if ($locationData->isSynced <= 10) {
 						return;
 					}
-					$rawDistance = 69;
-					$locationData->history->iterate(function (Vector3 $location) use (&$rawDistance, $data): void {
-						$rawDistance = min(AABB::fromPosition($location)->expand(0.1, 0.1, 0.1)->distanceFromVector($data->attackPos), $rawDistance);
-					});
-					if ($rawDistance === 69) {
-						return;
-					}
+					$AABB = AABB::fromPosition($locationData->lastLocation)->expand(0.1, 0.1, 0.1);
 					if ($data->isMobile) {
+						$rawDistance = $AABB->distanceFromVector($data->attackPos);
 						if ($rawDistance > $this->option("max_raw", 3.05)) {
 							if (++$this->buffer >= 3) {
 								$this->flag($data, ["dist" => round($rawDistance, 3), "type" => "raw"]);
+								$this->buffer = min($this->buffer, 4.5);
 							}
 						} else {
 							$this->buffer = max($this->buffer - 0.05, 0);
 						}
 					} else {
-						$raycastDistance = 69;
-						$locationData->history->iterate(function (Vector3 $location) use (&$raycastDistance, $data): void {
-							$AABB = AABB::fromPosition($location)->expand(0.1, 0.1, 0.1);
-							if ($AABB->isVectorInside($data->attackPos)) {
-								$raycastDistance = 0;
-							} else {
-								$intersection = $AABB->calculateIntercept($data->attackPos, $data->attackPos->add($data->directionVector->multiply(20)));
-								if ($intersection !== null) {
-									$raycastDistance = min($intersection->getHitVector()->distance($data->attackPos), $raycastDistance);
+						$ray = Ray::from($data);
+						$intersection = $AABB->calculateIntercept($ray->origin, $ray->traverse(7));
+						if ($intersection !== null && !$AABB->isVectorInside($data->attackPos)) {
+							$raycastDist = $intersection->getHitVector()->distance($data->attackPos);
+							if ($raycastDist > $this->option("max_dist", 3.01)) {
+								if (++$this->buffer >= 3) {
+									$this->flag($data, ["dist" => round($raycastDist, 3), "type" => "raycast"]);
+									$this->buffer = min($this->buffer, 4.5);
 								}
+							} else {
+								$this->buffer = max($this->buffer - 0.05, 0);
 							}
-						});
-						if ($raycastDistance === 69) {
-							return;
-						}
-						if ($raycastDistance > 3 && $rawDistance > 2.7) {
-							if (++$this->buffer >= 2.5) {
-								$this->flag($data, ["dist" => round($raycastDistance, 3), "type" => "raycast"]);
-							}
-						} else {
-							$this->buffer = max($this->buffer - 0.03, 0);
-							$this->reward(0.0035);
 						}
 					}
 				}

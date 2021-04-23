@@ -3,6 +3,12 @@
 namespace ethaniccc\Esoteric\data;
 
 use ethaniccc\Esoteric\check\Check;
+use ethaniccc\Esoteric\check\combat\aim\AimA;
+use ethaniccc\Esoteric\check\combat\aim\AimB;
+use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerA;
+use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerB;
+use ethaniccc\Esoteric\check\combat\killaura\KillAuraA;
+use ethaniccc\Esoteric\check\combat\range\RangeA;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
@@ -160,7 +166,16 @@ final class PlayerData {
 		$this->alertCooldown = Esoteric::getInstance()->getSettings()->getAlertCooldown();
 		$this->lastAlertTime = microtime(true);
 
-		$this->checks = [];
+		$this->checks = [
+			# Aim checks
+			new AimA(), new AimB(),
+			# Autoclicker checks
+			new AutoClickerA(), new AutoClickerB(),
+			# Killaura checks
+			new KillAuraA(),
+			# Range checks
+			new RangeA(),
+		];
 	}
 
 	public function tick(): void {
