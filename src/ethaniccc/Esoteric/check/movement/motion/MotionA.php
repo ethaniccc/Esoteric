@@ -22,10 +22,10 @@ class MotionA extends Check {
 		if ($packet instanceof PlayerAuthInputPacket) {
 			if ($data->ticksSinceFlight >= 10) {
 				$currentYMovement = $data->currentMoveDelta->y;
-				if ($data->ticksSinceJump === 1) {
+				if ($data->ticksSinceJump <= 1) {
 					$currentYMovement -= $data->jumpVelocity;
 				}
-				// possible 1  tick offset wtf
+				// possible 2 tick offset wtf
 				if ($data->ticksSinceMotion <= 2) {
 					$currentYMovement -= $data->motion->y;
 				}
@@ -40,7 +40,7 @@ class MotionA extends Check {
 					}
 				}
 
-				if ($data->ticksSinceInClimbable) {
+				if ($data->ticksSinceInClimbable <= 5) {
 					$currentYMovement -= 0.2;
 				}
 

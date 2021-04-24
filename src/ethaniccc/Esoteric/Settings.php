@@ -58,4 +58,8 @@ final class Settings {
 		return $this->data["banwaves"] ?? ["enabled" => false, "violations" => -1];
 	}
 
+	public function getTimeoutSettings(): array {
+		return $this->data["timeout"] ?? ["enabled" => true, "total_packets" => 10, "ticks" => 10];
+	}
+
 }

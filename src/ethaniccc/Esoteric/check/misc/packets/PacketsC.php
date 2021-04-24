@@ -17,7 +17,7 @@ class PacketsC extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof PlayerAuthInputPacket) {
+		if ($packet instanceof PlayerAuthInputPacket && $data->loggedIn && $data->ticksSinceSpawn >= 20) {
 			$hasJumpFlag = InputConstants::hasFlag($packet, InputConstants::JUMPING);
 			if($data->ticksSinceJump <= 1 && !$hasJumpFlag){
 				$this->flag($data);

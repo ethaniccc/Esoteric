@@ -27,6 +27,15 @@ ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of 
 # Setback types: smooth, instant, or none
 setback_type: "instant"
 
+# Timeout settings
+timeout:
+  # If this is disabled, hackers may be able to disable Esoteric by cancelling the sending of a certain packet
+  enabled: true
+  # Amount of un-received packets to flag suspicion of a player timing out
+  total_packets: 10
+  # Amount of client ticks to pass by before kicking the player for timing out
+  ticks: 10
+
 banwaves:
   # Choose if banwaves should be enabled on your server
   enabled: false

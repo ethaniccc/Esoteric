@@ -4,8 +4,10 @@ namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
+use pocketmine\entity\Attribute;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
+use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\LevelChunkPacket;
@@ -16,6 +18,7 @@ use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
+use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\timings\TimingsHandler;
 
@@ -109,6 +112,28 @@ class ProcessOutbound {
 			NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($packet, $data): void {
 				$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 			});
+		} elseif ($packet instanceof ActorEventPacket && $packet->entityRuntimeId === $data->player->getId()) {
+			switch ($packet->event) {
+				case ActorEventPacket::RESPAWN:
+					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($data): void {
+						$data->isAlive = true;
+					});
+					break;
+			}
+		} elseif ($packet instanceof UpdateAttributesPacket && $packet->entityRuntimeId === $data->player->getId()) {
+			foreach ($packet->entries as $attribute) {
+				if ($attribute->getId() === Attribute::HEALTH) {
+					if ($attribute->getValue() <= 0) {
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($data): void {
+							$data->isAlive = false;
+						});
+					} elseif ($attribute->getValue() > 0 && !$data->isAlive) {
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($data): void {
+							$data->isAlive = true;
+						});
+					}
+				}
+			}
 		}
 		self::$baseTimings->stopTiming();
 	}

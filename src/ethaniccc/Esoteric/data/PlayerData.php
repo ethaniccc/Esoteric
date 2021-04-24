@@ -69,6 +69,8 @@ final class PlayerData {
 	public $entityLocationMap;
 	/** @var bool */
 	public $isMobile = false;
+	/** @var int */
+	public $latency = 0;
 	/** @var int - ID of the current target entity */
 	public $target = -1;
 	/** @var int - ID of the last target entity */
@@ -133,6 +135,10 @@ final class PlayerData {
 	public $blocksBelow = [];
 	/** @var Block[] */
 	public $lastBlocksBelow = [];
+	/** @var bool */
+	public $isAlive = true;
+	/** @var int - Amount of client ticks that have passed since the player has spawned. */
+	public $ticksSinceSpawn = 0;
 	/** @var int - Current gamemode of the player. */
 	public $gamemode = 0;
 	public $isSprinting = false;

@@ -65,8 +65,11 @@ final class LocationMap {
 		$this->needSend = new BatchPacket();
 		$this->needSendArray = [];
 		$this->key = $pk->timestamp;
+		$timestamp = $pk->timestamp;
 		// $data->player->sendDataPacket($batch, false, true);
-		PacketUtils::sendPacketSilent($data, $batch);
+		PacketUtils::sendPacketSilent($data, $batch, true, function (int $ackID) use($data, $timestamp): void {
+			$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
+		});
 		NetworkStackLatencyHandler::forceHandle($data, $pk->timestamp, function (int $timestamp) use ($locations): void {
 			foreach ($locations as $entityRuntimeId => $location) {
 				if (!isset($this->locations[$entityRuntimeId])) {

@@ -112,7 +112,8 @@ final class ProcessInbound {
 				$pk->z = $location->z;
 				$pk->face = $data->player->getDirection();
 				$data->player->handlePlayerAction($pk);
-			} elseif(InputConstants::hasFlag($packet, InputConstants::STOP_SPRINTING)){
+			}
+			if(InputConstants::hasFlag($packet, InputConstants::STOP_SPRINTING)){
 				$data->isSprinting = false;
 				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
 				$pk = new PlayerActionPacket();
@@ -123,7 +124,8 @@ final class ProcessInbound {
 				$pk->z = $location->z;
 				$pk->face = $data->player->getDirection();
 				$data->player->handlePlayerAction($pk);
-			} elseif(InputConstants::hasFlag($packet, InputConstants::START_SNEAKING)){
+			}
+			if(InputConstants::hasFlag($packet, InputConstants::START_SNEAKING)){
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_START_SNEAK;
@@ -132,7 +134,8 @@ final class ProcessInbound {
 				$pk->z = $location->z;
 				$pk->face = $data->player->getDirection();
 				$data->player->handlePlayerAction($pk);
-			} elseif(InputConstants::hasFlag($packet, InputConstants::STOP_SNEAKING)){
+			}
+			if(InputConstants::hasFlag($packet, InputConstants::STOP_SNEAKING)){
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_STOP_SNEAK;
@@ -141,7 +144,8 @@ final class ProcessInbound {
 				$pk->z = $location->z;
 				$pk->face = $data->player->getDirection();
 				$data->player->handlePlayerAction($pk);
-			} elseif(InputConstants::hasFlag($packet, InputConstants::START_JUMPING)){
+			}
+			if(InputConstants::hasFlag($packet, InputConstants::START_JUMPING)){
 				$data->ticksSinceJump = 0;
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
@@ -260,7 +264,7 @@ final class ProcessInbound {
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
 				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), $location->getLevel(), LevelUtils::SEARCH_ALL, false);
-				$data->expectedOnGround = $blocks->valid();
+				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
 				$data->blocksBelow = [];
 				$data->isCollidedHorizontally = false;
@@ -268,10 +272,11 @@ final class ProcessInbound {
 				$liquids = 0;
 				$climbable = 0;
 				$cobweb = 0;
+				$floorLoc = $location->floor();
 				foreach ($blocks as $block) {
 					/** @var Block $block */
 					if (!$data->isCollidedHorizontally) {
-						$data->isCollidedHorizontally = $block->y > $location->y && $block->isSolid();
+						$data->isCollidedHorizontally = $block->isSolid() && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.5, -0.01, 0.5));
 					}
 					if ($block->y <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0, 0.05, 0))) {
 						$data->blocksBelow[] = $block;
@@ -310,9 +315,10 @@ final class ProcessInbound {
 					$predictedMoveY = $data->jumpVelocity;
 				}
 				$flag3 = abs($predictedMoveY - $actualMoveY) > 0.001;
-				$flag4 = $predictedMoveY < 0;
+				$flag4 = $predictedMoveY < 0 || $data->isCollidedHorizontally;
 				$data->onGround = $flag3 && $flag4 && $data->expectedOnGround;
-				if ($data->ticksSinceTeleport === 0) {
+
+				if ($data->ticksSinceTeleport <= 1) {
 					$data->onGround = true;
 				}
 
@@ -323,7 +329,7 @@ final class ProcessInbound {
 				$pk->headYaw = $packet->getHeadYaw();
 				$pk->pitch = $location->pitch;
 				$pk->mode = MovePlayerPacket::MODE_NORMAL;
-				$pk->onGround = true;
+				$pk->onGround = $data->onGround;
 				$pk->tick = $packet->getTick();
 				$data->player->handleMovePlayer($pk);
 			}
@@ -352,6 +358,11 @@ final class ProcessInbound {
 				++$data->ticksSinceFlight;
 			}
 			++$data->ticksSinceJump;
+			if ($data->isAlive) {
+				++$data->ticksSinceSpawn;
+			} else {
+				$data->ticksSinceSpawn = 0;
+			}
 
 			$data->moveForward = $packet->getMoveVecZ() * 0.98;
 			$data->moveStrafe = $packet->getMoveVecX() * 0.98;
@@ -366,6 +377,7 @@ final class ProcessInbound {
 			// TODO: There's a stupid bug where setting a block with UpdateBlockPacket won't do anything, make future attempts to fix this BS.
 
 			if ($data->onGround) {
+				$blockList = [];
 				foreach ($this->placedBlocks as $blockVector) {
 					if ($data->boundingBox->expandedCopy(4, 4, 4)->isVectorInside($blockVector->asVector3())) {
 						$data->expectedOnGround = true;
@@ -373,14 +385,31 @@ final class ProcessInbound {
 						if ($validMovement) {
 							$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
 							NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $realBlock): void {
+								$p = new BatchPacket();
 								$pk = new UpdateBlockPacket();
 								$pk->x = $realBlock->x;
 								$pk->y = $realBlock->y;
 								$pk->z = $realBlock->z;
-								$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
-								$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
-								$pk->dataLayerId = $realBlock instanceof Liquid ? UpdateBlockPacket::DATA_LAYER_LIQUID : UpdateBlockPacket::DATA_LAYER_NORMAL;
-								$data->player->batchDataPacket($pk);
+								if ($realBlock instanceof Liquid) {
+									$pk->blockRuntimeId = 134;
+									$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
+									$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+									$p->addPacket($pk);
+									$pk = new UpdateBlockPacket();
+									$pk->x = $realBlock->x;
+									$pk->y = $realBlock->y;
+									$pk->z = $realBlock->z;
+									$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
+									$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
+									$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+								} else {
+									$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
+									$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
+									$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+								}
+								$p->addPacket($pk);
+								$p->encode();
+								PacketUtils::sendPacketSilent($data, $p);
 								NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($realBlock): void {
 									foreach ($this->placedBlocks as $key => $vector) {
 										if ($vector->equals($realBlock->asVector3())) {
@@ -417,7 +446,7 @@ final class ProcessInbound {
 					}
 					foreach ($this->placedBlocks as $other) {
 						if ($other->asVector3()->equals($blockToReplace->asVector3())) {
-							break;
+							return;
 						}
 					}
 					if (($block->canBePlaced() || $block instanceof UnknownBlock)) {

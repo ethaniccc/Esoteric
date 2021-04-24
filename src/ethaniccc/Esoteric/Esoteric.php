@@ -8,6 +8,7 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\listener\PMMPListener;
+use ethaniccc\Esoteric\network\CustomNetworkInterface;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
@@ -78,6 +79,18 @@ final class Esoteric {
 		if (self::$instance === null)
 			throw new Exception("Esoteric has not been initialized");
 		$this->listener = new PMMPListener();
+		foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {
+			if ($interface instanceof RakLibInterface) {
+				$interface->shutdown();
+				Server::getInstance()->getNetwork()->unregisterInterface($interface);
+				$newInterface = new CustomNetworkInterface(Server::getInstance());
+				Server::getInstance()->getNetwork()->registerInterface($newInterface);
+				$reflection = new \ReflectionProperty($newInterface, "interface");
+				$reflection->setAccessible(true);
+				$this->serverHandler = $reflection->getValue($newInterface);
+				break;
+			}
+		}
 		Server::getInstance()->getPluginManager()->registerEvents($this->listener, $this->plugin);
 		if (!WebhookThread::valid()) {
 			WebhookThread::init();
@@ -100,14 +113,6 @@ final class Esoteric {
 				Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask($this->getPlugin()->getDataFolder() . "banwaves/" . $filtered[max(array_keys($filtered))], function (Banwave $banwave): void {
 					$this->banwave = $banwave;
 				}));
-			}
-		}
-		foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {
-			if ($interface instanceof RakLibInterface) {
-				$reflection = new \ReflectionProperty($interface, "interface");
-				$reflection->setAccessible(true);
-				$this->serverHandler = $reflection->getValue($interface);
-				break;
 			}
 		}
 	}
