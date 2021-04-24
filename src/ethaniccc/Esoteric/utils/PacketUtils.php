@@ -50,7 +50,7 @@ class PacketUtils {
 				ACKHandler::add($data->networkIdentifier, $id, $ackResponse);
 			}
 		} else {
-			if(!isset($packet->__encapsulatedPacket)){
+			if (!isset($packet->__encapsulatedPacket)) {
 				$packet->__encapsulatedPacket = new CachedEncapsulatedPacket;
 				$packet->__encapsulatedPacket->identifierACK = null;
 				$packet->__encapsulatedPacket->buffer = $packet->buffer;

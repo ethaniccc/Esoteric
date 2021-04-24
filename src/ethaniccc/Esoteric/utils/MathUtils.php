@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric\utils;
 
+use ErrorException;
 use pocketmine\math\Vector3;
 
 final class MathUtils {
@@ -33,7 +34,7 @@ final class MathUtils {
 		try {
 			$dot = min(max($a->dot($b) / ($a->length() * $b->length()), -1), 1);
 			return acos($dot);
-		} catch (\ErrorException $e) {
+		} catch (ErrorException $e) {
 			return -1;
 		}
 	}
@@ -73,7 +74,7 @@ final class MathUtils {
 			}
 
 			return $efficiencyFirst * ($varianceSquared / pow($variance / $sum, 2)) - $efficiencySecond;
-		} catch (\ErrorException $e) {
+		} catch (ErrorException $e) {
 			return 0.0;
 		}
 	}
@@ -91,7 +92,7 @@ final class MathUtils {
 			$variance = self::getVariance($data);
 
 			return $variance > 0 ? 3 * ($mean - $median) / $variance : 0;
-		} catch (\ErrorException $e) {
+		} catch (ErrorException $e) {
 			return 0.0;
 		}
 	}

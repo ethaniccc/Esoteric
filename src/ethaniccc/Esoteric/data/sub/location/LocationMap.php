@@ -5,7 +5,6 @@ namespace ethaniccc\Esoteric\data\sub\location;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\utils\EvictingList;
-use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
@@ -67,7 +66,7 @@ final class LocationMap {
 		$this->key = $pk->timestamp;
 		$timestamp = $pk->timestamp;
 		// $data->player->sendDataPacket($batch, false, true);
-		PacketUtils::sendPacketSilent($data, $batch, true, function (int $ackID) use($data, $timestamp): void {
+		PacketUtils::sendPacketSilent($data, $batch, true, function (int $ackID) use ($data, $timestamp): void {
 			$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
 		});
 		NetworkStackLatencyHandler::forceHandle($data, $pk->timestamp, function (int $timestamp) use ($locations): void {

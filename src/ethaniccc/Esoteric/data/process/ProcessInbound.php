@@ -2,9 +2,11 @@
 
 namespace ethaniccc\Esoteric\data\process;
 
+use ErrorException;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
+use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerBlockAction;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\LevelUtils;
@@ -14,13 +16,11 @@ use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
-use pocketmine\block\Solid;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
 use pocketmine\level\Location;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\BatchPacket;
@@ -36,12 +36,8 @@ use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
-use pocketmine\Server;
 use pocketmine\tile\Spawnable;
 use pocketmine\timings\TimingsHandler;
-use pocketmine\utils\Binary;
-use pocketmine\utils\BinaryStream;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 
 final class ProcessInbound {
 
@@ -101,7 +97,7 @@ final class ProcessInbound {
 			$validMovement = $data->currentMoveDelta->lengthSquared() >= MovementConstants::MOVEMENT_THRESHOLD_SQUARED;
 			$data->movementSpeed = $data->player->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->getValue();
 
-			if(InputConstants::hasFlag($packet, InputConstants::START_SPRINTING)){
+			if (InputConstants::hasFlag($packet, InputConstants::START_SPRINTING)) {
 				$data->isSprinting = true;
 				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_SPRINT;
 				$pk = new PlayerActionPacket();
@@ -113,7 +109,7 @@ final class ProcessInbound {
 				$pk->face = $data->player->getDirection();
 				$data->player->handlePlayerAction($pk);
 			}
-			if(InputConstants::hasFlag($packet, InputConstants::STOP_SPRINTING)){
+			if (InputConstants::hasFlag($packet, InputConstants::STOP_SPRINTING)) {
 				$data->isSprinting = false;
 				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
 				$pk = new PlayerActionPacket();
@@ -125,7 +121,7 @@ final class ProcessInbound {
 				$pk->face = $data->player->getDirection();
 				$data->player->handlePlayerAction($pk);
 			}
-			if(InputConstants::hasFlag($packet, InputConstants::START_SNEAKING)){
+			if (InputConstants::hasFlag($packet, InputConstants::START_SNEAKING)) {
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_START_SNEAK;
@@ -135,7 +131,7 @@ final class ProcessInbound {
 				$pk->face = $data->player->getDirection();
 				$data->player->handlePlayerAction($pk);
 			}
-			if(InputConstants::hasFlag($packet, InputConstants::STOP_SNEAKING)){
+			if (InputConstants::hasFlag($packet, InputConstants::STOP_SNEAKING)) {
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_STOP_SNEAK;
@@ -145,7 +141,7 @@ final class ProcessInbound {
 				$pk->face = $data->player->getDirection();
 				$data->player->handlePlayerAction($pk);
 			}
-			if(InputConstants::hasFlag($packet, InputConstants::START_JUMPING)){
+			if (InputConstants::hasFlag($packet, InputConstants::START_JUMPING)) {
 				$data->ticksSinceJump = 0;
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
@@ -157,7 +153,7 @@ final class ProcessInbound {
 				$data->player->handlePlayerAction($pk);
 			}
 
-			if($packet->blockActions !== null) {
+			if ($packet->blockActions !== null) {
 				foreach ($packet->blockActions as $action) {
 					switch ($action->action) {
 						case PlayerBlockAction::START_BREAK:
@@ -207,7 +203,7 @@ final class ProcessInbound {
 				}
 			}
 
-			if($packet->itemInteractionData !== null){
+			if ($packet->itemInteractionData !== null) {
 				// maybe if :microjang: didn't make the block breaking server-side option redundant, I wouldn't be doing this... you know who to blame !
 				// hahaha... skidding PMMP go brrrt
 				$player = $data->player;
@@ -216,9 +212,9 @@ final class ProcessInbound {
 				$oldItem = clone $item;
 				$canInteract = $player->canInteract($packet->itemInteractionData->blockPos->add(0.5, 0.5, 0.5), $player->isCreative() ? 13 : 7);
 				$useBreakOn = $player->getLevel()->useBreakOn($packet->itemInteractionData->blockPos, $item, $player, true);
-				if($canInteract and $useBreakOn){
-					if($player->isSurvival()){
-						if(!$item->equalsExact($oldItem) and $oldItem->equalsExact($player->getInventory()->getItemInHand())){
+				if ($canInteract and $useBreakOn) {
+					if ($player->isSurvival()) {
+						if (!$item->equalsExact($oldItem) and $oldItem->equalsExact($player->getInventory()->getItemInHand())) {
 							$player->getInventory()->setItemInHand($item);
 							$player->getInventory()->sendHeldItem($player->getViewers());
 						}
@@ -230,9 +226,9 @@ final class ProcessInbound {
 					$blocks = $target->getAllSides();
 					$blocks[] = $target;
 					$player->getLevel()->sendBlocks([$player], $blocks, UpdateBlockPacket::FLAG_ALL_PRIORITY);
-					foreach($blocks as $b){
+					foreach ($blocks as $b) {
 						$tile = $player->getLevel()->getTile($b);
-						if($tile instanceof Spawnable){
+						if ($tile instanceof Spawnable) {
 							$tile->spawnTo($player);
 						}
 					}
@@ -496,7 +492,7 @@ final class ProcessInbound {
 				} else {
 					$data->isClickDataIsValid = true;
 				}
-			} catch (\ErrorException $e) {
+			} catch (ErrorException $e) {
 				$data->cps = INF;
 				$data->isClickDataIsValid = false;
 			}

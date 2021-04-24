@@ -4,10 +4,6 @@ namespace ethaniccc\Esoteric\check\combat\range;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\utils\AABB;
-use ethaniccc\Esoteric\utils\MathUtils;
-use ethaniccc\Esoteric\utils\Ray;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;

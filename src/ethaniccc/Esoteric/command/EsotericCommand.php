@@ -2,9 +2,6 @@
 
 namespace ethaniccc\Esoteric\command;
 
-use CortexPE\DiscordWebhookAPI\WebhookThread;
-use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\tasks\AsyncClosureTask;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
@@ -17,7 +14,6 @@ use pocketmine\Player;
 use pocketmine\plugin\Plugin;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
-use pocketmine\Thread;
 use pocketmine\utils\TextFormat;
 
 class EsotericCommand extends Command implements PluginIdentifiableCommand {
@@ -36,12 +32,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 		switch ($subCommand) {
 			case "help":
 				if ($sender->hasPermission("ac.command.help")) {
-					$helpMessage = TextFormat::GRAY . str_repeat("-", 8) . " " . TextFormat::BOLD . TextFormat::GRAY . "[" . TextFormat::YELLOW . "Eso" . TextFormat::GOLD . "teric" . TextFormat::GRAY . "] " . TextFormat::RESET . TextFormat::GRAY . str_repeat("-", 8) .
-						PHP_EOL . TextFormat::YELLOW . "/ac logs <player> - Get the anti-cheat logs of the specified player (permission=ac.command.logs)" .
-						PHP_EOL . TextFormat::GOLD . "/ac delay <delay> - Set your alert cooldown delay (permission=ac.command.delay)" .
-						PHP_EOL . TextFormat::YELLOW . "/ac alerts <on/off> - Toggle alerts on or off (permission=ac.alerts)" .
-						PHP_EOL . TextFormat::GOLD . "/ac banwave <subcommand> - Do actions with banwaves (permission=ac.command.banwave)" .
-						PHP_EOL . TextFormat::YELLOW . "/ac timings <seconds> - Enable timings for a certain amount of seconds to see performance (permission=ac.command.timings)";
+					$helpMessage = TextFormat::GRAY . str_repeat("-", 8) . " " . TextFormat::BOLD . TextFormat::GRAY . "[" . TextFormat::YELLOW . "Eso" . TextFormat::GOLD . "teric" . TextFormat::GRAY . "] " . TextFormat::RESET . TextFormat::GRAY . str_repeat("-", 8) . PHP_EOL . TextFormat::YELLOW . "/ac logs <player> - Get the anti-cheat logs of the specified player (permission=ac.command.logs)" . PHP_EOL . TextFormat::GOLD . "/ac delay <delay> - Set your alert cooldown delay (permission=ac.command.delay)" . PHP_EOL . TextFormat::YELLOW . "/ac alerts <on/off> - Toggle alerts on or off (permission=ac.alerts)" . PHP_EOL . TextFormat::GOLD . "/ac banwave <subcommand> - Do actions with banwaves (permission=ac.command.banwave)" . PHP_EOL . TextFormat::YELLOW . "/ac timings <seconds> - Enable timings for a certain amount of seconds to see performance (permission=ac.command.timings)";
 					$sender->sendMessage($helpMessage);
 				} else {
 					$sender->sendMessage($this->getPermissionMessage());
@@ -143,19 +134,19 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 									$sender->sendMessage(TextFormat::RED . "Invalid ban wave. Current ban wave ID is " . Esoteric::getInstance()->getBanwave()->getId());
 									return;
 								}
-								Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask(Esoteric::getInstance()->getPlugin()->getDataFolder() . "banwaves/banwave-$selected.json", function (Banwave $banwave) use($sender): void {
+								Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask(Esoteric::getInstance()->getPlugin()->getDataFolder() . "banwaves/banwave-$selected.json", function (Banwave $banwave) use ($sender): void {
 									if (count($banwave->getBannedPlayers()) === 0) {
 										$sender->sendMessage(TextFormat::RED . "No banned players found in this ban wave");
 									} else {
 										$players = [];
-										foreach($banwave->getBannedPlayers() as $bannedPlayer) {
+										foreach ($banwave->getBannedPlayers() as $bannedPlayer) {
 											$players[] = $bannedPlayer;
 											Server::getInstance()->getNameBans()->remove($bannedPlayer);
 											$banwave->removeFromBanned($bannedPlayer);
 										}
 										$sender->sendMessage(TextFormat::GREEN . "Players unbanned: " . implode(", ", $players));
 										$banwave = serialize($banwave);
-										Server::getInstance()->getAsyncPool()->submitTask(new AsyncClosureTask(function () use($banwave): void {
+										Server::getInstance()->getAsyncPool()->submitTask(new AsyncClosureTask(function () use ($banwave): void {
 											$banwave = unserialize($banwave);
 											/** @var Banwave $banwave */
 											$banwave->update();

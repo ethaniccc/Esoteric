@@ -7,7 +7,6 @@ use ethaniccc\Esoteric\tasks\AsyncClosureTask;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
-use pocketmine\form\Form;
 
 final class Banwave {
 
@@ -57,12 +56,7 @@ final class Banwave {
 	}
 
 	public function toJson(): string {
-		return json_encode([
-			"issued" => $this->issued,
-			"completed" => $this->completed,
-			"players" => $this->players,
-			"banned_players" => $this->bannedPlayers
-		]);
+		return json_encode(["issued" => $this->issued, "completed" => $this->completed, "players" => $this->players, "banned_players" => $this->bannedPlayers]);
 	}
 
 	public function update(): void {
@@ -114,18 +108,20 @@ final class Banwave {
 	}
 
 	public function execute(): void {
-		$toJson = $this->toJson(); $path = $this->path;
-		Server::getInstance()->getAsyncPool()->submitTask(new AsyncClosureTask(function () use($toJson, $path): void {
+		$toJson = $this->toJson();
+		$path = $this->path;
+		Server::getInstance()->getAsyncPool()->submitTask(new AsyncClosureTask(function () use ($toJson, $path): void {
 			file_put_contents($path, $toJson);
 		}, function (): void {
-			$runs = 0; $maxRuns = count($this->getAllPlayers());
+			$runs = 0;
+			$maxRuns = count($this->getAllPlayers());
 			$settings = Esoteric::getInstance()->getSettings()->getWaveSettings();
 			$data = $this->getAllPlayers();
 			$usernames = array_keys($data);
-			$task = new ClosureTask(function (int $currentTick) use(&$task, &$runs, &$data, &$usernames, $settings, $maxRuns): void {
+			$task = new ClosureTask(function (int $currentTick) use (&$task, &$runs, &$data, &$usernames, $settings, $maxRuns): void {
 				if ($runs === 0) {
 					Server::getInstance()->broadcastMessage($settings["start_message"]);
-				} elseif($runs > $maxRuns) {
+				} elseif ($runs > $maxRuns) {
 					Server::getInstance()->broadcastMessage($settings["end_message"]);
 					$newID = $this->id + 1;
 					$this->update();

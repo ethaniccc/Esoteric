@@ -16,7 +16,7 @@ class ProcessTick {
 			$data->entityLocationMap->send($data);
 			if ($data->currentTick % 5 === 0) {
 				$currentTime = microtime(true);
-				NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function(int $timestamp) use($data, $currentTime): void {
+				NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $currentTime): void {
 					$data->latency = floor((microtime(true) - $currentTime) * 1000);
 				});
 			}

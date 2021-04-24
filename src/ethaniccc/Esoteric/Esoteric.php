@@ -18,9 +18,9 @@ use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
-use pocketmine\Thread;
 use pocketmine\utils\Config;
 use raklib\server\ServerHandler;
+use ReflectionProperty;
 
 final class Esoteric {
 
@@ -85,7 +85,7 @@ final class Esoteric {
 				Server::getInstance()->getNetwork()->unregisterInterface($interface);
 				$newInterface = new CustomNetworkInterface(Server::getInstance());
 				Server::getInstance()->getNetwork()->registerInterface($newInterface);
-				$reflection = new \ReflectionProperty($newInterface, "interface");
+				$reflection = new ReflectionProperty($newInterface, "interface");
 				$reflection->setAccessible(true);
 				$this->serverHandler = $reflection->getValue($newInterface);
 				break;
@@ -143,7 +143,7 @@ final class Esoteric {
 		return $this->settings;
 	}
 
-	public function getBanwave(): ?Banwave{
+	public function getBanwave(): ?Banwave {
 		return $this->banwave;
 	}
 

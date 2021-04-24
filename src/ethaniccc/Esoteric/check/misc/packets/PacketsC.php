@@ -19,21 +19,19 @@ class PacketsC extends Check {
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket && $data->loggedIn && $data->ticksSinceSpawn >= 20) {
 			$hasJumpFlag = InputConstants::hasFlag($packet, InputConstants::JUMPING);
-			if($data->ticksSinceJump <= 1 && !$hasJumpFlag){
+			if ($data->ticksSinceJump <= 1 && !$hasJumpFlag) {
 				$this->flag($data);
 				$this->setback($data);
-			} elseif($this->delayTicks > 0 && $data->ticksSinceJump <= 1 && $hasJumpFlag){
-				$this->flag($data, [
-					"delay" => 10 - $this->delayTicks
-				]);
+			} elseif ($this->delayTicks > 0 && $data->ticksSinceJump <= 1 && $hasJumpFlag) {
+				$this->flag($data, ["delay" => 10 - $this->delayTicks]);
 				$this->setback($data);
 			} else {
 				$this->reward(0.001);
 			}
 
-			if($hasJumpFlag && $data->ticksSinceJump <= 1){
+			if ($hasJumpFlag && $data->ticksSinceJump <= 1) {
 				$this->delayTicks = 10;
-			} elseif(!$hasJumpFlag){
+			} elseif (!$hasJumpFlag) {
 				$this->delayTicks = 0;
 			}
 

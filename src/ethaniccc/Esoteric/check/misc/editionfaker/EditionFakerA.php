@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\check\misc\editionfaker;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\EvictingList;
+use Exception;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -25,7 +26,7 @@ class EditionFakerA extends Check {
 				$parts = explode(".", $data['chain'][2]);
 				$jwt = json_decode(base64_decode($parts[1]), true);
 				$titleID = $jwt['extraData']['titleId'];
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				return;
 			}
 			$expectedOS = new EvictingList(5);

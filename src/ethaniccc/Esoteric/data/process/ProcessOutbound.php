@@ -10,11 +10,9 @@ use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
-use pocketmine\network\mcpe\protocol\LevelChunkPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkChunkPublisherUpdatePacket;
-use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
@@ -90,7 +88,7 @@ class ProcessOutbound {
 			});
 		} elseif ($packet instanceof SetActorDataPacket && $data->player->getId() === $packet->entityRuntimeId) {
 			if ($data->immobile !== ($currentImmobile = $data->player->isImmobile())) {
-				NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($data, $currentImmobile): void {
+				NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $currentImmobile): void {
 					$data->immobile = $currentImmobile;
 				});
 			}
@@ -101,7 +99,7 @@ class ProcessOutbound {
 			} else {
 				if ($data->chunkSendPosition->distance($data->currentLocation->floor()) > $data->player->getViewDistance() * 16) {
 					$data->inLoadedChunk = false;
-					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($packet, $data): void {
+					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($packet, $data): void {
 						$data->inLoadedChunk = true;
 						$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
 					});
@@ -115,7 +113,7 @@ class ProcessOutbound {
 		} elseif ($packet instanceof ActorEventPacket && $packet->entityRuntimeId === $data->player->getId()) {
 			switch ($packet->event) {
 				case ActorEventPacket::RESPAWN:
-					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($data): void {
+					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data): void {
 						$data->isAlive = true;
 					});
 					break;
@@ -124,11 +122,11 @@ class ProcessOutbound {
 			foreach ($packet->entries as $attribute) {
 				if ($attribute->getId() === Attribute::HEALTH) {
 					if ($attribute->getValue() <= 0) {
-						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($data): void {
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data): void {
 							$data->isAlive = false;
 						});
 					} elseif ($attribute->getValue() > 0 && !$data->isAlive) {
-						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use($data): void {
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data): void {
 							$data->isAlive = true;
 						});
 					}

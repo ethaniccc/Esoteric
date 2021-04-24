@@ -6,7 +6,6 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
-use pocketmine\network\mcpe\RakLibInterface;
 
 final class NetworkStackLatencyHandler {
 
@@ -25,7 +24,7 @@ final class NetworkStackLatencyHandler {
 			$pk = new BatchPacket();
 			$pk->addPacket($packet);
 			$pk->encode();
-			PacketUtils::sendPacketSilent($data, $pk, true, function (int $ackID) use($data, $timestamp): void {
+			PacketUtils::sendPacketSilent($data, $pk, true, function (int $ackID) use ($data, $timestamp): void {
 				$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
 			});
 			if (!isset(self::$list[$data->hash])) {

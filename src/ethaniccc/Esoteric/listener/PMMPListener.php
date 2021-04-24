@@ -3,8 +3,8 @@
 namespace ethaniccc\Esoteric\listener;
 
 use ethaniccc\Esoteric\Esoteric;
-use ethaniccc\Esoteric\utils\GeneralUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
+use LogicException;
 use pocketmine\event\entity\EntityLevelChangeEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerPreLoginEvent;
@@ -12,23 +12,19 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\BatchPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
-use pocketmine\network\mcpe\protocol\NetworkChunkPublisherUpdatePacket;
-use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
-use pocketmine\network\mcpe\protocol\TextPacket;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
-use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\Binary;
 use pocketmine\utils\TextFormat;
+use RuntimeException;
 
 class PMMPListener implements Listener {
 
@@ -127,10 +123,10 @@ class PMMPListener implements Listener {
 				try {
 					try {
 						$pk->decode();
-					} catch (\RuntimeException $e) {
+					} catch (RuntimeException $e) {
 						continue;
 					}
-				} catch (\LogicException $e) {
+				} catch (LogicException $e) {
 					continue;
 				}
 				$this->decodingTimings->stopTiming();

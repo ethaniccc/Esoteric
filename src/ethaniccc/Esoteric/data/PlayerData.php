@@ -22,7 +22,6 @@ use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\motion\MotionC;
 use ethaniccc\Esoteric\check\movement\motion\MotionD;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
-use ethaniccc\Esoteric\check\movement\velocity\VelocityB;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
@@ -184,26 +183,16 @@ final class PlayerData {
 		$this->alertCooldown = Esoteric::getInstance()->getSettings()->getAlertCooldown();
 		$this->lastAlertTime = microtime(true);
 
-		$this->checks = [
-			# Aim checks
-			new AimA(), new AimB(),
-			# Autoclicker checks
-			new AutoClickerA(), new AutoClickerB(),
-			# Killaura checks
-			new KillAuraA(), new KillAuraB(),
-			# Range checks
-			new RangeA(),
-			# Fly checks
-			new FlyA(), new FlyB(), new FlyC(),
-			# Motion checks
-			new MotionA(), new MotionB(), new MotionC(), new MotionD(),
-			# Velocity checks
-			new VelocityA(),
-			# Packet checks
-			new PacketsA(), new PacketsB(), new PacketsC(),
-			# EditionFaker checks
-			new EditionFakerA(),
-		];
+		$this->checks = [# Aim checks
+			new AimA(), new AimB(), # Autoclicker checks
+			new AutoClickerA(), new AutoClickerB(), # Killaura checks
+			new KillAuraA(), new KillAuraB(), # Range checks
+			new RangeA(), # Fly checks
+			new FlyA(), new FlyB(), new FlyC(), # Motion checks
+			new MotionA(), new MotionB(), new MotionC(), new MotionD(), # Velocity checks
+			new VelocityA(), # Packet checks
+			new PacketsA(), new PacketsB(), new PacketsC(), # EditionFaker checks
+			new EditionFakerA(),];
 	}
 
 	public function tick(): void {
