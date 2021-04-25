@@ -16,6 +16,7 @@ use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
@@ -32,6 +33,13 @@ class PMMPListener implements Listener {
 	public $checkTimings;
 	public $sendTimings;
 	public $decodingTimings;
+
+	private const USED_OUTBOUND_PACKETS = [
+		ProtocolInfo::MOVE_PLAYER_PACKET, ProtocolInfo::MOVE_ACTOR_DELTA_PACKET, ProtocolInfo::UPDATE_BLOCK_PACKET,
+		ProtocolInfo::SET_ACTOR_MOTION_PACKET, ProtocolInfo::MOB_EFFECT_PACKET, ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET,
+		ProtocolInfo::SET_ACTOR_DATA_PACKET, ProtocolInfo::NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, ProtocolInfo::ADVENTURE_SETTINGS_PACKET,
+		ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET
+	];
 
 	public function __construct() {
 		$this->checkTimings = new TimingsHandler("Esoteric Checks");
@@ -119,6 +127,7 @@ class PMMPListener implements Listener {
 			$gen = PacketUtils::getAllInBatch($packet);
 			foreach ($gen as $buff) {
 				$pk = PacketPool::getPacket($buff);
+				if (!in_array($pk->pid(), self::USED_OUTBOUND_PACKETS)) continue;
 				$this->decodingTimings->startTiming();
 				try {
 					try {

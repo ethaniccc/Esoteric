@@ -36,6 +36,13 @@ class PlayerDataManager {
 		return $this->data[$hash] ?? null;
 	}
 
+	public function getFromNetworkIdentifier(string $identifier): ?PlayerData {
+		foreach ($this->data as $playerData) {
+			if ($playerData->networkIdentifier === $identifier) return $playerData;
+		}
+		return null;
+	}
+
 	public function add(Player $player): PlayerData {
 		$data = new PlayerData($player);
 		$this->data[$data->hash] = $data;

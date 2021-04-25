@@ -14,7 +14,7 @@ class FlyC extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof PlayerAuthInputPacket && $data->ticksSinceJump === 1 && $data->offGroundTicks > 1 && !$data->immobile) {
+		if ($packet instanceof PlayerAuthInputPacket && $data->ticksSinceJump === 1 && $data->offGroundTicks > 2 && !$data->immobile) {
 			$this->flag($data);
 			$this->setback($data);
 		}

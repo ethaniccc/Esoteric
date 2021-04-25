@@ -41,8 +41,9 @@ class ProcessOutbound {
 		} elseif ($packet instanceof UpdateBlockPacket) {
 			$blockVector = new Vector3($packet->x, $packet->y, $packet->z);
 			foreach ($data->inboundProcessor->placedBlocks as $key => $block) {
-				if ($blockVector->equals($block) && RuntimeBlockMapping::toStaticRuntimeId($block->getId(), $block->getDamage()) === $packet->blockRuntimeId) {
+				if ($blockVector->equals($block) && $block->getId() === RuntimeBlockMapping::fromStaticRuntimeId($packet->blockRuntimeId)[0]) {
 					unset($data->inboundProcessor->placedBlocks[$key]);
+					break;
 				}
 			}
 		} elseif ($packet instanceof SetActorMotionPacket && $packet->entityRuntimeId === $data->player->getId()) {
@@ -106,7 +107,6 @@ class ProcessOutbound {
 				}
 			}
 		} elseif ($packet instanceof AdventureSettingsPacket) {
-			// sometimes the client doesn't send AdventureSettingsPacket back??
 			NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($packet, $data): void {
 				$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 			});

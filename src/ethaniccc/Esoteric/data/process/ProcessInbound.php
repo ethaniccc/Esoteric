@@ -33,11 +33,13 @@ use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
 use pocketmine\network\mcpe\protocol\SetLocalPlayerAsInitializedPacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
+use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\tile\Spawnable;
 use pocketmine\timings\TimingsHandler;
+use pocketmine\utils\BinaryStream;
 
 final class ProcessInbound {
 
@@ -235,6 +237,10 @@ final class ProcessInbound {
 				}
 			}
 
+			$data->jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
+
+			$data->canPlaceBlocks = $data->gamemode === GameMode::SURVIVAL || $data->gamemode === GameMode::CREATIVE;
+
 			foreach ($data->effects as $effectData) {
 				$effectData->ticks--;
 				if ($effectData->ticks <= 0) {
@@ -251,10 +257,6 @@ final class ProcessInbound {
 				}
 			}
 
-			if (!isset($data->effects[Effect::JUMP])) {
-				$data->jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
-			}
-
 			if ($validMovement) {
 				self::$collisionTimings->startTiming();
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
@@ -268,13 +270,13 @@ final class ProcessInbound {
 				$liquids = 0;
 				$climbable = 0;
 				$cobweb = 0;
-				$floorLoc = $location->floor();
 				foreach ($blocks as $block) {
 					/** @var Block $block */
 					if (!$data->isCollidedHorizontally) {
 						$data->isCollidedHorizontally = $block->isSolid() && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.5, -0.01, 0.5));
 					}
-					if ($block->y <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0, 0.05, 0))) {
+					if ($block->y <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0.3, 0.05, 0.3))) {
+						$data->expectedOnGround = true;
 						$data->blocksBelow[] = $block;
 					}
 					if ($block instanceof Liquid) {
@@ -330,6 +332,62 @@ final class ProcessInbound {
 				$data->player->handleMovePlayer($pk);
 			}
 
+			/**
+			 * Checks if there is a possible ghost block that the player is standing on. If there is a ghost block that the player is standing on,
+			 * we should remove it to prevent possible false-flags with a GroundSpoof check.
+			 */
+
+			// TODO: There's a stupid bug where setting a block with UpdateBlockPacket won't do anything, make future attempts to fix this BS.
+
+			foreach ($this->placedBlocks as $blockVector) {
+				$hasCollision = AABB::fromBlock($blockVector)->intersectsWith($data->boundingBox->expandedCopy(0.1, 0.1, 0.1));
+				if ($hasCollision) {
+					$data->expectedOnGround = true;
+					$data->onGround = true;
+					$data->blocksBelow[] = $blockVector;
+				}
+				if ($validMovement || $hasCollision) {
+					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
+					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($hasCollision, $data, $realBlock): void {
+						$p = new BatchPacket();
+						$pk = new UpdateBlockPacket();
+						$pk->x = $realBlock->x;
+						$pk->y = $realBlock->y;
+						$pk->z = $realBlock->z;
+						if ($realBlock instanceof Liquid) {
+							$pk->blockRuntimeId = 134;
+							$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
+							$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+							$p->addPacket($pk);
+							$pk = new UpdateBlockPacket();
+							$pk->x = $realBlock->x;
+							$pk->y = $realBlock->y;
+							$pk->z = $realBlock->z;
+						}
+						$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
+						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
+						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+						$p->addPacket($pk);
+						$n = NetworkStackLatencyHandler::random();
+						$p->addPacket($n);
+						$p->encode();
+						PacketUtils::sendPacketSilent($data, $p);
+						if ($hasCollision && floor($data->currentLocation->y) > $realBlock->y) {
+							// prevent the player from possibly false flagging when removing ghost blocks fail
+							$data->player->teleport($realBlock->asPosition()->add(0.5, 0, 0.5));
+						}
+						NetworkStackLatencyHandler::forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
+							foreach ($this->placedBlocks as $key => $vector) {
+								if ($vector->equals($realBlock->asVector3())) {
+									unset($this->placedBlocks[$key]);
+									break;
+								}
+							}
+						});
+					});
+				}
+			}
+
 			if ($data->onGround) {
 				++$data->onGroundTicks;
 				$data->offGroundTicks = 0;
@@ -365,61 +423,6 @@ final class ProcessInbound {
 
 			$data->isInVoid = $location->y <= -35;
 
-			/**
-			 * Checks if there is a possible ghost block that the player is standing on. If there is a ghost block that the player is standing on,
-			 * we should remove it to prevent possible false-flags with a GroundSpoof check.
-			 */
-
-			// TODO: There's a stupid bug where setting a block with UpdateBlockPacket won't do anything, make future attempts to fix this BS.
-
-			if ($data->onGround) {
-				$blockList = [];
-				foreach ($this->placedBlocks as $blockVector) {
-					if ($data->boundingBox->expandedCopy(4, 4, 4)->isVectorInside($blockVector->asVector3())) {
-						$data->expectedOnGround = true;
-						$data->blocksBelow[] = $blockVector;
-						if ($validMovement) {
-							$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
-							NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $realBlock): void {
-								$p = new BatchPacket();
-								$pk = new UpdateBlockPacket();
-								$pk->x = $realBlock->x;
-								$pk->y = $realBlock->y;
-								$pk->z = $realBlock->z;
-								if ($realBlock instanceof Liquid) {
-									$pk->blockRuntimeId = 134;
-									$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
-									$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
-									$p->addPacket($pk);
-									$pk = new UpdateBlockPacket();
-									$pk->x = $realBlock->x;
-									$pk->y = $realBlock->y;
-									$pk->z = $realBlock->z;
-									$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
-									$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
-									$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
-								} else {
-									$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
-									$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
-									$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
-								}
-								$p->addPacket($pk);
-								$p->encode();
-								PacketUtils::sendPacketSilent($data, $p);
-								NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($realBlock): void {
-									foreach ($this->placedBlocks as $key => $vector) {
-										if ($vector->equals($realBlock->asVector3())) {
-											unset($this->placedBlocks[$key]);
-											break;
-										}
-									}
-								});
-							});
-						}
-					}
-				}
-			}
-
 			$this->lastPredictedY = $packet->getDelta()->y;
 			$data->tick();
 		} elseif ($packet instanceof InventoryTransactionPacket) {
@@ -435,18 +438,21 @@ final class ProcessInbound {
 				$clickedBlockPos = $trData->getBlockPos();
 				$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
 				$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
-				if ($blockToReplace->canBeReplaced()) {
+				if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks) {
 					$block = $trData->getItemInHand()->getItemStack()->getBlock();
 					if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
 						$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
 					}
-					foreach ($this->placedBlocks as $other) {
+					foreach ($this->placedBlocks as $k => $other) {
 						if ($other->asVector3()->equals($blockToReplace->asVector3())) {
 							return;
 						}
 					}
 					if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
 						$block->position($blockToReplace->asPosition());
+						if ($block->isSolid() && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.01, 0.01, 0.01))) {
+							return;
+						}
 						$this->placedBlocks[] = clone $block;
 					}
 				}
@@ -462,6 +468,9 @@ final class ProcessInbound {
 			$data->gamemode = $data->player->getGamemode();
 		} elseif ($packet instanceof AdventureSettingsPacket) {
 			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
+			/* if ($packet->getFlag(AdventureSettingsPacket::BUILD) && !$data->canPlaceBlocks) {
+				SUS
+			} */
 		} elseif ($packet instanceof LoginPacket) {
 			// ignore modified data other plugins may have put in.. DUM DUM plugins
 			$pk = new LoginPacket($packet->getBuffer());

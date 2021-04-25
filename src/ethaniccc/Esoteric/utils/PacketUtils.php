@@ -38,7 +38,6 @@ class PacketUtils {
 	 * without calling the DataPacketReceiveEvent.
 	 */
 	public static function sendPacketSilent(PlayerData $data, BatchPacket $packet, bool $needACK = false, callable $ackResponse = null): void {
-		$interface = Esoteric::getInstance()->serverHandler;
 		if ($needACK) {
 			$pk = new EncapsulatedPacket();
 			$id = ACKHandler::next($data->networkIdentifier);
@@ -59,7 +58,7 @@ class PacketUtils {
 			}
 			$pk = $packet->__encapsulatedPacket;
 		}
-		$interface->sendEncapsulated($data->networkIdentifier, $pk, ($needACK ? RakLib::FLAG_NEED_ACK : 0) | RakLib::PRIORITY_IMMEDIATE);
+		Esoteric::getInstance()->serverHandler->sendEncapsulated($data->networkIdentifier, $pk, ($needACK ? RakLib::FLAG_NEED_ACK : 0) | RakLib::PRIORITY_NORMAL);
 	}
 
 }

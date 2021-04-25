@@ -18,6 +18,7 @@ use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
+use pocketmine\Thread;
 use pocketmine\utils\Config;
 use raklib\server\ServerHandler;
 use ReflectionProperty;

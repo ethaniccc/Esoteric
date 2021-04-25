@@ -37,7 +37,7 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 	/** @var Network */
 	private $network;
 
-	/** @var RakLibServer */
+	/** @var CustomRakLibServer */
 	private $rakLib;
 
 	/** @var Player[] */
@@ -54,18 +54,29 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 
 	/** @var SleeperNotifier */
 	private $sleeper;
+	/** @var SleeperNotifier */
+	private $callableSleeper;
+	/** @var \Threaded */
+	private $callables;
 
 	public function __construct(Server $server) {
 		$this->server = $server;
 
 		$this->sleeper = new SleeperNotifier();
-		$this->rakLib = new RakLibServer($this->server->getLogger(), COMPOSER_AUTOLOADER_PATH, new InternetAddress($this->server->getIp(), $this->server->getPort(), 4), (int) $this->server->getProperty("network.max-mtu-size", 1492), self::MCPE_RAKNET_PROTOCOL_VERSION, $this->sleeper);
+		$this->callableSleeper = new SleeperNotifier();
+		$this->callables = new \Threaded();
+		$this->rakLib = new CustomRakLibServer($this->server->getLogger(), COMPOSER_AUTOLOADER_PATH, new InternetAddress($this->server->getIp(), $this->server->getPort(), 4), $server->getLoader(), (int) $this->server->getProperty("network.max-mtu-size", 1492), self::MCPE_RAKNET_PROTOCOL_VERSION, $this->sleeper, $this->callableSleeper, $this->callables);
 		$this->interface = new ServerHandler($this->rakLib, $this);
 	}
 
 	public function start() {
 		$this->server->getTickSleeper()->addNotifier($this->sleeper, function (): void {
 			$this->process();
+		});
+		$this->server->getTickSleeper()->addNotifier($this->callableSleeper, function(): void {
+			while(($callable = $this->callables->shift()) !== null) {
+				$callable();
+			}
 		});
 		$this->rakLib->start(PTHREADS_INHERIT_CONSTANTS); //HACK: MainLogger needs constants for exception logging
 	}
@@ -74,6 +85,9 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 		$this->network = $network;
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	public function process(): void {
 		while ($this->interface->handlePacket()) {
 		}

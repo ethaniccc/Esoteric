@@ -20,7 +20,6 @@ use ethaniccc\Esoteric\check\movement\fly\FlyC;
 use ethaniccc\Esoteric\check\movement\motion\MotionA;
 use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\motion\MotionC;
-use ethaniccc\Esoteric\check\movement\motion\MotionD;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
@@ -135,6 +134,8 @@ final class PlayerData {
 	/** @var Block[] */
 	public $lastBlocksBelow = [];
 	/** @var bool */
+	public $canPlaceBlocks = true;
+	/** @var bool */
 	public $isAlive = true;
 	/** @var int - Amount of client ticks that have passed since the player has spawned. */
 	public $ticksSinceSpawn = 0;
@@ -183,16 +184,17 @@ final class PlayerData {
 		$this->alertCooldown = Esoteric::getInstance()->getSettings()->getAlertCooldown();
 		$this->lastAlertTime = microtime(true);
 
-		$this->checks = [# Aim checks
-			new AimA(), new AimB(), # Autoclicker checks
-			new AutoClickerA(), new AutoClickerB(), # Killaura checks
-			new KillAuraA(), new KillAuraB(), # Range checks
-			new RangeA(), # Fly checks
-			new FlyA(), new FlyB(), new FlyC(), # Motion checks
-			new MotionA(), new MotionB(), new MotionC(), new MotionD(), # Velocity checks
-			new VelocityA(), # Packet checks
-			new PacketsA(), new PacketsB(), new PacketsC(), # EditionFaker checks
-			new EditionFakerA(),];
+		$this->checks = [
+			new AimA(), new AimB(), # Aim checks
+			new AutoClickerA(), new AutoClickerB(), # Autoclicker checks
+			new KillAuraA(), new KillAuraB(), # Killaura checks
+			new RangeA(), # Range checks
+			new FlyA(), new FlyB(), new FlyC(), # Fly checks
+			new MotionA(), new MotionB(), new MotionC(), # Motion checks
+			new VelocityA(), # Velocity checks
+			new PacketsA(), new PacketsB(), new PacketsC(), # Packet checks
+			new EditionFakerA(), # EditionFaker checks
+		];
 	}
 
 	public function tick(): void {
