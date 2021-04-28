@@ -142,14 +142,29 @@ class PMMPListener implements Listener {
 				$this->decodingTimings->stopTiming();
 				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
 					if ($playerData->entityLocationMap->get($pk->entityRuntimeId) !== null) {
-						$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
-						$packet->payload = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->payload);
 						if (count($gen) === 1) {
 							// if this BS is sent to the client, the client will crash
 							$event->setCancelled();
+						} else {
+							$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
+							$packet->payload = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->payload);
 						}
 					}
 					$playerData->entityLocationMap->add($pk);
+				} elseif ($pk instanceof MovePlayerPacket && $pk->mode === MovePlayerPacket::MODE_TELEPORT && $pk->entityRuntimeId === $playerData->player->getId()) {
+					$pk->mode = MovePlayerPacket::MODE_RESET;
+					$pk->encode();
+					$p = new BatchPacket();
+					$p->addPacket($pk);
+					$p->encode();
+					PacketUtils::sendPacketSilent($playerData, $p);
+					if (count($gen) === 1) {
+						// if this BS is sent to the client, the client will crash
+						$event->setCancelled();
+					} else {
+						$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
+						$packet->payload = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->payload);
+					}
 				}
 				$playerData->outboundProcessor->execute($pk, $playerData);
 				foreach ($playerData->checks as $check)
