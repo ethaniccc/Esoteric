@@ -42,6 +42,7 @@ final class LocationMap {
 				$data->newPosRotationIncrements = 1;
 			}*/
 		}
+		$packet->encode();
 		$this->needSendArray[$packet->entityRuntimeId] = ($packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position);
 	}
 
