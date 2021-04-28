@@ -594,7 +594,7 @@ class CustomSession extends Session {
 
 			if($packet->seqNumber < $this->windowStart or $packet->seqNumber > $this->windowEnd or isset($this->ACKQueue[$packet->seqNumber])){
 				$this->sessionManager->getLogger()->debug("Received duplicate or out-of-window packet from " . $this->address . " (sequence number $packet->seqNumber, window " . $this->windowStart . "-" . $this->windowEnd . ")");
-				$adr = $this->address->toString();
+				/*$adr = $this->address->toString();
 				$seq = $packet->seqNumber;
 				$start = $this->windowStart;
 				$end = $this->windowEnd;
@@ -604,7 +604,7 @@ class CustomSession extends Session {
 						Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, "Invalid packet order (s=$seq wS=$start wE=$end)\nContact a staff member if this issue persists"), 1);
 					}
 				};
-				$this->sessionManager->sleeper->wakeupSleeper();
+				$this->sessionManager->sleeper->wakeupSleeper();*/
 				return;
 			}
 
