@@ -35,11 +35,12 @@ final class LocationMap {
 	function add($packet): void {
 		$this->needSend->addPacket($packet);
 		if ($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) {
-			$data = $this->locations[$packet->entityRuntimeId] ?? null;
+			$packet->mode = MovePlayerPacket::MODE_NORMAL;
+			/*$data = $this->locations[$packet->entityRuntimeId] ?? null;
 			if ($data !== null) {
 				$data->isSynced = 0;
 				$data->newPosRotationIncrements = 1;
-			}
+			}*/
 		}
 		$this->needSendArray[$packet->entityRuntimeId] = ($packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position);
 	}
