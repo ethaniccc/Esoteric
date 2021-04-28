@@ -60,8 +60,8 @@ class PlayerAuthInputPacket extends \pocketmine\network\mcpe\protocol\PlayerAuth
 			$max = $this->getVarInt();
 			for ($i = 0; $i < $max; ++$i) {
 				$action = new PlayerBlockAction();
-				$action->action = $this->getVarInt();
-				switch ($action->action) {
+				$action->actionType = $this->getVarInt();
+				switch ($action->actionType) {
 					case PlayerBlockAction::ABORT_BREAK:
 					case PlayerBlockAction::START_BREAK:
 					case PlayerBlockAction::CRACK_BREAK:

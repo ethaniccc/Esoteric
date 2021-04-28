@@ -123,13 +123,11 @@ class CustomSession extends Session {
 	private $lastPingTime = -1;
 	/** @var int */
 	private $lastPingMeasure = 1;
+	/** @var int[] */
+	public $lastSentPingTimes = [];
 
-	/** @var \Threaded */
-	private $callables;
-
-	public function __construct(SessionManager $sessionManager, InternetAddress $address, int $clientId, int $mtuSize, \Threaded $callables){
+	public function __construct(SessionManager $sessionManager, InternetAddress $address, int $clientId, int $mtuSize){
 		parent::__construct($sessionManager, $address, $clientId, $mtuSize);
-		$this->callables = $callables;
 		if($mtuSize < self::MIN_MTU_SIZE){
 			throw new \InvalidArgumentException("MTU size must be at least " . self::MIN_MTU_SIZE . ", got $mtuSize");
 		}
@@ -299,6 +297,7 @@ class CustomSession extends Session {
 	private function sendPing(int $reliability = PacketReliability::UNRELIABLE) : void{
 		$pk = new ConnectedPing();
 		$pk->sendPingTime = $this->sessionManager->getRakNetTimeMS();
+		$this->lastSentPingTimes[] = $pk->sendPingTime;
 		$this->queueConnectedPacket($pk, $reliability, 0, RakLib::PRIORITY_IMMEDIATE);
 	}
 
@@ -454,6 +453,16 @@ class CustomSession extends Session {
 		if(PacketReliability::isSequencedOrOrdered($packet->reliability) and ($packet->orderChannel < 0 or $packet->orderChannel >= self::CHANNEL_COUNT)){
 			//TODO: this should result in peer banning
 			$this->sessionManager->getLogger()->debug("Invalid packet from " . $this->address . ", bad order channel ($packet->orderChannel)");
+			$given = $packet->orderChannel;
+			$max = self::CHANNEL_COUNT;
+			$identifier = $this->address->toString();
+			$this->sessionManager->callables[] = function () use ($given, $max, $identifier): void {
+				$data = Esoteric::getInstance()->dataManager->getFromNetworkIdentifier($identifier);
+				if ($data !== null && $data->loggedIn) {
+					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, "Bad packet order channel (c=$given m=$max)\nContact a staff member if this issue persists"), 1);
+				}
+			};
+			$this->sessionManager->sleeper->wakeupSleeper();
 			return;
 		}
 
@@ -538,6 +547,27 @@ class CustomSession extends Session {
 				$dataPacket = new ConnectedPong($packet->buffer);
 				$dataPacket->decode();
 
+				$valid = false;
+				foreach ($this->lastSentPingTimes as $k => $lastSentPingTime) {
+					if ($lastSentPingTime === $dataPacket->sendPingTime) {
+						$valid = true;
+						unset($this->lastSentPingTimes[$k]);
+						break;
+					}
+				}
+				if (!$valid) {
+					$identifier = $this->address->toString();
+					$times = implode(",", $this->lastSentPingTimes);
+					$given = $dataPacket->sendPingTime;
+					$this->sessionManager->callables[] = function () use ($identifier, $times, $given): void {
+						$data = Esoteric::getInstance()->dataManager->getFromNetworkIdentifier($identifier);
+						if ($data !== null) {
+							Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, "Invalid ping detected (c=$given tMS=$times)\nContact a staff member if this issue persists"), 1);
+						}
+					};
+					$this->sessionManager->sleeper->wakeupSleeper();
+				}
+
 				$this->handlePong($dataPacket->sendPingTime, $dataPacket->sendPongTime);
 			}
 		}elseif($this->state === self::STATE_CONNECTED){
@@ -568,7 +598,7 @@ class CustomSession extends Session {
 				$seq = $packet->seqNumber;
 				$start = $this->windowStart;
 				$end = $this->windowEnd;
-				$this->callables[] = function () use($adr, $seq, $start, $end): void {
+				$this->sessionManager->callables[] = function () use($adr, $seq, $start, $end): void {
 					$data = Esoteric::getInstance()->dataManager->getFromNetworkIdentifier($adr);
 					if ($data !== null) {
 						Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, "Invalid packet order (s=$seq wS=$start wE=$end)\nContact a staff member if this issue persists"), 1);

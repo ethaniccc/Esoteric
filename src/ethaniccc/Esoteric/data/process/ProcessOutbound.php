@@ -9,6 +9,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
+use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -41,7 +42,8 @@ class ProcessOutbound {
 		} elseif ($packet instanceof UpdateBlockPacket) {
 			$blockVector = new Vector3($packet->x, $packet->y, $packet->z);
 			foreach ($data->inboundProcessor->placedBlocks as $key => $block) {
-				if ($blockVector->equals($block) && $block->getId() === RuntimeBlockMapping::fromStaticRuntimeId($packet->blockRuntimeId)[0]) {
+				// block metas can screw this up
+				if ($blockVector->equals($block) && $block->getRuntimeId() === $packet->blockRuntimeId) {
 					unset($data->inboundProcessor->placedBlocks[$key]);
 					break;
 				}
@@ -57,7 +59,7 @@ class ProcessOutbound {
 					case MobEffectPacket::EVENT_ADD:
 						$effectData = new EffectData();
 						$effectData->effectId = $packet->effectId;
-						$effectData->ticks = $packet->duration - 1;
+						$effectData->ticks = $packet->duration;
 						$effectData->amplifier = $packet->amplifier + 1;
 						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $effectData): void {
 							$data->effects[$effectData->effectId] = $effectData;
@@ -67,9 +69,9 @@ class ProcessOutbound {
 						$effectData = $data->effects[$packet->effectId] ?? null;
 						if ($effectData === null)
 							return;
-						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($effectData, $packet): void {
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use (&$effectData, $packet): void {
 							$effectData->amplifier = $packet->amplifier + 1;
-							$effectData->ticks = $packet->amplifier - 1;
+							$effectData->ticks = $packet->duration;
 						});
 						break;
 					case MobEffectPacket::EVENT_REMOVE:
@@ -132,6 +134,10 @@ class ProcessOutbound {
 					}
 				}
 			}
+		} elseif ($packet instanceof CorrectPlayerMovePredictionPacket) {
+			NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data): void {
+				$data->ticksSinceTeleport = 0;
+			});
 		}
 		self::$baseTimings->stopTiming();
 	}

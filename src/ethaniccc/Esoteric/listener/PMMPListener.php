@@ -12,6 +12,7 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\BatchPacket;
+use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
@@ -38,7 +39,7 @@ class PMMPListener implements Listener {
 		ProtocolInfo::MOVE_PLAYER_PACKET, ProtocolInfo::MOVE_ACTOR_DELTA_PACKET, ProtocolInfo::UPDATE_BLOCK_PACKET,
 		ProtocolInfo::SET_ACTOR_MOTION_PACKET, ProtocolInfo::MOB_EFFECT_PACKET, ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET,
 		ProtocolInfo::SET_ACTOR_DATA_PACKET, ProtocolInfo::NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, ProtocolInfo::ADVENTURE_SETTINGS_PACKET,
-		ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET
+		ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET, ProtocolInfo::CORRECT_PLAYER_MOVE_PREDICTION_PACKET
 	];
 
 	public function __construct() {
@@ -155,8 +156,7 @@ class PMMPListener implements Listener {
 			}
 			$this->sendTimings->stopTiming();
 		} elseif ($packet instanceof StartGamePacket) {
-			$movementSettings = new PlayerMovementSettings(PlayerMovementType::SERVER_AUTHORITATIVE_V2_REWIND, 0, false);
-			$packet->playerMovementSettings = $movementSettings;
+			$packet->playerMovementSettings = new PlayerMovementSettings(PlayerMovementType::SERVER_AUTHORITATIVE_V2_REWIND, 20, false);
 		}
 	}
 

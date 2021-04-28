@@ -11,6 +11,11 @@ use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
 use ethaniccc\Esoteric\tasks\BanTask;
 use ethaniccc\Esoteric\tasks\KickTask;
+use ethaniccc\Esoteric\utils\MathUtils;
+use ethaniccc\Esoteric\utils\PacketUtils;
+use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\BatchPacket;
+use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\timings\TimingsHandler;
 
@@ -212,11 +217,10 @@ abstract class Check {
 			$type = Esoteric::getInstance()->getSettings()->getSetbackType();
 			switch ($type) {
 				case Settings::SETBACK_SMOOTH:
-					// this doesn't even work most of the time LOL
-					/* $data->player->teleport($data->currentLocation, $data->currentYaw, $data->currentPitch);
-					$motion = MathUtils::directionVectorFromValues(-($data->currentYaw), $data->onGround ? 0 : 90);
-					$data->player->setMotion(PlayerData::$zeroVector);
-					$data->player->setMotion($motion); */ break;
+					$delta = ($data->packetDeltas[0] ?? new Vector3(0, -0.08 * 0.98, 0));
+					$packet = CorrectPlayerMovePredictionPacket::create(($data->onGround ? $data->lastLocation : $data->lastOnGroundLocation)->add(0, 1.62, 0), $delta, $data->onGround, array_keys($data->packetDeltas)[0] ?? 0);
+					$data->player->dataPacket($packet);
+					break;
 				case Settings::SETBACK_INSTANT:
 					$position = $data->onGround ? $data->lastLocation : $data->lastOnGroundLocation;
 					$data->player->teleport($position, $data->currentYaw, 0);

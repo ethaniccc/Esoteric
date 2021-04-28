@@ -8,16 +8,19 @@ use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerBlockAction;
+use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
+use pocketmine\block\Bed;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
+use pocketmine\block\WoodenDoor;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
 use pocketmine\level\Location;
@@ -37,6 +40,7 @@ use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
+use pocketmine\scheduler\ClosureTask;
 use pocketmine\tile\Spawnable;
 use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\BinaryStream;
@@ -76,6 +80,11 @@ final class ProcessInbound {
 	public function execute(DataPacket $packet, PlayerData $data): void {
 		self::$timings->startTiming();
 		if ($packet instanceof PlayerAuthInputPacket && $data->loggedIn) {
+			$data->blockBroken = null;
+			$data->packetDeltas[$packet->getTick()] = $packet->getDelta();
+			if (count($data->packetDeltas) > 20) {
+				array_shift($data->packetDeltas);
+			}
 			$location = Location::fromObject($packet->getPosition()->subtract(0, 1.62, 0), $data->player->getLevel(), $packet->getYaw(), $packet->getPitch());
 			$data->inLoadedChunk = $data->chunkSendPosition->distance($data->currentLocation->floor()) <= $data->player->getViewDistance() * 16;
 			$data->teleported = false;
@@ -157,7 +166,7 @@ final class ProcessInbound {
 
 			if ($packet->blockActions !== null) {
 				foreach ($packet->blockActions as $action) {
-					switch ($action->action) {
+					switch ($action->actionType) {
 						case PlayerBlockAction::START_BREAK:
 							$pk = new PlayerActionPacket();
 							$pk->entityRuntimeId = $data->player->getId();
@@ -212,6 +221,7 @@ final class ProcessInbound {
 				$player->doCloseInventory();
 				$item = $player->getInventory()->getItemInHand();
 				$oldItem = clone $item;
+				$currentBlock = $data->player->getLevel()->getBlock($packet->itemInteractionData->blockPos);
 				$canInteract = $player->canInteract($packet->itemInteractionData->blockPos->add(0.5, 0.5, 0.5), $player->isCreative() ? 13 : 7);
 				$useBreakOn = $player->getLevel()->useBreakOn($packet->itemInteractionData->blockPos, $item, $player, true);
 				if ($canInteract and $useBreakOn) {
@@ -221,6 +231,8 @@ final class ProcessInbound {
 							$player->getInventory()->sendHeldItem($player->getViewers());
 						}
 					}
+					// can you even break more than 1 block in a tick?
+					$data->blockBroken = clone $currentBlock;
 				} else {
 					$player->getInventory()->sendContents($player);
 					$player->getInventory()->sendHeldItem($player);
@@ -340,10 +352,12 @@ final class ProcessInbound {
 			// TODO: There's a stupid bug where setting a block with UpdateBlockPacket won't do anything, make future attempts to fix this BS.
 
 			foreach ($this->placedBlocks as $blockVector) {
-				$hasCollision = AABB::fromBlock($blockVector)->intersectsWith($data->boundingBox->expandedCopy(0.1, 0.1, 0.1));
+				$hasCollision = AABB::fromBlock($blockVector)->intersectsWith($data->boundingBox->expandedCopy(0.2, 0.2, 0.2));
 				if ($hasCollision) {
+					$data->player->sendMessage($blockVector->getName() . " has collision");
 					$data->expectedOnGround = true;
 					$data->onGround = true;
+					$data->isCollidedHorizontally = $blockVector->y >= floor($location->y);
 					$data->blocksBelow[] = $blockVector;
 				}
 				if ($validMovement || $hasCollision) {
@@ -355,7 +369,7 @@ final class ProcessInbound {
 						$pk->y = $realBlock->y;
 						$pk->z = $realBlock->z;
 						if ($realBlock instanceof Liquid) {
-							$pk->blockRuntimeId = 134;
+							$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId(0, 0);
 							$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 							$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 							$p->addPacket($pk);
@@ -364,7 +378,7 @@ final class ProcessInbound {
 							$pk->y = $realBlock->y;
 							$pk->z = $realBlock->z;
 						}
-						$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId($realBlock->getId(), $realBlock->getDamage());
+						$pk->blockRuntimeId = $realBlock->getRuntimeId();
 						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 						$p->addPacket($pk);
@@ -450,7 +464,8 @@ final class ProcessInbound {
 					}
 					if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
 						$block->position($blockToReplace->asPosition());
-						if ($block->isSolid() && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.01, 0.01, 0.01))) {
+						$blockAABB = AABB::fromBlock($block);
+						if ((!$block instanceof UnknownBlock || $block->isSolid() && !$block->isTransparent()) /* <- so let's talk about that.... */ && $blockAABB->intersectsWith($data->boundingBox->expandedCopy(0.01, 0.01, 0.01))) {
 							return;
 						}
 						$this->placedBlocks[] = clone $block;
@@ -463,9 +478,9 @@ final class ProcessInbound {
 			NetworkStackLatencyHandler::execute($data, $packet->timestamp);
 			self::$networkStackLatencyTimings->stopTiming();
 		} elseif ($packet instanceof SetLocalPlayerAsInitializedPacket) {
-			$data->hasAlerts = $data->player->hasPermission("ac.alerts");
 			$data->loggedIn = true;
 			$data->gamemode = $data->player->getGamemode();
+			$data->hasAlerts = $data->player->hasPermission("ac.alerts");
 		} elseif ($packet instanceof AdventureSettingsPacket) {
 			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 			/* if ($packet->getFlag(AdventureSettingsPacket::BUILD) && !$data->canPlaceBlocks) {

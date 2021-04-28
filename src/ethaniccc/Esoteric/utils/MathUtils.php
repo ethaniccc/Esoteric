@@ -182,4 +182,22 @@ final class MathUtils {
 		return unpack("G", pack("G", $float))[1];
 	}
 
+	/**
+	 * @param Vector3 $eyePos - Eye pos of the entity
+	 * @param Vector3 $pos - Target position to check possible interaction
+	 * @param Vector3 $dV - Direction vector of the entity
+	 * @param float $maxDistance - Distance to check interaction
+	 * @param float|int $maxDiff
+	 * @return bool - If the entity can interact with the position
+	 */
+	public static function canInteract(Vector3 $eyePos, Vector3 $pos, Vector3 $dV, float $maxDistance, float $maxDiff = M_SQRT3 / 2): bool {
+		if($eyePos->distanceSquared($pos) > $maxDistance ** 2){
+			return false;
+		}
+
+		$eyeDot = $dV->dot($eyePos);
+		$targetDot = $dV->dot($pos);
+		return ($targetDot - $eyeDot) >= -$maxDiff;
+	}
+
 }

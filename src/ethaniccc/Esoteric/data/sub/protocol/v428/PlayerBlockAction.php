@@ -14,7 +14,7 @@ class PlayerBlockAction {
 	public const CONTINUE = 27;
 
 	/** @var int */
-	public $action;
+	public $actionType;
 	/** @var Vector3 */
 	public $blockPos;
 	/** @var int */

@@ -36,8 +36,16 @@ class CustomSessionManager extends SessionManager {
 				}
 			}
 		}
-		$this->sessions[$address->toString()] = $session = new CustomSession($this, clone $address, $clientId, $mtuSize, $this->callables);
+		$this->sessions[$address->toString()] = $session = new CustomSession($this, clone $address, $clientId, $mtuSize);
 		return $session;
+	}
+
+	public function removeSession(Session $session, string $reason = "unknown"): void {
+		parent::removeSession($session, $reason);
+	}
+
+	public function getSessionFromIdentifier(string $identifier): ?Session {
+		return $this->sessions[$identifier] ?? null;
 	}
 
 }

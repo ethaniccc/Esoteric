@@ -15,7 +15,7 @@
 # Prefix for the anti-cheat when sending warnings.
 prefix: "§l§6Eso§fteric§7>§r"
 # Alert cooldown
-alert_cooldown: 0
+alert_cooldown: 4
 
 # Tags: {prefix}, {player}, {check_name}, {check_subtype}, {violations}, {data}
 alert_message: "{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]"
@@ -25,16 +25,16 @@ kick_message: "{prefix} Kicked (code={code})\nContact staff with a screenshot of
 ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of this message if this is a mistake"
 
 # Setback types: smooth, instant, or none
-setback_type: "instant"
+setback_type: "none"
 
 # Timeout settings
 timeout:
   # If this is disabled, hackers may be able to disable Esoteric by cancelling the sending of a certain packet
   enabled: true
   # Amount of un-received packets to flag suspicion of a player timing out
-  total_packets: 10
+  total_packets: 20
   # Amount of client ticks to pass by before kicking the player for timing out
-  ticks: 10
+  ticks: 20
 
 banwaves:
   # Choose if banwaves should be enabled on your server
@@ -46,7 +46,7 @@ banwaves:
   # Message to broadcast when a player is banned in the ban-wave
   ban_message: "§g{player} §ehas §6been §ebanned in the ban wave §7[Wave {id}]"
   # Message to broadcast when the ban wave has concluded
-  end_message: "§eThe §gban wave §ehas §6concluded§e - remember to play legit!"
+  end_message: "§eThe ban wave has §6concluded§e - remember to play legit!"
 
 webhook:
   # Link to the webhook (leave as none to keep webhook functionality disabled)
@@ -61,13 +61,13 @@ detections:
   Autoclicker:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 5
       code: Noah
       max_cps: 21
     B:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 3
       code: Crocodile
       samples: 10
@@ -76,59 +76,54 @@ detections:
   Aim:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 5
       code: Neck
     B:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 5
       code: Hawkeye
   # Killaura detections
   Killaura:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 5
       code: Lancelot
     B:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 10
       code: Inkingmistake
   # Range checks
   Range:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
       max_raw: 3.05
       max_dist: 3.01
       code: Aristotle
-    B:
-      enabled: false
-      punishment_type: kick
-      max_vl: 20
-      code: Descartes
   # Fly detections
   Fly:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
       code: Albatross
       diff_max: 0.015
       setback: true
     B:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
       code: Hummingbird
       diff_max: 0.01
       setback: true
     C:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 2
       code: Blackhawk
       setback: true
@@ -136,25 +131,25 @@ detections:
   Motion:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 10
       code: Mach1
       setback: true
     B:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 10
       code: Mach2
       setback: true
     C:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 10
       code: Mach3
       setback: true
     D:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 5
       code: Mach4
       setback: true
@@ -162,12 +157,12 @@ detections:
   Velocity:
     A:
       enabled: true
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
       code: Hypersonic
     B:
       enabled: false
-      punishment_type: kick
+      punishment_type: none
       max_vl: 20
       code: Lightspeed
   # EditionFaker detections

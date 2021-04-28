@@ -11,6 +11,7 @@ use ethaniccc\Esoteric\check\combat\killaura\KillAuraA;
 use ethaniccc\Esoteric\check\combat\killaura\KillAuraB;
 use ethaniccc\Esoteric\check\combat\range\RangeA;
 use ethaniccc\Esoteric\check\misc\editionfaker\EditionFakerA;
+use ethaniccc\Esoteric\check\misc\nuker\NukerA;
 use ethaniccc\Esoteric\check\misc\packets\PacketsA;
 use ethaniccc\Esoteric\check\misc\packets\PacketsB;
 use ethaniccc\Esoteric\check\misc\packets\PacketsC;
@@ -81,6 +82,8 @@ final class PlayerData {
 	public $effects = [];
 	/** @var int */
 	public $currentTick = 0;
+	/** @var Vector3[] */
+	public $packetDeltas = [];
 	/** @var int */
 	public $ticksPerSecond = 0;
 	/** @var Vector3 - The current and previous locations of the player */
@@ -159,8 +162,11 @@ final class PlayerData {
 	public $isClickDataIsValid = true;
 	/** @var bool */
 	public $isDataClosed = false;
+	/** @var Block|null */
+	public $blockBroken;
 	/** @var int[] */
 	private $ticks = [];
+
 
 	public function __construct(Player $player) {
 		if (self::$ZERO_VECTOR === null) {
@@ -194,6 +200,7 @@ final class PlayerData {
 			new VelocityA(), # Velocity checks
 			new PacketsA(), new PacketsB(), new PacketsC(), # Packet checks
 			new EditionFakerA(), # EditionFaker checks
+			new NukerA(), # Nuker checks
 		];
 	}
 

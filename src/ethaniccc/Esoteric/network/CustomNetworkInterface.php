@@ -3,6 +3,8 @@
 namespace ethaniccc\Esoteric\network;
 
 use ethaniccc\Esoteric\data\process\ACKHandler;
+use ethaniccc\Esoteric\Esoteric;
+use ethaniccc\Esoteric\tasks\KickTask;
 use Exception;
 use pocketmine\event\player\PlayerCreationEvent;
 use pocketmine\network\AdvancedSourceInterface;

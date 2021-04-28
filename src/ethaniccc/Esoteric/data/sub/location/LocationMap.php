@@ -24,12 +24,6 @@ final class LocationMap {
 	public $needSend;
 	/** @var MovePlayerPacket|MoveActorDeltaPacket[] */
 	public $needSendArray = [];
-	/** @var int[] */
-	public $removed = [];
-	/** @var int */
-	public $lastSendTick = 0;
-	/** @var int */
-	public $key = 0;
 
 	public function __construct() {
 		$this->needSend = new BatchPacket();
@@ -48,8 +42,6 @@ final class LocationMap {
 			}
 		}
 		$this->needSendArray[$packet->entityRuntimeId] = ($packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position);
-		if ($this->lastSendTick === 0)
-			$this->lastSendTick = Server::getInstance()->getTick();
 	}
 
 	function send(PlayerData $data): void {
@@ -63,7 +55,6 @@ final class LocationMap {
 		$locations = $this->needSendArray;
 		$this->needSend = new BatchPacket();
 		$this->needSendArray = [];
-		$this->key = $pk->timestamp;
 		$timestamp = $pk->timestamp;
 		// $data->player->sendDataPacket($batch, false, true);
 		PacketUtils::sendPacketSilent($data, $batch, true, function (int $ackID) use ($data, $timestamp): void {
@@ -114,10 +105,6 @@ final class LocationMap {
 
 	function get(int $entityRuntimeId): ?LocationData {
 		return $this->locations[$entityRuntimeId] ?? null;
-	}
-
-	function remove(int $entityRuntimeId): void {
-		$this->removed[] = $entityRuntimeId;
 	}
 
 }

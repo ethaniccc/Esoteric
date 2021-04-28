@@ -16,11 +16,6 @@ final class Loader extends PluginBase {
 		} catch (Exception $e) {
 			$this->getLogger()->error("Unable to start Esoteric [{$e->getMessage()}]");
 		}
-		$this->getScheduler()->scheduleDelayedTask(new ClosureTask(function (int $currentTick): void {
-			$plugin = $this->getServer()->getPluginManager()->getPlugin("Mockingbird");
-			if ($plugin !== null)
-				$this->getServer()->getPluginManager()->disablePlugin($plugin);
-		}), 1);
 	}
 
 	public function onDisable() {

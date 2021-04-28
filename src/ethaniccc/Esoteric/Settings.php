@@ -62,4 +62,8 @@ final class Settings {
 		return $this->data["timeout"] ?? ["enabled" => true, "total_packets" => 10, "ticks" => 10];
 	}
 
+	public function editSetting(string $key, $newVal): void {
+		$this->data[$key] = $newVal;
+	}
+
 }
