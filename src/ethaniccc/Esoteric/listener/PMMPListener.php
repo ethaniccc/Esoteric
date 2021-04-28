@@ -141,11 +141,13 @@ class PMMPListener implements Listener {
 				}
 				$this->decodingTimings->stopTiming();
 				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
-					$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
-					$packet->payload = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->payload);
-					if (count($gen) === 1) {
-						// if this BS is sent to the client, the client will crash
-						$event->setCancelled();
+					if ($playerData->entityLocationMap->get($pk->entityRuntimeId) !== null) {
+						$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
+						$packet->payload = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->payload);
+						if (count($gen) === 1) {
+							// if this BS is sent to the client, the client will crash
+							$event->setCancelled();
+						}
 					}
 					$playerData->entityLocationMap->add($pk);
 				}

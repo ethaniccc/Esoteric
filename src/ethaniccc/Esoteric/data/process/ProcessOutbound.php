@@ -115,10 +115,9 @@ class ProcessOutbound {
 		} elseif ($packet instanceof ActorEventPacket && $packet->entityRuntimeId === $data->player->getId()) {
 			switch ($packet->event) {
 				case ActorEventPacket::RESPAWN:
-					$data->isAlive = true;
-					/* NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data): void {
+					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data): void {
 						$data->isAlive = true;
-					}); */
+					});
 					break;
 			}
 		} elseif ($packet instanceof UpdateAttributesPacket && $packet->entityRuntimeId === $data->player->getId()) {
