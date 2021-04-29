@@ -108,6 +108,19 @@ final class ProcessInbound {
 			$validMovement = $data->currentMoveDelta->lengthSquared() >= MovementConstants::MOVEMENT_THRESHOLD_SQUARED;
 			$data->movementSpeed = $data->player->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->getValue();
 
+			if ($validMovement || $data->currentYawDelta > 0 || $data->currentPitchDelta > 0) {
+				$pk = new MovePlayerPacket();
+				$pk->entityRuntimeId = $data->player->getId();
+				$pk->position = $packet->getPosition();
+				$pk->yaw = $location->yaw;
+				$pk->headYaw = $packet->getHeadYaw();
+				$pk->pitch = $location->pitch;
+				$pk->mode = MovePlayerPacket::MODE_NORMAL;
+				$pk->onGround = $data->onGround;
+				$pk->tick = $packet->getTick();
+				$data->player->handleMovePlayer($pk);
+			}
+
 			if (InputConstants::hasFlag($packet, InputConstants::START_SPRINTING)) {
 				$data->isSprinting = true;
 				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_SPRINT;
@@ -331,17 +344,6 @@ final class ProcessInbound {
 				if ($data->ticksSinceTeleport <= 1) {
 					$data->onGround = true;
 				}
-
-				$pk = new MovePlayerPacket();
-				$pk->entityRuntimeId = $data->player->getId();
-				$pk->position = $packet->getPosition();
-				$pk->yaw = $location->yaw;
-				$pk->headYaw = $packet->getHeadYaw();
-				$pk->pitch = $location->pitch;
-				$pk->mode = MovePlayerPacket::MODE_NORMAL;
-				$pk->onGround = $data->onGround;
-				$pk->tick = $packet->getTick();
-				$data->player->handleMovePlayer($pk);
 			}
 
 			/**
