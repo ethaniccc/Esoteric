@@ -22,7 +22,7 @@ class KillAuraA extends Check {
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof AnimatePacket && $packet->action === AnimatePacket::ACTION_SWING_ARM) {
 			$this->lastTick = $data->currentTick;
-		} elseif ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
+		} elseif ($packet instanceof InventoryTransactionPacket && $packet->trData instanceof UseItemOnEntityTransactionData && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
 			$tickDiff = $data->currentTick - $this->lastTick;
 			if ($tickDiff > 4) {
 				$this->flag($data, ["diff" => $tickDiff]);

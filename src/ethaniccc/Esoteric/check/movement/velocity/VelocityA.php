@@ -30,9 +30,8 @@ class VelocityA extends Check {
 				}
 
 				$percentage = ($data->currentMoveDelta->y / $this->yMotion) * 100;
-				$diff = $data->currentMoveDelta->y - $this->yMotion;
-				if ($diff < -4.26E-7 && $data->inLoadedChunk && !$data->hasBlockAbove && $data->ticksSinceInCobweb >= 5 && $data->ticksSinceFlight >= 10 && $data->ticksSinceInLiquid >= 5 && $data->ticksSinceInClimbable >= 5) {
-					if (++$this->buffer > 4) {
+				if ($percentage < $this->option("pct", 99.9) && $data->inLoadedChunk && !$data->hasBlockAbove && $data->ticksSinceInCobweb >= 5 && $data->ticksSinceFlight >= 10 && $data->ticksSinceInLiquid >= 5 && $data->ticksSinceInClimbable >= 5) {
+					if (++$this->buffer >= 8) {
 						$this->flag($data, ["pct" => round($percentage, 5) . "%",]);
 					}
 					$this->buffer = min($this->buffer, 16);

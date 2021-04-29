@@ -22,7 +22,9 @@ class KillAuraB extends Check {
 		if ($packet instanceof InventoryTransactionPacket) {
 			$trData = $packet->trData;
 			if ($trData instanceof UseItemOnEntityTransactionData && $trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
-				$this->entities[] = $trData->getEntityRuntimeId();
+				if (!in_array($packet->getEntityRuntimeId(), $this->entities)) {
+					$this->entities[] = $trData->getEntityRuntimeId();
+				}
 			}
 		} elseif ($packet instanceof PlayerAuthInputPacket) {
 			if (count($this->entities) > 1) {

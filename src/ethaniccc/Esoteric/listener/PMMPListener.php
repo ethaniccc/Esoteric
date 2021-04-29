@@ -143,7 +143,6 @@ class PMMPListener implements Listener {
 				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
 					if ($playerData->entityLocationMap->get($pk->entityRuntimeId) !== null) {
 						if (count($gen) === 1) {
-							// if this BS is sent to the client, the client will crash
 							$event->setCancelled();
 						} else {
 							$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
@@ -152,6 +151,12 @@ class PMMPListener implements Listener {
 					}
 					$playerData->entityLocationMap->add($pk);
 				} elseif ($pk instanceof MovePlayerPacket && $pk->mode === MovePlayerPacket::MODE_TELEPORT && $pk->entityRuntimeId === $playerData->player->getId()) {
+
+					/**
+					 * Apparently, teleports is what was causing the crashes on Velvet. I suspect that it's probably something in Prim's server core that
+					 * is causing this, but no evidence has been found supporting my theory. This fixes the crashes, but very honestly, this is very very dumb
+					 */
+
 					$pk->mode = MovePlayerPacket::MODE_RESET;
 					$pk->encode();
 					$p = new BatchPacket();
@@ -159,7 +164,6 @@ class PMMPListener implements Listener {
 					$p->encode();
 					PacketUtils::sendPacketSilent($playerData, $p);
 					if (count($gen) === 1) {
-						// if this BS is sent to the client, the client will crash
 						$event->setCancelled();
 					} else {
 						$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);

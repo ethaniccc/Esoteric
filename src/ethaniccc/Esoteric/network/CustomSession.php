@@ -456,13 +456,13 @@ class CustomSession extends Session {
 			$given = $packet->orderChannel;
 			$max = self::CHANNEL_COUNT;
 			$identifier = $this->address->toString();
-			$this->sessionManager->callables[] = function () use ($given, $max, $identifier): void {
+			/*$this->sessionManager->callables[] = function () use ($given, $max, $identifier): void {
 				$data = Esoteric::getInstance()->dataManager->getFromNetworkIdentifier($identifier);
 				if ($data !== null && $data->loggedIn) {
 					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, "Bad packet order channel (c=$given m=$max)\nContact a staff member if this issue persists"), 1);
 				}
 			};
-			$this->sessionManager->sleeper->wakeupSleeper();
+			$this->sessionManager->sleeper->wakeupSleeper(); */
 			return;
 		}
 
@@ -547,7 +547,7 @@ class CustomSession extends Session {
 				$dataPacket = new ConnectedPong($packet->buffer);
 				$dataPacket->decode();
 
-				$valid = false;
+				/* $valid = false;
 				foreach ($this->lastSentPingTimes as $k => $lastSentPingTime) {
 					if ($lastSentPingTime === $dataPacket->sendPingTime) {
 						$valid = true;
@@ -566,7 +566,7 @@ class CustomSession extends Session {
 						}
 					};
 					$this->sessionManager->sleeper->wakeupSleeper();
-				}
+				} */
 
 				$this->handlePong($dataPacket->sendPingTime, $dataPacket->sendPongTime);
 			}

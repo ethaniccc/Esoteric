@@ -160,6 +160,7 @@ detections:
       punishment_type: none
       max_vl: 20
       code: Hypersonic
+      pct: 99.99
     B:
       enabled: false
       punishment_type: none
