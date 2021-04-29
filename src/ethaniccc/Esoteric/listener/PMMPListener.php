@@ -131,12 +131,8 @@ class PMMPListener implements Listener {
 				if (!in_array($pk->pid(), self::USED_OUTBOUND_PACKETS)) continue;
 				$this->decodingTimings->startTiming();
 				try {
-					try {
-						$pk->decode();
-					} catch (RuntimeException $e) {
-						continue;
-					}
-				} catch (LogicException $e) {
+					$pk->decode();
+				} catch (RuntimeException|LogicException $e) {
 					continue;
 				}
 				$this->decodingTimings->stopTiming();
