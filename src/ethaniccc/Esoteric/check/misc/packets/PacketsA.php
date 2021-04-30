@@ -7,6 +7,7 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use function floor;
+use function abs;
 
 class PacketsA extends Check {
 
@@ -15,7 +16,7 @@ class PacketsA extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof PlayerAuthInputPacket && $packet->getPitch() > 92) {
+		if ($packet instanceof PlayerAuthInputPacket && abs($packet->getPitch()) > 92) {
 			$this->flag($data, ["pitch" => floor($packet->getPitch())]);
 		}
 	}

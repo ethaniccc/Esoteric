@@ -115,8 +115,6 @@ class PMMPListener implements Listener {
 		$this->checkTimings->stopTiming();
 		if ($packet instanceof PlayerAuthInputPacket) {
 			$event->setCancelled();
-		} elseif ($packet instanceof TextPacket && $packet->message === "random scale") {
-			$playerData->player->setScale(mt_rand(1000000, 5000000) / 1000000);
 		}
 	}
 

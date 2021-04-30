@@ -9,13 +9,9 @@ I'm deciding to not disclose to the public.
  
 ## Supported Versions
 
-The versions this anti-cheat currently supports are 1.16.100, 1.16.201, 1.16.210, 1.16.220.
+The versions this anti-cheat currently supports are 1.16.220.
 
 **Protocol List:**
-
-- 419
-- 422
-- 428
 - 431
 
 ## Planned Features
@@ -31,31 +27,50 @@ These are a list of the current detections Esoteric has, along with descriptions
 
 - **Autoclicker**
   - A: Checks if the player's CPS exceeds a certain threshold.
+  - B: Checks if the player has duplicated click statistics
 - **Aim**
   - A: Checks if the player's headYaw does not correlate with the player's yaw.
   - B: Checks if the player's yaw movement is rounded.
 - **KillAura**
   - A: Checks if the player is swinging their arm whilst attacking.
+  - B: Checks if the player is hitting too many entities in an instance.
 - **Range**
-  - A: Checks if the player's range goes beyond a certain threshold. Devices which have the capability to switch to touch-screen easily are exempted from this check.
-  - B: Checks if the player is looking at the entity it's attacking.
+  - A: Checks if the player's range goes beyond a certain threshold.
 - **Fly**
   - A: Estimates the next Y movement of the player. This check detects basic flies.
   - B: Checks if the current Y movement of the player is near equal to the Y movement of the player.
   - C: Checks if the user is jumping on the air.
 - **Motion**
   - A: Checks for impossible upward motion. If there is no probable way you are able to go up, this check flags.
-    Moreover, this also flags HighJump at a certain threshold.
+    Moreover, this also flags HighJump at a certain threshold along with velocity modifiers > 107%.
   - B: Checks if the player is following Minecraft's friction rules in the air. This check can flag Bhop, and
     some flies.
   - C: Checks if the player is following Minecraft's friction rules while on the ground. This check is surprisingly very effective
     and can detect a variety of speeds on the ground. The idea behind this check is that your current speed multiplied by your friction
     cannot be greater than your previous speed.
-  - D (**Exp**): Checks if the player's XZ velocity while jumping exceeds a certain threshold. This mainly blocks hacks such as "LongJump".
 - **Velocity**
   - A: Checks if the player takes less vertical knockback than normal.
   - B: Checks if the player takes less horizontal knockback than normal. This check is currently unusable.
-- **GroundSpoof**
-  - A: This checks if the player says that they're on the ground while not having any solid blocks around them.
 - **EditionFaker**
   - A: Checks if the player's TitleID does not match the given OS in the Login packet.
+- **Packets**
+  - A: Checks if the player's pitch goes beyond a certain threshold
+  - B: Checks if the player is sending the wrong movement packet too frequently
+  - C: Checks if the player is jumping without holding their specified jump button. This also checks if their jump delay is invalid.
+- **Nuker**
+  - A: Checks if the player is breaking blocks too quickly.
+  
+## Permission List
+```
+ac
+|
+-> ac.alerts
+-> ac.bypass
+-> ac.command
+   |
+   -> ac.command.help
+   -> ac.command.logs
+   -> ac.command.delay
+   -> ac.command.banwave
+   -> ac.command.timings
+```
