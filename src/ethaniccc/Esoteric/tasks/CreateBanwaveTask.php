@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\tasks;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
+use function file_exists;
 
 class CreateBanwaveTask extends AsyncTask {
 

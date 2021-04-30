@@ -7,6 +7,9 @@ use ethaniccc\Esoteric\data\PlayerData;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use function max;
+use function min;
+use function round;
 
 class AutoClickerA extends Check {
 

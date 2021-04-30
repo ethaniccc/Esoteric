@@ -25,6 +25,14 @@ use raklib\RakLib;
 use raklib\server\Session;
 use raklib\server\SessionManager;
 use raklib\utils\InternetAddress;
+use function array_fill;
+use function assert;
+use function count;
+use function microtime;
+use function ord;
+use function str_split;
+use function strlen;
+use function time;
 
 class CustomSession extends Session {
 

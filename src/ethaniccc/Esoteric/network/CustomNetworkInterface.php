@@ -16,6 +16,7 @@ use pocketmine\network\Network;
 use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\snooze\SleeperNotifier;
+use pocketmine\utils\BinaryStream;
 use raklib\protocol\EncapsulatedPacket;
 use raklib\protocol\PacketReliability;
 use raklib\RakLib;
@@ -24,6 +25,13 @@ use raklib\server\ServerHandler;
 use raklib\server\ServerInstance;
 use raklib\utils\InternetAddress;
 use Throwable;
+use function addcslashes;
+use function base64_encode;
+use function get_class;
+use function implode;
+use function rtrim;
+use function spl_object_hash;
+use function unserialize;
 use const pocketmine\COMPOSER_AUTOLOADER_PATH;
 
 class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface {

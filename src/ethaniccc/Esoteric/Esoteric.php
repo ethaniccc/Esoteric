@@ -21,6 +21,14 @@ use pocketmine\Server;
 use pocketmine\utils\Config;
 use raklib\server\ServerHandler;
 use ReflectionProperty;
+use function array_filter;
+use function array_keys;
+use function count;
+use function explode;
+use function max;
+use function mkdir;
+use function scandir;
+use function strtolower;
 
 final class Esoteric {
 

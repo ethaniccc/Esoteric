@@ -7,6 +7,9 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\network\mcpe\protocol\DataPacket;
+use function max;
+use function min;
+use function round;
 
 class MotionB extends Check {
 

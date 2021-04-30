@@ -44,6 +44,11 @@ use pocketmine\scheduler\ClosureTask;
 use pocketmine\tile\Spawnable;
 use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\BinaryStream;
+use function abs;
+use function array_shift;
+use function count;
+use function floor;
+use function in_array;
 
 final class ProcessInbound {
 

@@ -8,6 +8,11 @@ use raklib\server\SessionManager;
 use raklib\server\UDPServerSocket;
 use raklib\utils\InternetAddress;
 use pocketmine\Thread;
+use function error_reporting;
+use function gc_enable;
+use function ini_set;
+use function register_shutdown_function;
+use function set_error_handler;
 
 class CustomRakLibServer extends RakLibServer {
 

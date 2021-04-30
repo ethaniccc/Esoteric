@@ -6,6 +6,7 @@ namespace ethaniccc\Esoteric\check;
 use CortexPE\DiscordWebhookAPI\Embed;
 use CortexPE\DiscordWebhookAPI\Message;
 use CortexPE\DiscordWebhookAPI\Webhook;
+use DateTime;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
@@ -18,6 +19,14 @@ use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\timings\TimingsHandler;
+use function array_keys;
+use function count;
+use function is_numeric;
+use function max;
+use function microtime;
+use function round;
+use function str_replace;
+use function var_export;
 
 abstract class Check {
 
@@ -165,8 +174,10 @@ abstract class Check {
 		$canSend = $webhookSettings["punishments"] && $webhookLink !== "none";
 		if ($this->option("punishment_type") === 'ban') {
 			$data->isDataClosed = true;
-			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getBanMessage());
-			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new BanTask($data->player, $string), 1);
+			$l = Esoteric::getInstance()->getSettings()->getBanLength();
+			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int) $l . " day") : null;
+			$string = str_replace(["{prefix}", "{code}", "{expires}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName(), $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], Esoteric::getInstance()->getSettings()->getBanMessage());
+			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new BanTask($data->player, $string, $expiration), 1);
 			if ($canSend) {
 				$message = new Message();
 				$message->setContent("");

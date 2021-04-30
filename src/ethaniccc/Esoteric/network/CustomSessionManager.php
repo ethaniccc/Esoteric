@@ -8,6 +8,7 @@ use raklib\server\Session;
 use raklib\server\SessionManager;
 use raklib\server\UDPServerSocket;
 use raklib\utils\InternetAddress;
+use function count;
 
 class CustomSessionManager extends SessionManager {
 

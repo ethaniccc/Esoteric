@@ -17,12 +17,15 @@ prefix: "§l§6Eso§fteric§7>§r"
 # Alert cooldown
 alert_cooldown: 4
 
+# Length in days to ban the player for, leave as "p" for permanent, this will only work if the punishment type is set to "ban"
+ban_length: 7
+
 # Tags: {prefix}, {player}, {check_name}, {check_subtype}, {violations}, {data}
 alert_message: "{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]"
 
-# Tags: {prefix}, {code}
+# Tags: {prefix}, {code}, {expires} < ban only
 kick_message: "{prefix} Kicked (code={code})\nContact staff with a screenshot of this message if this issue persists"
-ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of this message if this is a mistake"
+ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of this message if this is a mistake\nExpires: {expires}"
 
 # Setback types: smooth, instant, or none
 setback_type: "none"
@@ -41,6 +44,8 @@ banwaves:
   enabled: false
   # Total violations someone should be added to a ban-wave
   violations: 40
+  # Length in days to ban the player for, leave as "p" for permanent
+  ban_length: 7
   # Message for when the ban-wave starts
   start_message: "§eThe ban wave has §6commenced"
   # Message to broadcast when a player is banned in the ban-wave

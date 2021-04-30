@@ -5,6 +5,11 @@ namespace ethaniccc\Esoteric\data\process;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\tasks\KickTask;
+use function count;
+use function floor;
+use function max;
+use function microtime;
+use function min;
 
 class ProcessTick {
 

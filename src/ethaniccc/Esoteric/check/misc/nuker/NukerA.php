@@ -12,6 +12,10 @@ use pocketmine\block\Transparent;
 use pocketmine\entity\Effect;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\types\GameMode;
+use function ceil;
+use function in_array;
+use function max;
+use function range;
 
 class NukerA extends Check {
 

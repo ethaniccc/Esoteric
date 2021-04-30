@@ -7,6 +7,8 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
+use function min;
+use function round;
 
 class VelocityA extends Check {
 

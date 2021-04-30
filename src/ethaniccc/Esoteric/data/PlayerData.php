@@ -34,6 +34,10 @@ use pocketmine\block\Block;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\Player;
+use function array_filter;
+use function count;
+use function microtime;
+use function spl_object_hash;
 
 final class PlayerData {
 

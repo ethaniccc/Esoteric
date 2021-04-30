@@ -8,6 +8,7 @@ use ethaniccc\Esoteric\utils\EvictingList;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use function round;
 
 class AutoClickerB extends Check {
 

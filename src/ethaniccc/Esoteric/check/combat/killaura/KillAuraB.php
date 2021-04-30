@@ -9,6 +9,8 @@ use ethaniccc\Esoteric\utils\AABB;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
+use function count;
+use function in_array;
 
 class KillAuraB extends Check {
 

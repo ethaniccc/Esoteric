@@ -6,6 +6,9 @@ use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use function abs;
+use function max;
+use function round;
 
 class AimB extends Check {
 

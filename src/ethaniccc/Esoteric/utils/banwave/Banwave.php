@@ -7,6 +7,18 @@ use ethaniccc\Esoteric\tasks\AsyncClosureTask;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
+use DateTime;
+use function array_keys;
+use function array_shift;
+use function count;
+use function explode;
+use function file_exists;
+use function file_get_contents;
+use function file_put_contents;
+use function is_numeric;
+use function json_decode;
+use function json_encode;
+use function str_replace;
 
 final class Banwave {
 
@@ -132,10 +144,11 @@ final class Banwave {
 				} else {
 					$d = array_shift($data);
 					$p = array_shift($usernames);
-					Server::getInstance()->getNameBans()->addBan($p, "Ban wave {$this->id} (" . $d["code"] . ")", null, "Esoteric");
+					$expiration = is_numeric($settings["ban_length"]) ? (new DateTime('now'))->modify("+" . (int) $settings["ban_length"] . " day") : null;
+					Server::getInstance()->getNameBans()->addBan($p, "Ban wave {$this->id} (" . $d["code"] . ")", $expiration, "Esoteric");
 					$this->addBanned($p);
 					if (($player = Server::getInstance()->getPlayerExact($p)) !== null) {
-						$player->kick(str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $d["code"]], Esoteric::getInstance()->getSettings()->getBanMessage()));
+						$player->kick(str_replace(["{prefix}", "{code}", "{expires}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $d["code"], $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], Esoteric::getInstance()->getSettings()->getBanMessage()));
 					}
 					Server::getInstance()->broadcastMessage(str_replace(["{player}", "{id}"], [$p, $this->getId()], $settings["ban_message"]));
 				}

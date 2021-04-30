@@ -15,6 +15,16 @@ use pocketmine\plugin\Plugin;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat;
+use function count;
+use function implode;
+use function in_array;
+use function range;
+use function round;
+use function serialize;
+use function str_repeat;
+use function strtolower;
+use function unserialize;
+use function var_export;
 
 class EsotericCommand extends Command implements PluginIdentifiableCommand {
 
