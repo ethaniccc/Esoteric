@@ -89,7 +89,6 @@ final class ProcessInbound {
 			$data->inLoadedChunk = $data->chunkSendPosition->distance($data->currentLocation->floor()) <= $data->player->getViewDistance() * 16;
 			$data->teleported = false;
 			$data->hasMovementSuppressed = false;
-			$data->boundingBox = AABB::fromPosition($location->asVector3());
 			$data->lastLocation = clone $data->currentLocation;
 			$data->currentLocation = $location;
 			$data->lastMoveDelta = $data->currentMoveDelta;
@@ -104,6 +103,7 @@ final class ProcessInbound {
 			if ($data->currentYawDelta > 180) {
 				$data->currentYawDelta = 360 - $data->currentYawDelta;
 			}
+			$data->boundingBox = AABB::from($data);
 			$data->directionVector = MathUtils::directionVectorFromValues($data->currentYaw, $data->currentPitch);
 			$validMovement = $data->currentMoveDelta->lengthSquared() >= MovementConstants::MOVEMENT_THRESHOLD_SQUARED;
 			$data->movementSpeed = $data->player->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->getValue();

@@ -84,7 +84,7 @@ final class LocationMap {
 
 	function executeTick(PlayerData $data): void {
 		foreach ($this->locations as $entityRuntimeId => $locationData) {
-			if (Server::getInstance()->findEntity($entityRuntimeId) === null) {
+			if (($entity = Server::getInstance()->findEntity($entityRuntimeId)) === null) {
 				// entity go brrt !
 				unset($this->locations[$entityRuntimeId]);
 				unset($this->needSendArray[$entityRuntimeId]);
@@ -98,6 +98,9 @@ final class LocationMap {
 					// don't need to clone all the time... lol
 					$locationData->lastLocation = clone $locationData->currentLocation;
 				}
+				$bb = $entity->getBoundingBox();
+				$locationData->hitboxWidth = ($bb->maxX - $bb->minX) / 2;
+				$locationData->hitboxHeight = $bb->maxY - $bb->minY;
 				$locationData->history->add(clone $locationData->lastLocation);
 				$locationData->newPosRotationIncrements--;
 				$locationData->isSynced++;

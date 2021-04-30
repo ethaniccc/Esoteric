@@ -138,6 +138,8 @@ final class PlayerData {
 	public $lastBlocksBelow = [];
 	/** @var bool */
 	public $canPlaceBlocks = true;
+	/** @var float */
+	public $hitboxWidth = 0.0, $hitboxHeight = 0.0;
 	/** @var bool */
 	public $isAlive = true;
 	/** @var int - Amount of client ticks that have passed since the player has spawned. */

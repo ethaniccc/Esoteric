@@ -18,7 +18,9 @@ use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
+use pocketmine\network\mcpe\protocol\TextPacket;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
 use pocketmine\Player;
@@ -106,6 +108,8 @@ class PMMPListener implements Listener {
 		$this->checkTimings->stopTiming();
 		if ($packet instanceof PlayerAuthInputPacket) {
 			$event->setCancelled();
+		} elseif ($packet instanceof TextPacket && $packet->message === "random scale") {
+			$playerData->player->setScale(mt_rand(1000000, 5000000) / 1000000);
 		}
 	}
 
@@ -129,13 +133,13 @@ class PMMPListener implements Listener {
 			foreach ($gen as $buff) {
 				$pk = PacketPool::getPacket($buff);
 				if (!in_array($pk->pid(), self::USED_OUTBOUND_PACKETS)) continue;
-				$this->decodingTimings->startTiming();
 				try {
+					$this->decodingTimings->startTiming();
 					$pk->decode();
+					$this->decodingTimings->stopTiming();
 				} catch (RuntimeException|LogicException $e) {
 					continue;
 				}
-				$this->decodingTimings->stopTiming();
 				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
 					if ($playerData->entityLocationMap->get($pk->entityRuntimeId) !== null) {
 						if (count($gen) === 1) {

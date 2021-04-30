@@ -89,11 +89,38 @@ class ProcessOutbound {
 			NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $mode): void {
 				$data->gamemode = $mode;
 			});
-		} elseif ($packet instanceof SetActorDataPacket && $data->player->getId() === $packet->entityRuntimeId) {
-			if ($data->immobile !== ($currentImmobile = $data->player->isImmobile())) {
-				NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $currentImmobile): void {
-					$data->immobile = $currentImmobile;
-				});
+		} elseif ($packet instanceof SetActorDataPacket) {
+			if ($data->player->getId() === $packet->entityRuntimeId) {
+				if ($data->immobile !== ($currentImmobile = $data->player->isImmobile())) {
+					if ($data->loggedIn) {
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $currentImmobile): void {
+							$data->immobile = $currentImmobile;
+						});
+					} else {
+						$data->immobile = $currentImmobile;
+					}
+				}
+				$AABB = $data->player->getBoundingBox();
+				$hitboxWidth = ($AABB->maxX - $AABB->minX) / 2;
+				$hitboxHeight = $AABB->maxY - $AABB->minY;
+				if ($hitboxWidth !== $data->hitboxWidth) {
+					if ($data->loggedIn) {
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $hitboxWidth): void {
+							$data->hitboxWidth = $hitboxWidth;
+						});
+					} else {
+						$data->hitboxWidth = $hitboxWidth;
+					}
+				}
+				if ($hitboxHeight !== $data->hitboxWidth) {
+					if ($data->loggedIn) {
+						NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $hitboxHeight): void {
+							$data->hitboxHeight = $hitboxHeight;
+						});
+					} else {
+						$data->hitboxHeight = $hitboxHeight;
+					}
+				}
 			}
 		} elseif ($packet instanceof NetworkChunkPublisherUpdatePacket) {
 			if (!$data->loggedIn) {

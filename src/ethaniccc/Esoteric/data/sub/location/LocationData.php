@@ -21,5 +21,7 @@ final class LocationData {
 	public $isSynced = 0;
 	/** @var EvictingList */
 	public $history;
+	/** @var float */
+	public $hitboxWidth = 0.3, $hitboxHeight = 1.8;
 
 }

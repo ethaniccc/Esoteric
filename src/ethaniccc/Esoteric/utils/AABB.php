@@ -10,7 +10,6 @@ use pocketmine\math\Vector3;
 
 class AABB extends AxisAlignedBB {
 
-	public const NO_INTERSECTION = -69.0;
 	public $minX, $minY, $minZ;
 	public $maxX, $maxY, $maxZ;
 	public $minVector, $maxVector;
@@ -30,15 +29,15 @@ class AABB extends AxisAlignedBB {
 
 	public static function from(PlayerData $data): self {
 		$pos = $data->currentLocation;
-		return new AABB($pos->x - 0.3, $pos->y, $pos->z - 0.3, $pos->x + 0.3, $pos->y + 1.8, $pos->z + 0.3);
+		return new AABB($pos->x - $data->hitboxHeight, $pos->y, $pos->z - $data->hitboxHeight, $pos->x + $data->hitboxHeight, $pos->y + $data->hitboxHeight, $pos->z + $data->hitboxHeight);
 	}
 
 	public static function fromAxisAlignedBB(AxisAlignedBB $alignedBB): AABB {
 		return new AABB($alignedBB->minX - 0.1, $alignedBB->minY, $alignedBB->minZ - 0.1, $alignedBB->maxX + 0.1, $alignedBB->maxY, $alignedBB->maxZ + 0.1);
 	}
 
-	public static function fromPosition(Vector3 $pos): AABB {
-		return new AABB($pos->x - 0.3, $pos->y, $pos->z - 0.3, $pos->x + 0.3, $pos->y + 1.8, $pos->z + 0.3);
+	public static function fromPosition(Vector3 $pos, float $width = 0.3, float $height = 1.8): AABB {
+		return new AABB($pos->x - $width, $pos->y, $pos->z - $width, $pos->x + $width, $pos->y + $height, $pos->z + $width);
 	}
 
 	public static function fromBlock(Block $block): AABB {
