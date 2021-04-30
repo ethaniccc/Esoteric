@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\data\process;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\tasks\KickTask;
+use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use function count;
 use function floor;
 use function max;
@@ -17,11 +18,11 @@ class ProcessTick {
 	public $waiting = [];
 
 	public function execute(PlayerData $data): void {
-		if ($data->loggedIn) {
+		if ($data->loggedIn && $data->playerOS !== DeviceOS::PLAYSTATION) {
 			$data->entityLocationMap->send($data);
 			if ($data->currentTick % 5 === 0) {
 				$currentTime = microtime(true);
-				NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($data, $currentTime): void {
+				NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::next($data), function (int $timestamp) use ($data, $currentTime): void {
 					$data->latency = floor((microtime(true) - $currentTime) * 1000);
 				});
 			}
@@ -29,6 +30,7 @@ class ProcessTick {
 				if (isset($this->waiting[$key])) {
 					// packet order 9000, no?
 					unset($this->waiting[$key]);
+					unset($this->invalid[$key]);
 				}
 			}
 			$timeoutSettings = Esoteric::getInstance()->getSettings()->getTimeoutSettings();

@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
+use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use function mt_rand;
 
 final class NetworkStackLatencyHandler {
@@ -13,10 +14,14 @@ final class NetworkStackLatencyHandler {
 	private static $list = [];
 	private static $currentTimestamp = [];
 
-	public static function random(bool $needsResponse = true): NetworkStackLatencyPacket {
+	public static function next(PlayerData $data, bool $needsResponse = true): NetworkStackLatencyPacket {
+		if (!isset(self::$currentTimestamp[$data->hash])) {
+			self::$currentTimestamp[$data->hash] = 0;
+		}
+		self::$currentTimestamp[$data->hash] += mt_rand(1, 10) * 1000;
 		$pk = new NetworkStackLatencyPacket();
 		$pk->needResponse = $needsResponse;
-		$pk->timestamp = mt_rand(1, 1000000000000000) * 1000;
+		$pk->timestamp = self::$currentTimestamp[$data->hash];
 		return $pk;
 	}
 
@@ -44,7 +49,7 @@ final class NetworkStackLatencyHandler {
 	}
 
 	public static function forceSet(PlayerData $data, int $timestamp): void {
-
+		self::$currentTimestamp[$data->hash] = $timestamp;
 	}
 
 	public static function execute(PlayerData $data, int $timestamp): void {

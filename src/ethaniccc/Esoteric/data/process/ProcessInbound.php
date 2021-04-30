@@ -369,7 +369,7 @@ final class ProcessInbound {
 				}
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
-					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::random(), function (int $timestamp) use ($hasCollision, $data, $realBlock): void {
+					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::next($data), function (int $timestamp) use ($hasCollision, $data, $realBlock): void {
 						$p = new BatchPacket();
 						$pk = new UpdateBlockPacket();
 						$pk->x = $realBlock->x;
@@ -389,7 +389,7 @@ final class ProcessInbound {
 						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 						$p->addPacket($pk);
-						$n = NetworkStackLatencyHandler::random();
+						$n = NetworkStackLatencyHandler::next($data);
 						$p->addPacket($n);
 						$p->encode();
 						PacketUtils::sendPacketSilent($data, $p);
@@ -498,6 +498,7 @@ final class ProcessInbound {
 			$pk = new LoginPacket($packet->getBuffer());
 			$pk->decode();
 			$data->protocol = $pk->protocol;
+			$data->playerOS = $pk->clientData["DeviceOS"];
 			$data->isMobile = in_array($pk->clientData["DeviceOS"], [DeviceOS::AMAZON, DeviceOS::ANDROID, DeviceOS::IOS]);
 		} elseif ($packet instanceof LevelSoundEventPacket) {
 			if ($packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE) {

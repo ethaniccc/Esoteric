@@ -56,7 +56,7 @@ final class LocationMap {
 		if (count($this->needSendArray) === 0 || !$data->loggedIn) {
 			return;
 		}
-		$pk = NetworkStackLatencyHandler::random();
+		$pk = NetworkStackLatencyHandler::next($data);
 		$batch = clone $this->needSend;
 		$batch->addPacket($pk);
 		$batch->encode();

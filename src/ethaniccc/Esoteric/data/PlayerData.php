@@ -33,6 +33,7 @@ use ethaniccc\Esoteric\utils\AABB;
 use pocketmine\block\Block;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\Player;
 use function array_filter;
 use function count;
@@ -148,6 +149,8 @@ final class PlayerData {
 	public $isAlive = true;
 	/** @var int - Amount of client ticks that have passed since the player has spawned. */
 	public $ticksSinceSpawn = 0;
+	/** @var int - Device OS of the player */
+	public $playerOS = DeviceOS::UNKNOWN;
 	/** @var int - Current gamemode of the player. */
 	public $gamemode = 0;
 	public $isSprinting = false;

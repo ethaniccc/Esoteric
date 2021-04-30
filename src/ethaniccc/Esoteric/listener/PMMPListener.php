@@ -21,6 +21,7 @@ use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\TextPacket;
+use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
 use pocketmine\Player;
@@ -48,7 +49,8 @@ class PMMPListener implements Listener {
 		ProtocolInfo::MOVE_PLAYER_PACKET, ProtocolInfo::MOVE_ACTOR_DELTA_PACKET, ProtocolInfo::UPDATE_BLOCK_PACKET,
 		ProtocolInfo::SET_ACTOR_MOTION_PACKET, ProtocolInfo::MOB_EFFECT_PACKET, ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET,
 		ProtocolInfo::SET_ACTOR_DATA_PACKET, ProtocolInfo::NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, ProtocolInfo::ADVENTURE_SETTINGS_PACKET,
-		ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET, ProtocolInfo::CORRECT_PLAYER_MOVE_PREDICTION_PACKET
+		ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET, ProtocolInfo::CORRECT_PLAYER_MOVE_PREDICTION_PACKET,
+		ProtocolInfo::NETWORK_STACK_LATENCY_PACKET,
 	];
 
 	public function __construct() {
@@ -100,7 +102,7 @@ class PMMPListener implements Listener {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
-		if ($playerData->isDataClosed) {
+		if ($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
 			return;
 		}
 		$playerData->inboundProcessor->execute($packet, $playerData);
@@ -129,7 +131,7 @@ class PMMPListener implements Listener {
 		if ($playerData === null) {
 			return;
 		}
-		if ($playerData->isDataClosed) {
+		if ($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
 			return;
 		}
 		if ($packet instanceof BatchPacket) {
