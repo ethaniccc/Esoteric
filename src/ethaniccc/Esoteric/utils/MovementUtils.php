@@ -3,6 +3,10 @@
 namespace ethaniccc\Esoteric\utils;
 
 use pocketmine\math\Vector3;
+use function cos;
+use function max;
+use function sin;
+use function sqrt;
 
 final class MovementUtils {
 

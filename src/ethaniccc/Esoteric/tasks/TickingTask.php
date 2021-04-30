@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\tasks;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use pocketmine\scheduler\Task;
+use function array_filter;
 
 class TickingTask extends Task {
 

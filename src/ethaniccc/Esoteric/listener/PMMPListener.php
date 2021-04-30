@@ -27,6 +27,13 @@ use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\Binary;
 use pocketmine\utils\TextFormat;
 use RuntimeException;
+use function count;
+use function in_array;
+use function round;
+use function str_replace;
+use function strlen;
+use function strtolower;
+use function var_export;
 
 class PMMPListener implements Listener {
 

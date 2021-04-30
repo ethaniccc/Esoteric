@@ -2,6 +2,13 @@
 
 namespace ethaniccc\Esoteric\utils;
 
+use function array_reverse;
+use function array_shift;
+use function array_unique;
+use function count;
+use function max;
+use function min;
+
 class EvictingList {
 
 	private $array = [];

@@ -5,7 +5,6 @@ namespace ethaniccc\Esoteric;
 use CortexPE\DiscordWebhookAPI\WebhookThread;
 use Exception;
 use pocketmine\plugin\PluginBase;
-use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
 
 final class Loader extends PluginBase {

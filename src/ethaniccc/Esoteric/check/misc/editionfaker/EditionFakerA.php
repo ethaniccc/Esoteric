@@ -10,6 +10,9 @@ use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
+use function base64_decode;
+use function explode;
+use function json_decode;
 
 class EditionFakerA extends Check {
 

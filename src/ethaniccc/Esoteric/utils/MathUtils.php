@@ -4,6 +4,23 @@ namespace ethaniccc\Esoteric\utils;
 
 use ErrorException;
 use pocketmine\math\Vector3;
+use function abs;
+use function acos;
+use function array_splice;
+use function array_sum;
+use function ceil;
+use function cos;
+use function count;
+use function floor;
+use function fmod;
+use function max;
+use function min;
+use function pack;
+use function pow;
+use function sin;
+use function sort;
+use function sqrt;
+use function unpack;
 
 final class MathUtils {
 

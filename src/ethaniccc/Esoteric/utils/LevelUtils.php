@@ -6,6 +6,8 @@ use Generator;
 use pocketmine\block\UnknownBlock;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
+use function ceil;
+use function floor;
 
 final class LevelUtils {
 

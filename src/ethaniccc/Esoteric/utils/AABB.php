@@ -7,6 +7,8 @@ use pocketmine\block\Block;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\RayTraceResult;
 use pocketmine\math\Vector3;
+use function max;
+use function sqrt;
 
 class AABB extends AxisAlignedBB {
 

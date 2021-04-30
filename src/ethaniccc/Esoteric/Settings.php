@@ -3,6 +3,7 @@
 namespace ethaniccc\Esoteric;
 
 use pocketmine\utils\TextFormat;
+use function in_array;
 
 final class Settings {
 
@@ -33,6 +34,10 @@ final class Settings {
 
 	public function getAlertMessage(): string {
 		return $this->data["alert_message"];
+	}
+
+	public function getBanLength() : string {
+		return $this->data["ban_length"];
 	}
 
 	public function getSetbackType(): string {

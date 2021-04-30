@@ -3,6 +3,10 @@
 namespace ethaniccc\Esoteric\data;
 
 use pocketmine\Player;
+use function spl_object_hash;
+use function stripos;
+use function strlen;
+use function strtolower;
 
 class PlayerDataManager {
 
