@@ -152,12 +152,6 @@ detections:
       max_vl: 10
       code: Mach3
       setback: true
-    D:
-      enabled: true
-      punishment_type: none
-      max_vl: 5
-      code: Mach4
-      setback: true
   # Velocity detections
   Velocity:
     A:
