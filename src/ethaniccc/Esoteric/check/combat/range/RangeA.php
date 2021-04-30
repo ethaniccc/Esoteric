@@ -30,7 +30,7 @@ class RangeA extends Check {
 		} elseif ($packet instanceof PlayerAuthInputPacket && $this->waiting) {
 			$locationData = $data->entityLocationMap->get($data->target);
 			if ($locationData !== null) {
-				if ($locationData->isSynced <= 30 || $data->ticksSinceTeleport <= 10) {
+				if ($locationData->isSynced <= 30 || $data->ticksSinceTeleport <= 10 || $locationData->currentLocation->level->getId() !== $data->player->getLevel()->getId()) {
 					return;
 				}
 				$AABB = AABB::fromPosition($locationData->lastLocation, $locationData->hitboxWidth + 0.1001, $locationData->hitboxHeight + 0.1001);

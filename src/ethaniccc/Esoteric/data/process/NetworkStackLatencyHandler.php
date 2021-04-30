@@ -11,6 +11,7 @@ use function mt_rand;
 final class NetworkStackLatencyHandler {
 
 	private static $list = [];
+	private static $currentTimestamp = [];
 
 	public static function random(bool $needsResponse = true): NetworkStackLatencyPacket {
 		$pk = new NetworkStackLatencyPacket();
@@ -40,6 +41,10 @@ final class NetworkStackLatencyHandler {
 			self::$list[$data->hash] = [];
 		}
 		self::$list[$data->hash][$timestamp] = $onResponse;
+	}
+
+	public static function forceSet(PlayerData $data, int $timestamp): void {
+
 	}
 
 	public static function execute(PlayerData $data, int $timestamp): void {

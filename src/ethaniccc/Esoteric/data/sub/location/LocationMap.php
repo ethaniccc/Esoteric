@@ -6,6 +6,8 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\PacketUtils;
+use pocketmine\level\Level;
+use pocketmine\level\Position;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -23,7 +25,7 @@ final class LocationMap {
 	public $locations = [];
 	/** @var BatchPacket - A batch packet that contains entity locations along with a NetworkStackLatencyPacket */
 	public $needSend;
-	/** @var MovePlayerPacket|MoveActorDeltaPacket[] */
+	/** @var Position[] */
 	public $needSendArray = [];
 
 	public function __construct() {
@@ -44,7 +46,10 @@ final class LocationMap {
 			}
 		}
 		$packet->encode();
-		$this->needSendArray[$packet->entityRuntimeId] = ($packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position);
+		$entity = Server::getInstance()->findEntity($packet->entityRuntimeId);
+		if ($entity !== null) {
+			$this->needSendArray[$packet->entityRuntimeId] = Position::fromObject($packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position, $entity->getLevel());
+		}
 	}
 
 	function send(PlayerData $data): void {
@@ -95,6 +100,7 @@ final class LocationMap {
 					$locationData->currentLocation->x = ($locationData->currentLocation->x + (($locationData->receivedLocation->x - $locationData->currentLocation->x) / $locationData->newPosRotationIncrements));
 					$locationData->currentLocation->y = ($locationData->currentLocation->y + (($locationData->receivedLocation->y - $locationData->currentLocation->y) / $locationData->newPosRotationIncrements));
 					$locationData->currentLocation->z = ($locationData->currentLocation->z + (($locationData->receivedLocation->z - $locationData->currentLocation->z) / $locationData->newPosRotationIncrements));
+					$locationData->currentLocation->level = $entity->getLevel();
 				} elseif ($locationData->newPosRotationIncrements === 0) {
 					// don't need to clone all the time... lol
 					$locationData->lastLocation = clone $locationData->currentLocation;
@@ -102,7 +108,7 @@ final class LocationMap {
 				$bb = $entity->getBoundingBox();
 				$locationData->hitboxWidth = ($bb->maxX - $bb->minX) / 2;
 				$locationData->hitboxHeight = $bb->maxY - $bb->minY;
-				$locationData->history->add(clone $locationData->lastLocation);
+				$locationData->history->add($locationData->lastLocation);
 				$locationData->newPosRotationIncrements--;
 				$locationData->isSynced++;
 			}

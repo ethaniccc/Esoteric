@@ -3,17 +3,18 @@
 namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\utils\EvictingList;
+use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 
 final class LocationData {
 
 	/** @var int */
 	public $entityRuntimeId;
-	/** @var Vector3 */
+	/** @var Position */
 	public $currentLocation;
-	/** @var Vector3 */
+	/** @var Position */
 	public $lastLocation;
-	/** @var Vector3 */
+	/** @var Position */
 	public $receivedLocation;
 	/** @var int */
 	public $newPosRotationIncrements = 0;

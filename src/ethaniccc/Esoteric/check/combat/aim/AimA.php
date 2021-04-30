@@ -21,14 +21,16 @@ class AimA extends Check {
 		if ($packet instanceof PlayerAuthInputPacket) {
 			$expectedHeadYaw = fmod(($packet->getYaw() > 0 ? 0 : 360) + $packet->getYaw(), 360);
 			$diff = fmod(abs($expectedHeadYaw - $packet->getHeadYaw()), 360);
-			if ($diff > 5E-5 && $packet->getHeadYaw() > 0) {
+			$roundedDiff = round($diff, 4);
+			if ($diff > 5E-5 && $roundedDiff !== 360.0 && $packet->getHeadYaw() > 0) {
 				if (++$this->buffer >= 3) {
 					$this->flag($data, ["diff" => ($diff >= 0.0001 ? round($diff, 4) : $diff)]);
 				}
 			} elseif ($packet->getHeadYaw() < 0) {
 				$expectedHeadYaw = fmod($packet->getHeadYaw(), 180);
 				$diff = fmod(abs($expectedHeadYaw - $packet->getHeadYaw()), 360);
-				if ($diff > 5E-5) {
+				$roundedDiff = round($diff, 4);
+				if ($diff > 5E-5 && $roundedDiff !== 360.0) {
 					if (++$this->buffer >= 3) {
 						$this->flag($data, ["diff" => ($diff >= 0.0001 ? round($diff, 4) : $diff)]);
 					}
