@@ -50,6 +50,7 @@ use function array_shift;
 use function count;
 use function floor;
 use function in_array;
+use function var_export;
 
 final class ProcessInbound {
 

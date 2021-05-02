@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace CortexPE\DiscordWebhookAPI;
+namespace ethaniccc\Esoteric\webhook;
 
 class Webhook {
 

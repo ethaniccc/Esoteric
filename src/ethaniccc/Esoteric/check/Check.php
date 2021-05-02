@@ -3,19 +3,16 @@
 
 namespace ethaniccc\Esoteric\check;
 
-use CortexPE\DiscordWebhookAPI\Embed;
-use CortexPE\DiscordWebhookAPI\Message;
-use CortexPE\DiscordWebhookAPI\Webhook;
 use DateTime;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
 use ethaniccc\Esoteric\tasks\BanTask;
 use ethaniccc\Esoteric\tasks\KickTask;
-use ethaniccc\Esoteric\utils\MathUtils;
-use ethaniccc\Esoteric\utils\PacketUtils;
+use ethaniccc\Esoteric\webhook\Embed;
+use ethaniccc\Esoteric\webhook\Message;
+use ethaniccc\Esoteric\webhook\Webhook;
 use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\timings\TimingsHandler;
@@ -26,6 +23,7 @@ use function max;
 use function microtime;
 use function round;
 use function str_replace;
+use function var_dump;
 use function var_export;
 
 abstract class Check {

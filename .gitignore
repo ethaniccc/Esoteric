@@ -4,3 +4,4 @@ upload/*
 upload.cmd
 versai_eu.cmd
 compile.cmd
+vendor/*

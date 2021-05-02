@@ -172,7 +172,9 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 	}
 
 	public function notifyACK(string $identifier, int $identifierACK) : void{
-		ACKHandler::execute($identifier, $identifierACK);
+		if (ACKHandler::hasData($identifier)) {
+			ACKHandler::execute($identifier, $identifierACK);
+		}
 	}
 
 	public function setName(string $name){
@@ -253,5 +255,9 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 		if(isset($this->players[$identifier])){
 			$this->players[$identifier]->updatePing($pingMS);
 		}
+	}
+
+	public function getServerHandler(): ServerHandler {
+		return $this->interface;
 	}
 }

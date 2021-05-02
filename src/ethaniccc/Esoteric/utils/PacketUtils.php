@@ -58,7 +58,7 @@ class PacketUtils {
 			}
 			$pk = $packet->__encapsulatedPacket;
 		}
-		Esoteric::getInstance()->serverHandler->sendEncapsulated($data->networkIdentifier, $pk, ($needACK ? RakLib::FLAG_NEED_ACK : 0) | RakLib::PRIORITY_NORMAL);
+		Esoteric::getInstance()->networkInterface->getServerHandler()->sendEncapsulated($data->networkIdentifier, $pk, ($needACK ? RakLib::FLAG_NEED_ACK : 0) | RakLib::PRIORITY_NORMAL);
 	}
 
 }

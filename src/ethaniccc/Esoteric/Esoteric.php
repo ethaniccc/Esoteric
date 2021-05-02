@@ -2,7 +2,6 @@
 
 namespace ethaniccc\Esoteric;
 
-use CortexPE\DiscordWebhookAPI\WebhookThread;
 use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
@@ -13,6 +12,7 @@ use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
 use ethaniccc\Esoteric\thread\LoggerThread;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
+use ethaniccc\Esoteric\webhook\WebhookThread;
 use Exception;
 use pocketmine\event\HandlerList;
 use pocketmine\network\mcpe\protocol\PacketPool;
@@ -20,9 +20,6 @@ use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
 use pocketmine\utils\Config;
-use pocketmine\utils\MainLogger;
-use raklib\server\ServerHandler;
-use ReflectionProperty;
 use function array_filter;
 use function array_keys;
 use function count;
@@ -54,12 +51,18 @@ final class Esoteric {
 	public $command;
 	/** @var PMMPListener */
 	public $listener;
-	/** @var ServerHandler */
-	public $serverHandler;
+	/** @var CustomNetworkInterface */
+	public $networkInterface;
 	/** @var LoggerThread */
 	public $loggerThread;
 
-	public function __construct(PluginBase $plugin, Config $config) {
+	/**
+	 * Esoteric constructor.
+	 * @param PluginBase $plugin
+	 * @param Config|null $config
+	 * @throws Exception
+	 */
+	private function __construct(PluginBase $plugin, ?Config $config) {
 		$this->plugin = $plugin;
 		$this->settings = new Settings($config === null ? $this->getPlugin()->getConfig()->getAll() : $config->getAll());
 		$this->dataManager = new PlayerDataManager();
@@ -76,7 +79,7 @@ final class Esoteric {
 	 * @param bool $start
 	 * @throws Exception
 	 */
-	public static function init(PluginBase $plugin, Config $config, bool $start = false) {
+	public static function init(PluginBase $plugin, ?Config $config, bool $start = false) {
 		if (self::$instance !== null)
 			throw new Exception("Esoteric is already started");
 		self::$instance = new self($plugin, $config);
@@ -95,11 +98,8 @@ final class Esoteric {
 			if ($interface instanceof RakLibInterface) {
 				$interface->shutdown();
 				Server::getInstance()->getNetwork()->unregisterInterface($interface);
-				$newInterface = new CustomNetworkInterface(Server::getInstance());
-				Server::getInstance()->getNetwork()->registerInterface($newInterface);
-				$reflection = new ReflectionProperty($newInterface, "interface");
-				$reflection->setAccessible(true);
-				$this->serverHandler = $reflection->getValue($newInterface);
+				$this->networkInterface = new CustomNetworkInterface(Server::getInstance());
+				Server::getInstance()->getNetwork()->registerInterface($this->networkInterface);
 				break;
 			}
 		}
@@ -147,6 +147,9 @@ final class Esoteric {
 		HandlerList::unregisterAll($this->listener);
 		if ($this->getBanwave() !== null) {
 			$this->getBanwave()->update();
+		}
+		if (!Server::getInstance()->isRunning() && WebhookThread::valid()) {
+			WebhookThread::getInstance()->stop();
 		}
 	}
 

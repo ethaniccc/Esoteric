@@ -22,6 +22,10 @@ class ACKHandler {
 		}
 	}
 
+	public static function hasData(string $identifier): bool {
+		return isset(self::$list[$identifier]);
+	}
+
 	public static function next(string $identifier): int {
 		if (!isset(self::$ackList[$identifier])) {
 			self::$ackList[$identifier] = 0;

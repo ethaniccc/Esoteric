@@ -1,8 +1,9 @@
 <?php
 
-namespace ethaniccc\Esoteric;
+namespace ethaniccc\Loader;
 
-use CortexPE\DiscordWebhookAPI\WebhookThread;
+use ethaniccc\Esoteric\Esoteric;
+use ethaniccc\Esoteric\webhook\WebhookThread;
 use Exception;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
@@ -22,9 +23,6 @@ final class Loader extends PluginBase {
 			Esoteric::getInstance()->stop();
 		} catch (Exception $e) {
 			$this->getLogger()->error("Unable to stop esoteric [{$e->getMessage()}]");
-		}
-		if (!Server::getInstance()->isRunning() && WebhookThread::valid()) {
-			WebhookThread::getInstance()->stop();
 		}
 	}
 }

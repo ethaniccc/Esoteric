@@ -1,6 +1,6 @@
 <?php
 
-namespace CortexPE\DiscordWebhookAPI;
+namespace ethaniccc\Esoteric\webhook;
 
 use pocketmine\Server;
 use pocketmine\Thread;

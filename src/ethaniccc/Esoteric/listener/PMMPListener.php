@@ -12,15 +12,12 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\BatchPacket;
-use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
-use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
-use pocketmine\network\mcpe\protocol\TextPacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
@@ -105,8 +102,8 @@ class PMMPListener implements Listener {
 		if ($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
 			return;
 		}
+		$esoteric = Esoteric::getInstance();
 		$playerData->inboundProcessor->execute($packet, $playerData);
-		$this->checkTimings->startTiming();
 		foreach ($playerData->checks as $check) {
 			if ($check->enabled()) {
 				$check->getTimings()->startTiming();
@@ -114,7 +111,6 @@ class PMMPListener implements Listener {
 				$check->getTimings()->stopTiming();
 			}
 		}
-		$this->checkTimings->stopTiming();
 		if ($packet instanceof PlayerAuthInputPacket) {
 			$event->setCancelled();
 		}
