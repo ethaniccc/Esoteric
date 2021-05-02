@@ -153,16 +153,16 @@ final class Esoteric {
 		}
 	}
 
+	public function getBanwave(): ?Banwave {
+		return $this->banwave;
+	}
+
 	public function getServer(): Server {
 		return Server::getInstance();
 	}
 
 	public function getSettings(): Settings {
 		return $this->settings;
-	}
-
-	public function getBanwave(): ?Banwave {
-		return $this->banwave;
 	}
 
 }

@@ -199,8 +199,7 @@ final class PlayerData {
 		$this->alertCooldown = Esoteric::getInstance()->getSettings()->getAlertCooldown();
 		$this->lastAlertTime = microtime(true);
 
-		$this->checks = [
-			new AimA(), new AimB(), # Aim checks
+		$this->checks = [new AimA(), new AimB(), # Aim checks
 			new AutoClickerA(), new AutoClickerB(), # Autoclicker checks
 			new KillAuraA(), new KillAuraB(), # Killaura checks
 			new RangeA(), # Range checks

@@ -37,18 +37,11 @@ use function var_export;
 
 class PMMPListener implements Listener {
 
+	private const USED_OUTBOUND_PACKETS = [ProtocolInfo::MOVE_PLAYER_PACKET, ProtocolInfo::MOVE_ACTOR_DELTA_PACKET, ProtocolInfo::UPDATE_BLOCK_PACKET, ProtocolInfo::SET_ACTOR_MOTION_PACKET, ProtocolInfo::MOB_EFFECT_PACKET, ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET, ProtocolInfo::SET_ACTOR_DATA_PACKET, ProtocolInfo::NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, ProtocolInfo::ADVENTURE_SETTINGS_PACKET, ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET, ProtocolInfo::CORRECT_PLAYER_MOVE_PREDICTION_PACKET, ProtocolInfo::NETWORK_STACK_LATENCY_PACKET,];
 	/** @var TimingsHandler */
 	public $checkTimings;
 	public $sendTimings;
 	public $decodingTimings;
-
-	private const USED_OUTBOUND_PACKETS = [
-		ProtocolInfo::MOVE_PLAYER_PACKET, ProtocolInfo::MOVE_ACTOR_DELTA_PACKET, ProtocolInfo::UPDATE_BLOCK_PACKET,
-		ProtocolInfo::SET_ACTOR_MOTION_PACKET, ProtocolInfo::MOB_EFFECT_PACKET, ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET,
-		ProtocolInfo::SET_ACTOR_DATA_PACKET, ProtocolInfo::NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, ProtocolInfo::ADVENTURE_SETTINGS_PACKET,
-		ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET, ProtocolInfo::CORRECT_PLAYER_MOVE_PREDICTION_PACKET,
-		ProtocolInfo::NETWORK_STACK_LATENCY_PACKET,
-	];
 
 	public function __construct() {
 		$this->checkTimings = new TimingsHandler("Esoteric Checks");
@@ -135,12 +128,13 @@ class PMMPListener implements Listener {
 			$gen = PacketUtils::getAllInBatch($packet);
 			foreach ($gen as $buff) {
 				$pk = PacketPool::getPacket($buff);
-				if (!in_array($pk->pid(), self::USED_OUTBOUND_PACKETS)) continue;
+				if (!in_array($pk->pid(), self::USED_OUTBOUND_PACKETS))
+					continue;
 				try {
 					$this->decodingTimings->startTiming();
 					$pk->decode();
 					$this->decodingTimings->stopTiming();
-				} catch (RuntimeException|LogicException $e) {
+				} catch (RuntimeException | LogicException $e) {
 					continue;
 				}
 				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {

@@ -36,7 +36,7 @@ final class Settings {
 		return $this->data["alert_message"];
 	}
 
-	public function getBanLength() : string {
+	public function getBanLength(): string {
 		return $this->data["ban_length"];
 	}
 

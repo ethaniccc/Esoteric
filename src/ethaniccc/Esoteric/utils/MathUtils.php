@@ -208,7 +208,7 @@ final class MathUtils {
 	 * @return bool - If the entity can interact with the position
 	 */
 	public static function canInteract(Vector3 $eyePos, Vector3 $pos, Vector3 $dV, float $maxDistance, float $maxDiff = M_SQRT3 / 2): bool {
-		if($eyePos->distanceSquared($pos) > $maxDistance ** 2){
+		if ($eyePos->distanceSquared($pos) > $maxDistance ** 2) {
 			return false;
 		}
 

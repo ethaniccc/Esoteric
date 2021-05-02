@@ -29,6 +29,9 @@ declare(strict_types=1);
 namespace ethaniccc\Esoteric\webhook;
 
 
+use DateTime;
+use DateTimeZone;
+
 class Embed {
 	/** @var array */
 	protected $data = [];
@@ -94,8 +97,8 @@ class Embed {
 		}
 	}
 
-	public function setTimestamp(\DateTime $timestamp): void {
-		$timestamp->setTimezone(new \DateTimeZone("UTC"));
+	public function setTimestamp(DateTime $timestamp): void {
+		$timestamp->setTimezone(new DateTimeZone("UTC"));
 		$this->data["timestamp"] = $timestamp->format("Y-m-d\TH:i:s.v\Z");
 	}
 }

@@ -29,7 +29,9 @@ declare(strict_types=1);
 namespace ethaniccc\Esoteric\webhook;
 
 
-class Message implements \JsonSerializable {
+use JsonSerializable;
+
+class Message implements JsonSerializable {
 	/** @var array */
 	protected $data = [];
 

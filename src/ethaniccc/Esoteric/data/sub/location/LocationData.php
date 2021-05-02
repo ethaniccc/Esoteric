@@ -4,7 +4,6 @@ namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\utils\EvictingList;
 use pocketmine\level\Position;
-use pocketmine\math\Vector3;
 
 final class LocationData {
 

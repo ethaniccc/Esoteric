@@ -2,12 +2,12 @@
 
 namespace ethaniccc\Esoteric\utils\banwave;
 
+use DateTime;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\tasks\AsyncClosureTask;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
-use DateTime;
 use function array_keys;
 use function array_shift;
 use function count;
@@ -21,28 +21,6 @@ use function json_encode;
 use function str_replace;
 
 final class Banwave {
-
-	public static function create(string $path, bool $new, bool $get = false): ?self {
-		if ($new) {
-			file_put_contents($path, '
-			{
-				"issued": false,
-				"completed": false,
-				"players": {
-				
-				},
-				"banned_players": {
-				
-				}
-			}
-			');
-		}
-		return $get ? new Banwave(file_get_contents($path), $path, (int) explode("-", explode(".", $path)[0])[1]) : null;
-	}
-
-	public static function get(string $path): self {
-		return new Banwave(file_get_contents($path), $path, (int) explode("-", explode(".", $path)[0])[1]);
-	}
 
 	/** @var array */
 	private $players = [];
@@ -67,14 +45,26 @@ final class Banwave {
 		$this->id = $id;
 	}
 
-	public function toJson(): string {
-		return json_encode(["issued" => $this->issued, "completed" => $this->completed, "players" => $this->players, "banned_players" => $this->bannedPlayers]);
+	public static function create(string $path, bool $new, bool $get = false): ?self {
+		if ($new) {
+			file_put_contents($path, '
+			{
+				"issued": false,
+				"completed": false,
+				"players": {
+				
+				},
+				"banned_players": {
+				
+				}
+			}
+			');
+		}
+		return $get ? new Banwave(file_get_contents($path), $path, (int) explode("-", explode(".", $path)[0])[1]) : null;
 	}
 
-	public function update(): void {
-		if (file_exists($this->path)) {
-			file_put_contents($this->path, $this->toJson());
-		}
+	public static function get(string $path): self {
+		return new Banwave(file_get_contents($path), $path, (int) explode("-", explode(".", $path)[0])[1]);
 	}
 
 	public function getPath(): string {
@@ -87,10 +77,6 @@ final class Banwave {
 
 	public function isIssued(): bool {
 		return $this->issued;
-	}
-
-	public function getAllPlayers(): array {
-		return $this->players ?? [];
 	}
 
 	public function removeFromList(string $player): void {
@@ -109,14 +95,6 @@ final class Banwave {
 
 	public function removeFromBanned(string $player): void {
 		unset($this->bannedPlayers[$player]);
-	}
-
-	public function addBanned(string $player): void {
-		$this->bannedPlayers[$player] = $player;
-	}
-
-	public function getId(): int {
-		return $this->id;
 	}
 
 	public function execute(): void {
@@ -157,6 +135,28 @@ final class Banwave {
 			});
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleRepeatingTask($task, 30);
 		}));
+	}
+
+	public function toJson(): string {
+		return json_encode(["issued" => $this->issued, "completed" => $this->completed, "players" => $this->players, "banned_players" => $this->bannedPlayers]);
+	}
+
+	public function getAllPlayers(): array {
+		return $this->players ?? [];
+	}
+
+	public function update(): void {
+		if (file_exists($this->path)) {
+			file_put_contents($this->path, $this->toJson());
+		}
+	}
+
+	public function addBanned(string $player): void {
+		$this->bannedPlayers[$player] = $player;
+	}
+
+	public function getId(): int {
+		return $this->id;
 	}
 
 }

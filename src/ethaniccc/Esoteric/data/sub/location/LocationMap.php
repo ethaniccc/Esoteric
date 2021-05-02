@@ -6,7 +6,6 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\PacketUtils;
-use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;

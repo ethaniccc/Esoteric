@@ -6,7 +6,6 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
-use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use function mt_rand;
 
 final class NetworkStackLatencyHandler {

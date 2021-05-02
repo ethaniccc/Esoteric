@@ -11,18 +11,18 @@ use pocketmine\network\mcpe\protocol\types\NetworkInventoryAction;
 
 class PlayerAuthInputPacket extends \pocketmine\network\mcpe\protocol\PlayerAuthInputPacket {
 
-	public static function from(\pocketmine\network\mcpe\protocol\PlayerAuthInputPacket $packet): self {
-		$self = new self($packet->getBuffer());
-		$self->decode();
-		return $self;
-	}
-
 	/** @var UseItemInteractionData|null */
 	public $itemInteractionData;
 	/** @var ItemStackRequest|null */
 	public $stackRequest;
 	/** @var PlayerBlockAction[]|null */
 	public $blockActions;
+
+	public static function from(\pocketmine\network\mcpe\protocol\PlayerAuthInputPacket $packet): self {
+		$self = new self($packet->getBuffer());
+		$self->decode();
+		return $self;
+	}
 
 	protected function decodePayload(): void {
 		parent::decodePayload();

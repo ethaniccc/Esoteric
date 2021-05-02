@@ -4,12 +4,9 @@ namespace ethaniccc\Esoteric\thread;
 
 use pocketmine\Thread;
 use Threaded;
-use function array_shift;
 use function fclose;
 use function fwrite;
-use function sleep;
 use function usleep;
-use function var_dump;
 use const PHP_EOL;
 
 class LoggerThread extends Thread {

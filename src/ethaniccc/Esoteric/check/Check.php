@@ -23,22 +23,20 @@ use function max;
 use function microtime;
 use function round;
 use function str_replace;
-use function var_dump;
 use function var_export;
 
 abstract class Check {
 
 	public static $settings = [];
 	public static $timings = [];
+	/** @var int[] */
+	private static $TOTAL_VIOLATIONS = [];
 	public $name;
 	public $subType;
 	public $description;
 	public $experimental;
 	public $violations = 0;
 	public $buffer = 0;
-
-	/** @var int[] */
-	private static $TOTAL_VIOLATIONS = [];
 
 	public function __construct(string $name, string $subType, string $description, bool $experimental = false) {
 		$this->name = $name;

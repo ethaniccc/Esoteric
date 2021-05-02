@@ -2,10 +2,10 @@
 
 namespace ethaniccc\Esoteric\tasks;
 
+use DateTime;
 use pocketmine\Player;
 use pocketmine\scheduler\Task;
 use pocketmine\Server;
-use DateTime;
 
 class BanTask extends Task {
 

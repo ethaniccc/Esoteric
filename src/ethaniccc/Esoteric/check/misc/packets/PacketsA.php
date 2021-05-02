@@ -6,8 +6,8 @@ use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
-use function floor;
 use function abs;
+use function floor;
 
 class PacketsA extends Check {
 

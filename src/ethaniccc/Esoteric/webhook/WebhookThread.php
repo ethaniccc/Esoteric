@@ -2,6 +2,8 @@
 
 namespace ethaniccc\Esoteric\webhook;
 
+use AttachableLogger;
+use Exception;
 use pocketmine\Server;
 use pocketmine\Thread;
 use Threaded;
@@ -13,7 +15,7 @@ class WebhookThread extends Thread {
 	/** @var Threaded */
 	private $queue, $errors;
 	private $running = false;
-	/** @var \AttachableLogger */
+	/** @var AttachableLogger */
 	private $logger;
 
 	public static function valid(): bool {
@@ -22,11 +24,11 @@ class WebhookThread extends Thread {
 
 	/**
 	 * @param bool $shouldStart
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public static function init(bool $shouldStart = true): void {
 		if (self::$instance !== null) {
-			throw new \Exception("WebhookThread is already initialized");
+			throw new Exception("WebhookThread is already initialized");
 		}
 		self::$instance = new self();
 		self::$instance->queue = new Threaded();

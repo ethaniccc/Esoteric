@@ -13,14 +13,12 @@ use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
-use pocketmine\block\Bed;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
-use pocketmine\block\WoodenDoor;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
 use pocketmine\level\Location;
@@ -41,21 +39,15 @@ use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
-use pocketmine\scheduler\ClosureTask;
 use pocketmine\tile\Spawnable;
 use pocketmine\timings\TimingsHandler;
-use pocketmine\utils\BinaryStream;
 use function abs;
 use function array_shift;
 use function count;
 use function floor;
 use function in_array;
-use function var_export;
 
 final class ProcessInbound {
-
-	/** @var Block[] */
-	public $placedBlocks = [];
 
 	/** @var TimingsHandler */
 	public static $timings;
@@ -65,12 +57,12 @@ final class ProcessInbound {
 	public static $networkStackLatencyTimings;
 	/** @var TimingsHandler */
 	public static $clickTimings;
-
 	/** @var TimingsHandler */
 	public static $movementTimings;
 	/** @var TimingsHandler */
 	public static $collisionTimings;
-
+	/** @var Block[] */
+	public $placedBlocks = [];
 	private $lastPredictedY = 0.0;
 
 	public function __construct() {

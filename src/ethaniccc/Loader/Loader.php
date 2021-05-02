@@ -3,10 +3,8 @@
 namespace ethaniccc\Loader;
 
 use ethaniccc\Esoteric\Esoteric;
-use ethaniccc\Esoteric\webhook\WebhookThread;
 use Exception;
 use pocketmine\plugin\PluginBase;
-use pocketmine\Server;
 
 final class Loader extends PluginBase {
 
