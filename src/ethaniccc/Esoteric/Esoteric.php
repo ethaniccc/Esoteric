@@ -11,6 +11,7 @@ use ethaniccc\Esoteric\listener\PMMPListener;
 use ethaniccc\Esoteric\network\CustomNetworkInterface;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
+use ethaniccc\Esoteric\thread\LoggerThread;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use Exception;
 use pocketmine\event\HandlerList;
@@ -19,6 +20,7 @@ use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
 use pocketmine\utils\Config;
+use pocketmine\utils\MainLogger;
 use raklib\server\ServerHandler;
 use ReflectionProperty;
 use function array_filter;
@@ -54,6 +56,8 @@ final class Esoteric {
 	public $listener;
 	/** @var ServerHandler */
 	public $serverHandler;
+	/** @var LoggerThread */
+	public $loggerThread;
 
 	public function __construct(PluginBase $plugin, Config $config) {
 		$this->plugin = $plugin;
@@ -99,6 +103,8 @@ final class Esoteric {
 				break;
 			}
 		}
+		$this->loggerThread = new LoggerThread($this->getPlugin()->getDataFolder() . "esoteric.log");
+		$this->loggerThread->start();
 		Server::getInstance()->getPluginManager()->registerEvents($this->listener, $this->plugin);
 		if (!WebhookThread::valid()) {
 			WebhookThread::init();
@@ -106,6 +112,7 @@ final class Esoteric {
 		PacketPool::registerPacket(new PlayerAuthInputPacket());
 		$this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
 		$this->command = new EsotericCommand();
+
 		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
 		if ($this->settings->getWaveSettings()["enabled"]) {
 			@mkdir($this->getPlugin()->getDataFolder() . "banwaves");

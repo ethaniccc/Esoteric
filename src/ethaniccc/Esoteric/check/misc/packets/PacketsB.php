@@ -20,8 +20,8 @@ class PacketsB extends Check {
 		if ($packet instanceof PlayerAuthInputPacket) {
 			++$this->delay;
 		} elseif ($packet instanceof MovePlayerPacket) {
-			if ($this->delay < 2) {
-				$this->flag($data);
+			if ($this->delay < 2 && !$data->immobile) {
+				$this->flag($data, ["delay" => $this->delay]);
 			}
 			$this->delay = 0;
 		}

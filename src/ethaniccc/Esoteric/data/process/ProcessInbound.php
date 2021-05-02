@@ -33,6 +33,7 @@ use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
+use pocketmine\network\mcpe\protocol\PacketViolationWarningPacket;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
 use pocketmine\network\mcpe\protocol\SetLocalPlayerAsInitializedPacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
@@ -504,6 +505,8 @@ final class ProcessInbound {
 			if ($packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE) {
 				$this->click($data);
 			}
+		} elseif ($packet instanceof PacketViolationWarningPacket) {
+			Esoteric::getInstance()->loggerThread->write("Violation warning for {$data->player->getName()} || (message={$packet->getMessage()} sev={$packet->getSeverity()} pkID={$packet->getPacketId()})");
 		}
 		self::$timings->stopTiming();
 	}
