@@ -60,7 +60,6 @@ final class Esoteric {
 	 * Esoteric constructor.
 	 * @param PluginBase $plugin
 	 * @param Config|null $config
-	 * @throws Exception
 	 */
 	private function __construct(PluginBase $plugin, ?Config $config) {
 		$this->plugin = $plugin;
