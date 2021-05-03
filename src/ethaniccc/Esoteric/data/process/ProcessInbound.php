@@ -363,7 +363,8 @@ final class ProcessInbound {
 				}
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
-					NetworkStackLatencyHandler::send($data, NetworkStackLatencyHandler::next($data), function (int $timestamp) use ($hasCollision, $data, $realBlock): void {
+					$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
+					$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($hasCollision, $data, $realBlock, $networkStackLatencyHandler): void {
 						$p = new BatchPacket();
 						$pk = new UpdateBlockPacket();
 						$pk->x = $realBlock->x;
@@ -383,7 +384,7 @@ final class ProcessInbound {
 						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 						$p->addPacket($pk);
-						$n = NetworkStackLatencyHandler::next($data);
+						$n = $networkStackLatencyHandler->next($data);
 						$p->addPacket($n);
 						$p->encode();
 						PacketUtils::sendPacketSilent($data, $p);
@@ -391,7 +392,7 @@ final class ProcessInbound {
 							// prevent the player from possibly false flagging when removing ghost blocks fail
 							$data->player->teleport($realBlock->asPosition()->add(0.5, 0, 0.5));
 						}
-						NetworkStackLatencyHandler::forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
+						$networkStackLatencyHandler->forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
 							foreach ($this->placedBlocks as $key => $vector) {
 								if ($vector->equals($realBlock->asVector3())) {
 									unset($this->placedBlocks[$key]);
@@ -476,7 +477,7 @@ final class ProcessInbound {
 			self::$inventoryTransactionTimings->stopTiming();
 		} elseif ($packet instanceof NetworkStackLatencyPacket) {
 			self::$networkStackLatencyTimings->startTiming();
-			NetworkStackLatencyHandler::execute($data, $packet->timestamp);
+			NetworkStackLatencyHandler::getInstance()->execute($data, $packet->timestamp);
 			self::$networkStackLatencyTimings->stopTiming();
 		} elseif ($packet instanceof SetLocalPlayerAsInitializedPacket) {
 			$data->loggedIn = true;

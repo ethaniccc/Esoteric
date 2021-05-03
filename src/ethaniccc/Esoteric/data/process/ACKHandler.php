@@ -4,33 +4,41 @@ namespace ethaniccc\Esoteric\data\process;
 
 class ACKHandler {
 
-	private static $list = [];
-	private static $ackList = [];
+	private $list = [];
+	private $ackList = [];
 
-	public static function add(string $identifier, int $ackID, callable $receive): void {
-		if (!isset(self::$list[$identifier])) {
-			self::$list[$identifier] = [];
+	private static $instance = null;
+	public function getInstance(): self{
+		if(self::$instance === null){
+			self::$instance = new self;
 		}
-		self::$list[$identifier][$ackID] = $receive;
+		return self::$instance;
 	}
 
-	public static function execute(string $identifier, int $ackID): void {
-		$callable = self::$list[$identifier][$ackID] ?? null;
+	public function add(string $identifier, int $ackID, callable $receive): void {
+		if (!isset($this->list[$identifier])) {
+			$this->list[$identifier] = [];
+		}
+		$this->list[$identifier][$ackID] = $receive;
+	}
+
+	public function execute(string $identifier, int $ackID): void {
+		$callable = $this->list[$identifier][$ackID] ?? null;
 		if ($callable !== null) {
 			$callable($ackID);
-			unset(self::$list[$identifier][$ackID]);
+			unset($this->list[$identifier][$ackID]);
 		}
 	}
 
-	public static function hasData(string $identifier): bool {
-		return isset(self::$list[$identifier]);
+	public function hasData(string $identifier): bool {
+		return isset($this->list[$identifier]);
 	}
 
-	public static function next(string $identifier): int {
-		if (!isset(self::$ackList[$identifier])) {
-			self::$ackList[$identifier] = 0;
+	public function next(string $identifier): int {
+		if (!isset($this->ackList[$identifier])) {
+			$this->ackList[$identifier] = 0;
 		}
-		return ++self::$ackList[$identifier];
+		return ++$this->ackList[$identifier];
 	}
 
 }
