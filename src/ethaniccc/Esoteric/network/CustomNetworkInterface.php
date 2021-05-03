@@ -166,8 +166,9 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 	}
 
 	public function notifyACK(string $identifier, int $identifierACK): void {
-		if (ACKHandler::hasData($identifier)) {
-			ACKHandler::execute($identifier, $identifierACK);
+		$ackHandler = ACKHandler::getInstance();
+		if ($ackHandler->hasData($identifier)) {
+			$ackHandler->execute($identifier, $identifierACK);
 		}
 	}
 

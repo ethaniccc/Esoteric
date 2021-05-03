@@ -55,7 +55,8 @@ final class LocationMap {
 		if (count($this->needSendArray) === 0 || !$data->loggedIn) {
 			return;
 		}
-		$pk = NetworkStackLatencyHandler::next($data);
+		$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
+		$pk = $networkStackLatencyHandler->next($data);
 		$batch = clone $this->needSend;
 		$batch->addPacket($pk);
 		$batch->encode();
@@ -67,7 +68,7 @@ final class LocationMap {
 		PacketUtils::sendPacketSilent($data, $batch, true, function (int $ackID) use ($data, $timestamp): void {
 			$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
 		});
-		NetworkStackLatencyHandler::forceHandle($data, $pk->timestamp, function (int $timestamp) use ($locations): void {
+		$networkStackLatencyHandler->forceHandle($data, $pk->timestamp, function (int $timestamp) use ($locations): void {
 			foreach ($locations as $entityRuntimeId => $location) {
 				if (!isset($this->locations[$entityRuntimeId])) {
 					$locationData = new LocationData();
