@@ -33,10 +33,10 @@ class ProcessOutbound {
 
 	public function execute(DataPacket $packet, PlayerData $data): void {
 		self::$baseTimings->startTiming();
-		$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
+		$handler = NetworkStackLatencyHandler::getInstance();
 		if ($packet instanceof MovePlayerPacket) {
 			if ($packet->entityRuntimeId === $data->player->getId() && ($packet->mode === MovePlayerPacket::MODE_TELEPORT || $packet->mode === MovePlayerPacket::MODE_RESET)) {
-				$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data): void {
+				$handler->send($data, $handler->next($data), function (int $timestamp) use ($data): void {
 					$data->ticksSinceTeleport = 0;
 				});
 			}
@@ -50,7 +50,7 @@ class ProcessOutbound {
 				}
 			}
 		} elseif ($packet instanceof SetActorMotionPacket && $packet->entityRuntimeId === $data->player->getId()) {
-			$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data, $packet): void {
+			$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $packet): void {
 				$data->motion = $packet->motion;
 				$data->ticksSinceMotion = 0;
 			});
@@ -62,7 +62,7 @@ class ProcessOutbound {
 						$effectData->effectId = $packet->effectId;
 						$effectData->ticks = $packet->duration;
 						$effectData->amplifier = $packet->amplifier + 1;
-						$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data, $effectData): void {
+						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $effectData): void {
 							$data->effects[$effectData->effectId] = $effectData;
 						});
 						break;
@@ -70,7 +70,7 @@ class ProcessOutbound {
 						$effectData = $data->effects[$packet->effectId] ?? null;
 						if ($effectData === null)
 							return;
-						$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use (&$effectData, $packet): void {
+						$handler->send($data, $handler->next($data), function (int $timestamp) use (&$effectData, $packet): void {
 							$effectData->amplifier = $packet->amplifier + 1;
 							$effectData->ticks = $packet->duration;
 						});
@@ -78,7 +78,7 @@ class ProcessOutbound {
 					case MobEffectPacket::EVENT_REMOVE:
 						if (isset($data->effects[$packet->effectId])) {
 							// removed before the effect duration has wore off client-side
-							$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data, $packet): void {
+							$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $packet): void {
 								unset($data->effects[$packet->effectId]);
 							});
 						}
@@ -87,14 +87,14 @@ class ProcessOutbound {
 			}
 		} elseif ($packet instanceof SetPlayerGameTypePacket) {
 			$mode = $packet->gamemode;
-			$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data, $mode): void {
+			$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $mode): void {
 				$data->gamemode = $mode;
 			});
 		} elseif ($packet instanceof SetActorDataPacket) {
 			if ($data->player->getId() === $packet->entityRuntimeId) {
 				if ($data->immobile !== ($currentImmobile = $data->player->isImmobile())) {
 					if ($data->loggedIn) {
-						$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data, $currentImmobile): void {
+						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $currentImmobile): void {
 							$data->immobile = $currentImmobile;
 						});
 					} else {
@@ -106,7 +106,7 @@ class ProcessOutbound {
 				$hitboxHeight = $AABB->maxY - $AABB->minY;
 				if ($hitboxWidth !== $data->hitboxWidth) {
 					if ($data->loggedIn) {
-						$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data, $hitboxWidth): void {
+						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $hitboxWidth): void {
 							$data->hitboxWidth = $hitboxWidth;
 						});
 					} else {
@@ -115,7 +115,7 @@ class ProcessOutbound {
 				}
 				if ($hitboxHeight !== $data->hitboxWidth) {
 					if ($data->loggedIn) {
-						$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data, $hitboxHeight): void {
+						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $hitboxHeight): void {
 							$data->hitboxHeight = $hitboxHeight;
 						});
 					} else {
@@ -130,20 +130,20 @@ class ProcessOutbound {
 			} else {
 				if ($data->chunkSendPosition->distance($data->currentLocation->floor()) > $data->player->getViewDistance() * 16) {
 					$data->inLoadedChunk = false;
-					$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($packet, $data): void {
+					$handler->send($data, $handler->next($data), function (int $timestamp) use ($packet, $data): void {
 						$data->inLoadedChunk = true;
 						$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
 					});
 				}
 			}
 		} elseif ($packet instanceof AdventureSettingsPacket) {
-			$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($packet, $data): void {
+			$handler->send($data, $handler->next($data), function (int $timestamp) use ($packet, $data): void {
 				$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 			});
 		} elseif ($packet instanceof ActorEventPacket && $packet->entityRuntimeId === $data->player->getId()) {
 			switch ($packet->event) {
 				case ActorEventPacket::RESPAWN:
-					$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data): void {
+					$handler->send($data, $handler->next($data), function (int $timestamp) use ($data): void {
 						$data->isAlive = true;
 					});
 					break;
@@ -152,22 +152,22 @@ class ProcessOutbound {
 			foreach ($packet->entries as $attribute) {
 				if ($attribute->getId() === Attribute::HEALTH) {
 					if ($attribute->getValue() <= 0) {
-						$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data): void {
+						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data): void {
 							$data->isAlive = false;
 						});
 					} elseif ($attribute->getValue() > 0 && !$data->isAlive) {
-						$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data): void {
+						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data): void {
 							$data->isAlive = true;
 						});
 					}
 				}
 			}
 		} elseif ($packet instanceof CorrectPlayerMovePredictionPacket) {
-			$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data): void {
+			$handler->send($data, $handler->next($data), function (int $timestamp) use ($data): void {
 				$data->ticksSinceTeleport = 0;
 			});
 		} elseif ($packet instanceof NetworkStackLatencyPacket) {
-			$networkStackLatencyHandler->forceSet($data, $packet->timestamp - fmod($packet->timestamp, 1000));
+			$handler->forceSet($data, $packet->timestamp - fmod($packet->timestamp, 1000));
 		}
 		self::$baseTimings->stopTiming();
 	}

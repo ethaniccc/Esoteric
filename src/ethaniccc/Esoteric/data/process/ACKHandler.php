@@ -6,9 +6,9 @@ class ACKHandler {
 
 	private $list = [];
 	private $ackList = [];
-
 	private static $instance = null;
-	public function getInstance(): self{
+
+	public static function getInstance(): self{
 		if(self::$instance === null){
 			self::$instance = new self;
 		}

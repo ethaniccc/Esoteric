@@ -363,8 +363,8 @@ final class ProcessInbound {
 				}
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
-					$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
-					$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($hasCollision, $data, $realBlock, $networkStackLatencyHandler): void {
+					$handler = NetworkStackLatencyHandler::getInstance();
+					$handler->send($data, $handler->next($data), function (int $timestamp) use ($hasCollision, $data, $realBlock, $handler): void {
 						$p = new BatchPacket();
 						$pk = new UpdateBlockPacket();
 						$pk->x = $realBlock->x;
@@ -384,7 +384,7 @@ final class ProcessInbound {
 						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 						$p->addPacket($pk);
-						$n = $networkStackLatencyHandler->next($data);
+						$n = $handler->next($data);
 						$p->addPacket($n);
 						$p->encode();
 						PacketUtils::sendPacketSilent($data, $p);
@@ -392,7 +392,7 @@ final class ProcessInbound {
 							// prevent the player from possibly false flagging when removing ghost blocks fail
 							$data->player->teleport($realBlock->asPosition()->add(0.5, 0, 0.5));
 						}
-						$networkStackLatencyHandler->forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
+						$handler->forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
 							foreach ($this->placedBlocks as $key => $vector) {
 								if ($vector->equals($realBlock->asVector3())) {
 									unset($this->placedBlocks[$key]);
