@@ -2,6 +2,8 @@
 
 namespace ethaniccc\Esoteric\data;
 
+use ethaniccc\Esoteric\data\process\ACKHandler;
+use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use pocketmine\Player;
 use function spl_object_hash;
 use function stripos;
@@ -55,7 +57,10 @@ class PlayerDataManager {
 	}
 
 	public function remove(Player $player): void {
-		unset($this->data[spl_object_hash($player)]);
+		$hash = spl_object_hash($player);
+		unset($this->data[$hash]);
+		NetworkStackLatencyHandler::getInstance()->remove($hash);
+		ACKHandler::getInstance()->remove("{$player->getAddress()} {$player->getPort()}");
 	}
 
 	/**

@@ -41,4 +41,9 @@ class ACKHandler {
 		return ++$this->ackList[$identifier];
 	}
 
+	public function remove(string $identifier): void {
+		unset($this->list[$identifier]);
+		unset($this->ackList[$identifier]);
+	}
+
 }
