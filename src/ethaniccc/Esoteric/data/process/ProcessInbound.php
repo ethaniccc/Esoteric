@@ -363,7 +363,7 @@ final class ProcessInbound {
 				}
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
-					$networkStackLatencyHandler = NetworkStackLatency::getInstance();
+					$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
 					$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($hasCollision, $data, $realBlock, $networkStackLatencyHandler): void {
 						$p = new BatchPacket();
 						$pk = new UpdateBlockPacket();
