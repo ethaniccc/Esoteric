@@ -173,7 +173,7 @@ abstract class Check {
 			$l = Esoteric::getInstance()->getSettings()->getBanLength();
 			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int) $l . " day") : null;
 			$string = str_replace(["{prefix}", "{code}", "{expires}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName(), $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], Esoteric::getInstance()->getSettings()->getBanMessage());
-			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new BanTask($data->player, $string, $expiration), 1);
+			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new BanTask($data->player, $string, $expiration));
 			if ($canSend) {
 				$message = new Message();
 				$message->setContent("");

@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\utils\banwave\Banwave;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 use function file_exists;
+use function var_dump;
 
 class CreateBanwaveTask extends AsyncTask {
 

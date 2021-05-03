@@ -33,11 +33,14 @@ use function round;
 use function str_replace;
 use function strlen;
 use function strtolower;
+use function var_dump;
 use function var_export;
+use const PHP_EOL;
 
 class PMMPListener implements Listener {
 
 	private const USED_OUTBOUND_PACKETS = [ProtocolInfo::MOVE_PLAYER_PACKET, ProtocolInfo::MOVE_ACTOR_DELTA_PACKET, ProtocolInfo::UPDATE_BLOCK_PACKET, ProtocolInfo::SET_ACTOR_MOTION_PACKET, ProtocolInfo::MOB_EFFECT_PACKET, ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET, ProtocolInfo::SET_ACTOR_DATA_PACKET, ProtocolInfo::NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, ProtocolInfo::ADVENTURE_SETTINGS_PACKET, ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET, ProtocolInfo::CORRECT_PLAYER_MOVE_PREDICTION_PACKET, ProtocolInfo::NETWORK_STACK_LATENCY_PACKET,];
+
 	/** @var TimingsHandler */
 	public $checkTimings;
 	public $sendTimings;
@@ -55,7 +58,7 @@ class PMMPListener implements Listener {
 	 */
 	public function log(PlayerPreLoginEvent $event): void {
 		foreach (Server::getInstance()->getNameBans()->getEntries() as $entry) {
-			if ($entry->getSource() === "Esoteric AC" && $entry->getName() === $event->getPlayer()->getName()) {
+			if ($entry->getSource() === "Esoteric AC" && $entry->getName() === strtolower($event->getPlayer()->getName())) {
 				$event->setCancelled();
 				$event->setKickMessage($entry->getReason());
 				break;

@@ -28,6 +28,7 @@ use function max;
 use function mkdir;
 use function scandir;
 use function strtolower;
+use function var_dump;
 
 final class Esoteric {
 

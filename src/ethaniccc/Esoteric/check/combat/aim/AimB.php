@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\check\combat\aim;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use function abs;
@@ -27,6 +28,7 @@ class AimB extends Check {
 				$this->reward();
 				$this->buffer = max($this->buffer - 0.05, 0);
 			}
+			$data->player->sendMessage("mode={$packet->getInputMode()}");
 		}
 	}
 

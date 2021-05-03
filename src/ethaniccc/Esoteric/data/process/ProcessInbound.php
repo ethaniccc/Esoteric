@@ -13,6 +13,7 @@ use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
+use Exception;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
@@ -43,9 +44,12 @@ use pocketmine\tile\Spawnable;
 use pocketmine\timings\TimingsHandler;
 use function abs;
 use function array_shift;
+use function base64_decode;
 use function count;
+use function explode;
 use function floor;
 use function in_array;
+use function json_decode;
 
 final class ProcessInbound {
 
@@ -355,7 +359,6 @@ final class ProcessInbound {
 			foreach ($this->placedBlocks as $blockVector) {
 				$hasCollision = AABB::fromBlock($blockVector)->intersectsWith($data->boundingBox->expandedCopy(0.2, 0.2, 0.2));
 				if ($hasCollision) {
-					$data->player->sendMessage($blockVector->getName() . " has collision");
 					$data->expectedOnGround = true;
 					$data->onGround = true;
 					$data->isCollidedHorizontally = $blockVector->y >= floor($location->y);
@@ -495,6 +498,17 @@ final class ProcessInbound {
 			$data->protocol = $pk->protocol;
 			$data->playerOS = $pk->clientData["DeviceOS"];
 			$data->isMobile = in_array($pk->clientData["DeviceOS"], [DeviceOS::AMAZON, DeviceOS::ANDROID, DeviceOS::IOS]);
+			if (!in_array($data->playerOS, [DeviceOS::ANDROID, DeviceOS::IOS, DeviceOS::WINDOWS_10, DeviceOS::NINTENDO])) {
+				try {
+					$data = $packet->chainData;
+					$parts = explode(".", $data['chain'][2]);
+					$jwt = json_decode(base64_decode($parts[1]), true);
+					$titleID = $jwt['extraData']['titleId'];
+				} catch (Exception $e) {
+					$titleID = "N/A";
+				}
+				Esoteric::getInstance()->loggerThread->write("Device info for {$data->player->getName()} [os={$data->playerOS} titleID=$titleID]");
+			}
 		} elseif ($packet instanceof LevelSoundEventPacket) {
 			if ($packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE) {
 				$this->click($data);
