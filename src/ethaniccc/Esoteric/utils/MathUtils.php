@@ -29,22 +29,20 @@ final class MathUtils {
 		return sqrt($p1 * $p1 + $p2 * $p2);
 	}
 
-	public static function getDeviation(array $nums): float {
-		if (count($nums) < 1) {
+	public static function getDeviation(float ...$nums): float {
+		$count = count($nums);
+		if ($count === 0) {
 			return 0.0;
 		}
 		$variance = 0;
-		$average = array_sum($nums) / count($nums);
+		$average = array_sum($nums) / $count;
 		foreach ($nums as $num) {
 			$variance += pow($num - $average, 2);
 		}
-		return sqrt($variance / count($nums));
+		return sqrt($variance / $count);
 	}
 
-	public static function getAverage(array $nums): float {
-		if (count($nums) === 0) {
-			return 0.0;
-		}
+	public static function getAverage(float ...$nums): float {
 		return array_sum($nums) / count($nums);
 	}
 
@@ -66,18 +64,18 @@ final class MathUtils {
 		return new Vector3($var3 * $var4, $var5, $var2 * $var4);
 	}
 
-	public static function getKurtosis(array $data): float {
+	public static function getKurtosis(float ...$data): float {
 		try {
 			$sum = array_sum($data);
 			$count = count($data);
 
-			if ($count < 3) {
-				return 0;
+			if ($sum === 0.0 or $count <= 2) {
+				return 0.0;
 			}
 
 			$efficiencyFirst = $count * ($count + 1) / (($count - 1) * ($count - 2) * ($count - 3));
 			$efficiencySecond = 3 * pow($count - 1, 2) / (($count - 2) * ($count - 3));
-			$average = $sum / $count;
+			$average = self::getAverage(...$data);
 
 			$variance = 0.0;
 			$varianceSquared = 0.0;
@@ -87,48 +85,43 @@ final class MathUtils {
 				$varianceSquared += pow($average - $number, 4);
 			}
 
-			if ($variance === 0.0) {
-				return 0.0;
-			}
-
 			return $efficiencyFirst * ($varianceSquared / pow($variance / $sum, 2)) - $efficiencySecond;
 		} catch (DivisionByZeroError $e) {
 			return 0.0;
 		}
 	}
 
-	public static function getSkewness(array $data): float {
-		try {
-			$sum = array_sum($data);
-			$count = count($data);
-
-			$numbers = $data;
-			sort($numbers);
-
-			$mean = $sum / $count;
-			$median = ($count % 2 !== 0) ? $numbers[$count / 2] : ($numbers[($count - 1) / 2] + $numbers[$count / 2]) / 2;
-			$variance = self::getVariance($data);
-
-			return $variance > 0 ? 3 * ($mean - $median) / $variance : 0;
-		} catch (DivisionByZeroError $e) {
+	public static function getSkewness(float ...$data): float {
+		$count = count($data);
+		if ($count === 0) {
 			return 0.0;
 		}
+		$mean = array_sum($data) / $count;
+		$median = self::getMedian(...$data);
+		$variance = self::getVariance(...$data);
+    
+		return $variance > 0 ? 3 * ($mean - $median) / $variance : 0.0;
 	}
 
-	public static function getVariance(array $data): float {
+	public static function getVariance(float ...$data): float {
 		$variance = 0;
-		$mean = array_sum($data) / count($data);
+		$count = count($data);
+		if ($count === 0) {
+			return 0.0;
+		}
+		$mean = array_sum($data) / $count;
 
 		foreach ($data as $number) {
 			$variance += pow($number - $mean, 2);
 		}
 
-		return $variance / count($data);
+		return $variance / $count;
 	}
 
-	public static function getOutliers(array $collection): float {
-		$q1 = self::getMedian(array_splice($collection, 0, (int) ceil(count($collection) / 2)));
-		$q3 = self::getMedian(array_splice($collection, (int) ceil(count($collection) / 2), count($collection)));
+	public static function getOutliers(float ...$collection): float {
+		$count = count($collection);
+		$q1 = self::getMedian(...array_splice($collection, 0, (int) ceil($count / 2)));
+		$q3 = self::getMedian(...array_splice($collection, (int) ceil($count / 2), $count));
 
 		$iqr = abs($q1 - $q3);
 		$lowThreshold = $q1 - 1.5 * $iqr;
@@ -148,24 +141,28 @@ final class MathUtils {
 		return count($x) + count($y);
 	}
 
-	public static function getMedian(array $data): float {
-		if (count($data) % 2 === 0) {
-			return ($data[count($data) / 2] + $data[count($data) / 2 - 1]) / 2;
-		} else {
-			return $data[count($data) / 2];
+	public static function getMedian(float ...$data): float {
+		$count = count($data);
+		if ($count === 0) {
+			return 0.0;
 		}
+
+		sort($data);
+
+		return ($count % 2 === 0) ? ($data[$count / 2] + $data[$count / 2 - 1]) / 2 : $data[$count / 2];
 	}
 
 	public static function gcdLong(float $a, float $b): float {
 		return ($b <= 16384) ? $a : self::gcdLong($b, fmod($a, $b));
 	}
 
-	public static function getArrayGCD(array $nums): float {
-		if (count($nums) < 2) {
+	public static function getArrayGCD(float ...$nums): float {
+		$count = count($nums);
+		if ($count <= 1) {
 			return 0.0;
 		}
 		$result = $nums[0];
-		for ($i = 1; $i < count($nums); $i++) {
+		for ($i = 1; $i < $count; $i++) {
 			$result = self::getGCD($nums[$i], $result);
 		}
 		return $result;
@@ -174,8 +171,7 @@ final class MathUtils {
 	public static function getGCD(float $a, float $b): float {
 		if ($a < $b) {
 			return self::getGCD($b, $a);
-		}
-		if (abs($b) < 0.0001) {
+		} elseif (abs($b) < 0.0001) {
 			return $a;
 		} else {
 			return self::getGCD($b, $a - floor($a / $b) * $b);
@@ -184,16 +180,7 @@ final class MathUtils {
 
 	public static function wrap180(float $par0): float {
 		$par0 = fmod($par0, 360);
-
-		if ($par0 >= 180.0) {
-			$par0 -= 360.0;
-		}
-
-		if ($par0 < -180.0) {
-			$par0 += 360.0;
-		}
-
-		return $par0;
+		return $par0 + ($par0 >= 180.0 ? -360.0 : 360.0);
 	}
 
 	public static function getLiteralFloat(float $float): float {
