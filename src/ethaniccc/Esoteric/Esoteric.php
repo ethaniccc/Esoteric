@@ -122,7 +122,7 @@ final class Esoteric {
 					$this->banwave = $banwave;
 				}));
 			} else {
-				$filtered = array_filter(scandir($this->getPlugin()->getDataFolder() . "banwaves"), function (string $file): bool {
+				$filtered = array_filter(scandir($this->getPlugin()->getDataFolder() . "banwaves"), static function (string $file): bool {
 					return strtolower(($array = explode(".", $file))[count($array) - 1]) === "json";
 				});
 				Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask($this->getPlugin()->getDataFolder() . "banwaves/" . $filtered[max(array_keys($filtered))], function (Banwave $banwave): void {

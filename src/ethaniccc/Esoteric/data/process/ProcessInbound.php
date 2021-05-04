@@ -121,7 +121,7 @@ final class ProcessInbound {
 				$this->yawRotationSamples->add($data->currentYawDelta);
 				if ($this->yawRotationSamples->full()) {
 					$count = 0;
-					$this->yawRotationSamples->iterate(function (float $delta) use(&$count): void {
+					$this->yawRotationSamples->iterate(static function (float $delta) use(&$count): void {
 						$fullKeyboardSens = round(round($delta, 2) * MovementConstants::FULL_KEYBOARD_ROTATION_MULTIPLIER, 3);
 						if (fmod($fullKeyboardSens, 1) <= 1E-7) {
 							++$count;
@@ -136,7 +136,7 @@ final class ProcessInbound {
 				$this->pitchRotationSamples->add($data->currentPitchDelta);
 				if ($this->pitchRotationSamples->full()) {
 					$count = 0;
-					$this->pitchRotationSamples->iterate(function (float $delta) use(&$count): void {
+					$this->pitchRotationSamples->iterate(static function (float $delta) use(&$count): void {
 						$fullKeyboardSens = round(round($delta, 2) * MovementConstants::FULL_KEYBOARD_ROTATION_MULTIPLIER, 3);
 						if (fmod($fullKeyboardSens, 1) <= 1E-7) {
 							++$count;

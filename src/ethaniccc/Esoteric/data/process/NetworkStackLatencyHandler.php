@@ -39,7 +39,7 @@ final class NetworkStackLatencyHandler {
 			$pk = new BatchPacket();
 			$pk->addPacket($packet);
 			$pk->encode();
-			PacketUtils::sendPacketSilent($data, $pk, true, function (int $ackID) use ($data, $timestamp): void {
+			PacketUtils::sendPacketSilent($data, $pk, true, static function (int $ackID) use ($data, $timestamp): void {
 				$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
 			});
 			if (!isset($this->list[$data->hash])) {

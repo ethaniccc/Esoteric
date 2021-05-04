@@ -106,7 +106,7 @@ final class Banwave {
 	public function execute(): void {
 		$toJson = $this->toJson();
 		$path = $this->path;
-		Server::getInstance()->getAsyncPool()->submitTask(new AsyncClosureTask(function () use ($toJson, $path): void {
+		Server::getInstance()->getAsyncPool()->submitTask(new AsyncClosureTask(static function () use ($toJson, $path): void {
 			file_put_contents($path, $toJson);
 		}, function (): void {
 			$runs = 0;
@@ -121,7 +121,7 @@ final class Banwave {
 					Server::getInstance()->broadcastMessage($settings["end_message"]);
 					$newID = $this->id + 1;
 					$this->update();
-					Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask(Esoteric::getInstance()->getPlugin()->getDataFolder() . "banwaves/banwave-$newID.json", function (Banwave $banwave): void {
+					Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask(Esoteric::getInstance()->getPlugin()->getDataFolder() . "banwaves/banwave-$newID.json", static function (Banwave $banwave): void {
 						Esoteric::getInstance()->banwave = $banwave;
 					}));
 					$task->getHandler()->cancel();

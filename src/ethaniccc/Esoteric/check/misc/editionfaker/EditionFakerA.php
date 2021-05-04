@@ -52,7 +52,7 @@ class EditionFakerA extends Check {
 			}
 			if ($expectedOS->size() > 0) {
 				$passed = false;
-				$expectedOS->iterate(function (int $deviceOS) use (&$passed, $givenOS): void {
+				$expectedOS->iterate(static function (int $deviceOS) use (&$passed, $givenOS): void {
 					if (!$passed && $deviceOS === $givenOS) {
 						$passed = true;
 					}

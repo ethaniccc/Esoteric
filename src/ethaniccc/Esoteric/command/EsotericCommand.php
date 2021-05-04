@@ -144,7 +144,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 									$sender->sendMessage(TextFormat::RED . "Invalid ban wave. Current ban wave ID is " . Esoteric::getInstance()->getBanwave()->getId());
 									return;
 								}
-								Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask(Esoteric::getInstance()->getPlugin()->getDataFolder() . "banwaves/banwave-$selected.json", function (Banwave $banwave) use ($sender): void {
+								Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask(Esoteric::getInstance()->getPlugin()->getDataFolder() . "banwaves/banwave-$selected.json", static function (Banwave $banwave) use ($sender): void {
 									if (count($banwave->getBannedPlayers()) === 0) {
 										$sender->sendMessage(TextFormat::RED . "No banned players found in this ban wave");
 									} else {
@@ -156,7 +156,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 										}
 										$sender->sendMessage(TextFormat::GREEN . "Players unbanned: " . implode(", ", $players));
 										$banwave = serialize($banwave);
-										Server::getInstance()->getAsyncPool()->submitTask(new AsyncClosureTask(function () use ($banwave): void {
+										Server::getInstance()->getAsyncPool()->submitTask(new AsyncClosureTask(static function () use ($banwave): void {
 											$banwave = unserialize($banwave);
 											/** @var Banwave $banwave */
 											$banwave->update();
@@ -192,7 +192,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				if ($sender->hasPermission("ac.command.timings")) {
 					$time = (int) ($args[1] ?? 60);
 					Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings on");
-					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new ClosureTask(function (int $currentTick): void {
+					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new ClosureTask(static function (int $currentTick): void {
 						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings paste");
 						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings off");
 					}), $time * 20);

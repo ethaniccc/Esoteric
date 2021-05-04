@@ -218,7 +218,7 @@ final class PlayerData {
 		$this->currentTick++;
 		$this->entityLocationMap->executeTick($this);
 		$currentTime = microtime(true);
-		$this->ticks = array_filter($this->ticks, function (float $time) use ($currentTime): bool {
+		$this->ticks = array_filter($this->ticks, static function (float $time) use ($currentTime): bool {
 			return $currentTime - $time < 1;
 		});
 		$this->ticksPerSecond = count($this->ticks);
