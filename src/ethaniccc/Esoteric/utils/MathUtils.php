@@ -2,7 +2,6 @@
 
 namespace ethaniccc\Esoteric\utils;
 
-use DivisionByZeroError;
 use ErrorException;
 use pocketmine\math\Vector3;
 use function abs;
@@ -86,21 +85,23 @@ final class MathUtils {
 			}
 
 			return $efficiencyFirst * ($varianceSquared / pow($variance / $sum, 2)) - $efficiencySecond;
-		} catch (DivisionByZeroError $e) {
+		} catch (ErrorException $e) {
 			return 0.0;
 		}
 	}
 
 	public static function getSkewness(float ...$data): float {
+		$sum = array_sum($data);
 		$count = count($data);
-		if ($count === 0) {
-			return 0.0;
-		}
-		$mean = array_sum($data) / $count;
-		$median = self::getMedian(...$data);
+
+		$numbers = $data;
+		sort($numbers);
+
+		$mean = $sum / $count;
+		$median = ($count % 2 !== 0) ? $numbers[$count * 0.5] : ($numbers[($count - 1) * 0.5] + $numbers[$count * 0.5]) * 0.5;
 		$variance = self::getVariance(...$data);
 
-		return $variance > 0 ? 3 * ($mean - $median) / $variance : 0.0;
+		return $variance > 0 ? 3 * ($mean - $median) / $variance : 0;
 	}
 
 	public static function getVariance(float ...$data): float {
