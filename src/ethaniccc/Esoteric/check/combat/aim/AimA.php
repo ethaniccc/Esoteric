@@ -18,7 +18,7 @@ class AimA extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof PlayerAuthInputPacket) {
+		if ($packet instanceof PlayerAuthInputPacket && !$data->isFullKeyboardGameplay) {
 			$expectedHeadYaw = fmod(($packet->getYaw() > 0 ? 0 : 360) + $packet->getYaw(), 360);
 			$diff = fmod(abs($expectedHeadYaw - $packet->getHeadYaw()), 360);
 			$roundedDiff = round($diff, 4);
