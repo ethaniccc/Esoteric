@@ -514,7 +514,7 @@ final class ProcessInbound {
 		$data->clickSamples[] = $data->currentTick - $data->lastClickTick;
 		if (count($data->clickSamples) === 20) {
 			try {
-				$data->cps = 20 / MathUtils::getAverage($data->clickSamples);
+				$data->cps = 20 / MathUtils::getAverage(...$data->clickSamples);
 				if ($data->cps === 100.0) {
 					// ticked once...?
 					$data->isClickDataIsValid = false;
@@ -526,11 +526,11 @@ final class ProcessInbound {
 				$data->isClickDataIsValid = false;
 			}
 
-			$data->kurtosis = MathUtils::getKurtosis($data->clickSamples);
-			$data->skewness = MathUtils::getSkewness($data->clickSamples);
-			$data->deviation = MathUtils::getDeviation($data->clickSamples);
-			$data->outliers = MathUtils::getOutliers($data->clickSamples);
-			$data->variance = MathUtils::getVariance($data->clickSamples);
+			$data->kurtosis = MathUtils::getKurtosis(...$data->clickSamples);
+			$data->skewness = MathUtils::getSkewness(...$data->clickSamples);
+			$data->deviation = MathUtils::getDeviation(...$data->clickSamples);
+			$data->outliers = MathUtils::getOutliers(...$data->clickSamples);
+			$data->variance = MathUtils::getVariance(...$data->clickSamples);
 			$data->runClickChecks = true;
 		}
 		$data->lastClickTick = $data->currentTick;
