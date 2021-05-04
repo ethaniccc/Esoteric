@@ -22,7 +22,7 @@ final class LevelUtils {
 	 * @param bool $first
 	 * @return Generator
 	 */
-	public static function checkBlocksInAABB(AxisAlignedBB $AABB, Level $level, int $searchOption, bool $first = false): ?Generator {
+	public static function checkBlocksInAABB(AxisAlignedBB $AABB, Level $level, int $searchOption, bool $first = false): Generator {
 		$minX = (int) floor($AABB->minX);
 		$maxX = (int) ceil($AABB->maxX);
 		$minY = (int) floor($AABB->minY);
@@ -30,90 +30,56 @@ final class LevelUtils {
 		$minZ = (int) floor($AABB->minZ);
 		$maxZ = (int) ceil($AABB->maxZ);
 		$curr = $level->getBlockAt($minX, $minY, $minZ);
-		if ($first) {
-			switch ($searchOption) {
-				case self::SEARCH_ALL:
-					yield $curr;
+		switch ($searchOption) {
+			case self::SEARCH_ALL:
+				yield $curr;
+				if ($first)
 					return;
-				case self::SEARCH_TRANSPARENT:
-					if ($curr->hasEntityCollision()) {
-						yield $curr;
-						return;
-					}
-					for ($x = $minX; $x < $maxX; $x++) {
-						for ($y = $minY; $y < $maxY; $y++) {
-							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z);
-								if ($block->hasEntityCollision()) {
-									yield $block;
-									return;
-								}
-							}
+				for ($x = $minX; $x < $maxX; ++$x) {
+					for ($y = $minY; $y < $maxY; ++$y) {
+						for ($z = $minZ; $z < $maxZ; ++$z) {
+							yield $level->getBlockAt($x, $y, $z, false, false);
 						}
 					}
-					return;
-				case self::SEARCH_SOLID:
-					if ($curr->isSolid() || $curr instanceof UnknownBlock) {
-						yield $curr;
-						return;
-					}
-					for ($x = $minX; $x < $maxX; $x++) {
-						for ($y = $minY; $y < $maxY; $y++) {
-							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z);
-								if ($block->isSolid() || $block instanceof UnknownBlock) {
-									yield $block;
-									return;
-								}
-							}
-						}
-					}
-					return;
-			}
-		} else {
-			switch ($searchOption) {
-				case self::SEARCH_ALL:
+				}
+				return;
+			case self::SEARCH_TRANSPARENT:
+				if ($curr->hasEntityCollision()) {
 					yield $curr;
-					for ($x = $minX; $x < $maxX; $x++) {
-						for ($y = $minY; $y < $maxY; $y++) {
-							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z);
+					if ($first)
+						return;
+				}
+				for ($x = $minX; $x < $maxX; ++$x) {
+					for ($y = $minY; $y < $maxY; ++$y) {
+						for ($z = $minZ; $z < $maxZ; ++$z) {
+							$block = $level->getBlockAt($x, $y, $z, false, false);
+							if ($block->hasEntityCollision()) {
 								yield $block;
+								if ($first)
+									return;
 							}
 						}
 					}
-					return;
-				case self::SEARCH_TRANSPARENT:
-					if ($curr->hasEntityCollision()) {
-						yield $curr;
-					}
-					for ($x = $minX; $x < $maxX; $x++) {
-						for ($y = $minY; $y < $maxY; $y++) {
-							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z);
-								if ($block->hasEntityCollision()) {
-									yield $block;
-								}
+				}
+				return;
+			case self::SEARCH_SOLID:
+				if ($curr->isSolid() || $curr instanceof UnknownBlock) {
+					yield $curr;
+					if ($first)
+						return;
+				}
+				for ($x = $minX; $x < $maxX; ++$x) {
+					for ($y = $minY; $y < $maxY; ++$y) {
+						for ($z = $minZ; $z < $maxZ; ++$z) {
+							$block = $level->getBlockAt($x, $y, $z, false, false);
+							if ($block->isSolid() || $block instanceof UnknownBlock) {
+								yield $block;
+								if ($first)
+									return;
 							}
 						}
 					}
-					return;
-				case self::SEARCH_SOLID:
-					if ($curr->isSolid() || $curr instanceof UnknownBlock) {
-						yield $curr;
-					}
-					for ($x = $minX; $x < $maxX; $x++) {
-						for ($y = $minY; $y < $maxY; $y++) {
-							for ($z = $minZ; $z < $maxZ; $z++) {
-								$block = $level->getBlockAt($x, $y, $z);
-								if ($block->isSolid() || $block instanceof UnknownBlock) {
-									yield $block;
-								}
-							}
-						}
-					}
-					return;
-			}
+				}
 		}
 	}
 
