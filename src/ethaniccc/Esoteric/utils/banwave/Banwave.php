@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\utils\banwave;
 use DateTime;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\tasks\AsyncClosureTask;
+use ethaniccc\Esoteric\tasks\BanTask;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
@@ -15,10 +16,13 @@ use function explode;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
+use function intval;
 use function is_numeric;
 use function json_decode;
 use function json_encode;
 use function str_replace;
+use function var_dump;
+use const PHP_EOL;
 
 final class Banwave {
 
@@ -60,7 +64,9 @@ final class Banwave {
 			}
 			');
 		}
-		return $get ? new Banwave(file_get_contents($path), $path, (int) explode("-", explode(".", $path)[0])[1]) : null;
+		$c = explode("/", $path);
+		$c = $c[max(array_keys($c))];
+		return $get ? new Banwave(file_get_contents($path), $path, (int) explode("-", explode(".", $c)[0])[1]) : null;
 	}
 
 	public static function get(string $path): self {
@@ -123,11 +129,13 @@ final class Banwave {
 					$d = array_shift($data);
 					$p = array_shift($usernames);
 					$expiration = is_numeric($settings["ban_length"]) ? (new DateTime('now'))->modify("+" . (int) $settings["ban_length"] . " day") : null;
-					Server::getInstance()->getNameBans()->addBan($p, "Ban wave {$this->id} (" . $d["code"] . ")", $expiration, "Esoteric");
-					$this->addBanned($p);
+					$string = str_replace(["{prefix}", "{code}", "{expires}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $d["code"], $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], Esoteric::getInstance()->getSettings()->getBanMessage());
 					if (($player = Server::getInstance()->getPlayerExact($p)) !== null) {
-						$player->kick(str_replace(["{prefix}", "{code}", "{expires}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $d["code"], $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], Esoteric::getInstance()->getSettings()->getBanMessage()));
+						Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new BanTask($player, $string));
+					} else {
+						Server::getInstance()->getNameBans()->addBan($p, $string);
 					}
+					$this->addBanned($p);
 					Server::getInstance()->broadcastMessage(str_replace(["{player}", "{id}"], [$p, $this->getId()], $settings["ban_message"]));
 				}
 

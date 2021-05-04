@@ -14,6 +14,7 @@ final class NetworkStackLatencyHandler {
 	private $currentTimestamp = [];
 
 	private static $instance = null;
+
 	public static function getInstance(): self{
 		if(self::$instance === null){
 			self::$instance = new self;
@@ -68,7 +69,7 @@ final class NetworkStackLatencyHandler {
 		}
 	}
 
-	public static function remove(string $hash): void {
+	public function remove(string $hash): void {
 		unset($this->list[$hash]);
 	}
 

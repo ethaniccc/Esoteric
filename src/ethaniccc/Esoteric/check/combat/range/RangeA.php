@@ -45,7 +45,7 @@ class RangeA extends Check {
 				}
 				if (!$data->isMobile) {
 					$ray = new Ray($data->attackPos, $data->directionVector);
-					$intersection = $AABB->calculateIntercept($ray->origin, $ray->traverse(100));
+					$intersection = $AABB->calculateIntercept($ray->origin, $ray->traverse(7));
 					if ($intersection !== null && !$AABB->isVectorInside($data->attackPos) && !$AABB->intersectsWith($data->boundingBox)) {
 						$raycastDist = $intersection->getHitVector()->distance($data->attackPos);
 						if ($raycastDist > $this->option("max_dist", 3.01)) {

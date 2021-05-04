@@ -6,9 +6,9 @@ class ACKHandler {
 
 	private $list = [];
 	private $ackList = [];
-
 	private static $instance = null;
-	public function getInstance(): self{
+
+	public static function getInstance(): self{
 		if(self::$instance === null){
 			self::$instance = new self;
 		}
@@ -39,6 +39,11 @@ class ACKHandler {
 			$this->ackList[$identifier] = 0;
 		}
 		return ++$this->ackList[$identifier];
+	}
+
+	public function remove(string $identifier): void {
+		unset($this->list[$identifier]);
+		unset($this->ackList[$identifier]);
 	}
 
 }

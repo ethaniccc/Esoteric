@@ -25,4 +25,6 @@ final class MovementConstants {
 	public const MOVEMENT_THRESHOLD = 0.001;
 	public const MOVEMENT_THRESHOLD_SQUARED = 0.001 ** 2;
 
+	public const FULL_KEYBOARD_ROTATION_MULTIPLIER = 2.22222222;
+
 }

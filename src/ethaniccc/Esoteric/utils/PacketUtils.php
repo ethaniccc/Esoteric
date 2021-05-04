@@ -40,14 +40,14 @@ class PacketUtils {
 	public static function sendPacketSilent(PlayerData $data, BatchPacket $packet, bool $needACK = false, callable $ackResponse = null): void {
 		if ($needACK) {
 			$pk = new EncapsulatedPacket();
-			$ackHandler = ACKHandler::getInstance();
-			$id = $ackHandler->next($data->networkIdentifier);
+			$handler = ACKHandler::getInstance();
+			$id = $handler->next($data->networkIdentifier);
 			$pk->identifierACK = $id;
 			$pk->buffer = $packet->buffer;
 			$pk->reliability = PacketReliability::RELIABLE_ORDERED;
 			$pk->orderChannel = 0;
 			if ($ackResponse !== null) {
-				$ackHandler->add($data->networkIdentifier, $id, $ackResponse);
+				$handler->add($data->networkIdentifier, $id, $ackResponse);
 			}
 		} else {
 			if (!isset($packet->__encapsulatedPacket)) {

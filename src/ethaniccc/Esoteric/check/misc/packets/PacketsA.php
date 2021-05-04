@@ -16,7 +16,7 @@ class PacketsA extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof PlayerAuthInputPacket && abs($packet->getPitch()) > 92) {
+		if ($packet instanceof PlayerAuthInputPacket && abs($packet->getPitch()) > 92 && !$data->isFullKeyboardGameplay) {
 			$this->flag($data, ["pitch" => floor($packet->getPitch())]);
 		}
 	}

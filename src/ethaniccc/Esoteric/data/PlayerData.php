@@ -173,6 +173,8 @@ final class PlayerData {
 	public $isDataClosed = false;
 	/** @var Block|null */
 	public $blockBroken;
+	/** @var bool */
+	public $isFullKeyboardGameplay = true;
 	/** @var int[] */
 	private $ticks = [];
 
