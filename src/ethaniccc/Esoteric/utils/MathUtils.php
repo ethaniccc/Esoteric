@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric\utils;
 
+use DivisionByZeroError;
 use ErrorException;
 use pocketmine\math\Vector3;
 use function abs;
@@ -91,7 +92,7 @@ final class MathUtils {
 			}
 
 			return $efficiencyFirst * ($varianceSquared / pow($variance / $sum, 2)) - $efficiencySecond;
-		} catch (ErrorException $e) {
+		} catch (DivisionByZeroError $e) {
 			return 0.0;
 		}
 	}
@@ -109,7 +110,7 @@ final class MathUtils {
 			$variance = self::getVariance($data);
 
 			return $variance > 0 ? 3 * ($mean - $median) / $variance : 0;
-		} catch (ErrorException $e) {
+		} catch (DivisionByZeroError $e) {
 			return 0.0;
 		}
 	}
@@ -215,6 +216,10 @@ final class MathUtils {
 		$eyeDot = $dV->dot($eyePos);
 		$targetDot = $dV->dot($pos);
 		return ($targetDot - $eyeDot) >= -$maxDiff;
+	}
+
+	public static function clamp(float $val, float $min, float $max): float {
+		return max($min, min($max, $val));
 	}
 
 }

@@ -21,33 +21,7 @@ class MotionA extends Check {
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket) {
 			if ($data->ticksSinceFlight >= 10) {
-				$currentYMovement = $data->currentMoveDelta->y;
-				if ($data->ticksSinceJump <= 1) {
-					$currentYMovement -= $data->jumpVelocity;
-				}
-				// possible 2 tick offset wtf
-				if ($data->ticksSinceMotion <= 2) {
-					$currentYMovement -= $data->motion->y;
-				}
-
-				foreach ($data->lastBlocksBelow as $block) {
-					if ($block->getId() === BlockIds::SLIME_BLOCK) {
-						$this->lastPreviousYMovement *= -1;
-						break;
-					} elseif ($block->getId() === BlockIds::BED_BLOCK) {
-						$currentYMovement -= 0.658;
-						break;
-					}
-				}
-
-				if ($data->ticksSinceInClimbable <= 5) {
-					$currentYMovement -= 0.2;
-				}
-
-				if ($data->isCollidedHorizontally) {
-					$currentYMovement -= MovementConstants::STEP_HEIGHT * 1.5;
-				}
-
+				$currentYMovement = $this->getRawYMotion($data);
 				$lastYMovement = $data->lastMoveDelta->y;
 				if ($currentYMovement > $lastYMovement && $currentYMovement > $this->lastPreviousYMovement && $currentYMovement > 0.03 && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10 && !$data->teleported) {
 					$this->flag($data, ["current" => round($currentYMovement, 3), "last" => round($lastYMovement, 3), "preV" => round($this->lastPreviousYMovement, 3)]);
@@ -59,6 +33,36 @@ class MotionA extends Check {
 
 			$this->lastPreviousYMovement = $data->lastMoveDelta->y;
 		}
+	}
+
+	private function getRawYMotion(PlayerData $data): float {
+		$currentYMovement = $data->currentMoveDelta->y;
+		if ($data->ticksSinceJump <= 1) {
+			$currentYMovement -= $data->jumpVelocity;
+		}
+		// possible 2 tick offset wtf
+		if ($data->ticksSinceMotion <= 2) {
+			$currentYMovement -= $data->motion->y;
+		}
+
+		foreach ($data->lastBlocksBelow as $block) {
+			if ($block->getId() === BlockIds::SLIME_BLOCK) {
+				$this->lastPreviousYMovement *= -1;
+				break;
+			} elseif ($block->getId() === BlockIds::BED_BLOCK) {
+				$currentYMovement -= 0.658;
+				break;
+			}
+		}
+
+		if ($data->ticksSinceInClimbable <= 5) {
+			$currentYMovement -= 0.2;
+		}
+
+		if ($data->isCollidedHorizontally) {
+			$currentYMovement -= MovementConstants::STEP_HEIGHT * 1.5;
+		}
+		return $currentYMovement;
 	}
 
 }

@@ -23,6 +23,7 @@ use function max;
 use function microtime;
 use function round;
 use function str_replace;
+use function var_dump;
 use function var_export;
 
 abstract class Check {
@@ -37,6 +38,19 @@ abstract class Check {
 	public $experimental;
 	public $violations = 0;
 	public $buffer = 0;
+
+	public static function getDataString(array $data): string {
+		$dataString = "";
+		$n = count($data);
+		$i = 1;
+		foreach ($data as $name => $value) {
+			$dataString .= "$name=$value";
+			if ($i !== $n)
+				$dataString .= " ";
+			$i++;
+		}
+		return $dataString;
+	}
 
 	public function __construct(string $name, string $subType, string $description, bool $experimental = false) {
 		$this->name = $name;
@@ -82,6 +96,7 @@ abstract class Check {
 
 	protected function flag(PlayerData $data, array $extraData = []): void {
 		$extraData["ping"] = $data->player->getPing();
+		$dataString = self::getDataString($extraData);
 		if (!$this->experimental) {
 			++$this->violations;
 			if (!isset(self::$TOTAL_VIOLATIONS[$data->player->getName()])) {
@@ -93,46 +108,11 @@ abstract class Check {
 				$wave = Esoteric::getInstance()->getBanwave();
 				$wave->add($data->player->getName(), $this->getCodeName());
 			}
-			$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
-			$webhookLink = $webhookSettings["link"];
-			$canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
-			if ($canSend) {
-				$message = new Message();
-				$message->setContent("");
-
-				$dataString = "";
-				$n = count($extraData);
-				$i = 1;
-				foreach ($extraData as $name => $value) {
-					$dataString .= "$name=$value";
-					if ($i !== $n)
-						$dataString .= " ";
-					$i++;
-				}
-
-				$embed = new Embed();
-				$embed->setTitle("Anti-cheat alert");
-				$embed->setColor(0xFFC300);
-				$embed->setDescription("
-				Player: **`{$data->player->getName()}`**
-				Violations: **`{$this->violations}`**
-				Codename: **`{$this->getCodeName()}`**
-				Detection name: **`{$this->name} ({$this->subType})`**
-				Debug data: **`$dataString`**
-				");
-				$message->addEmbed($embed);
-
-				$webhook = new Webhook($webhookLink, $message);
-				$webhook->send();
-			}
+			$this->sendAlertWebhook($data->player->getName(), $dataString);
 		}
 		$this->warn($data, $extraData);
 		if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
-			if ($data->player->hasPermission("ac.bypass")) {
-				$this->violations = 0;
-			} else {
-				$this->punish($data);
-			}
+			$data->player->hasPermission("ac.bypass") ? $this->violations = 0 : $this->punish($data);
 		}
 	}
 
@@ -165,58 +145,77 @@ abstract class Check {
 	}
 
 	protected function punish(PlayerData $data): void {
-		$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
-		$webhookLink = $webhookSettings["link"];
-		$canSend = $webhookSettings["punishments"] && $webhookLink !== "none";
-		if ($this->option("punishment_type") === 'ban') {
+		if ($this->option("punishment_type") === "ban") {
 			$data->isDataClosed = true;
 			$l = Esoteric::getInstance()->getSettings()->getBanLength();
 			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int) $l . " day") : null;
 			$string = str_replace(["{prefix}", "{code}", "{expires}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName(), $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], Esoteric::getInstance()->getSettings()->getBanMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new BanTask($data->player, $string, $expiration));
-			if ($canSend) {
-				$message = new Message();
-				$message->setContent("");
-
-				$embed = new Embed();
-				$embed->setTitle("Anti-cheat punishment");
-				$embed->setColor(0xFF0000);
-				$embed->setDescription("
-				Player: **`{$data->player->getName()}`**
-				Type: **`ban`**
-				Codename: **`{$this->getCodeName()}`**
-				Detection name: **`{$this->name} ({$this->subType})`**
-				");
-				$message->addEmbed($embed);
-
-				$webhook = new Webhook($webhookLink, $message);
-				$webhook->send();
-			}
+			$this->sendPunishmentWebhook($data->player->getName(), "ban");
 		} elseif ($this->option("punishment_type") === "kick") {
 			$data->isDataClosed = true;
 			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getKickMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, $string), 1);
-			if ($canSend) {
-				$message = new Message();
-				$message->setContent("");
-
-				$embed = new Embed();
-				$embed->setTitle("Anti-cheat punishment");
-				$embed->setColor(0xFF0000);
-				$embed->setDescription("
-				Player: **`{$data->player->getName()}`**
-				Type: **`kick`**
-				Codename: **`{$this->getCodeName()}`**
-				Detection name: **`{$this->name} ({$this->subType})`**
-				");
-				$message->addEmbed($embed);
-
-				$webhook = new Webhook($webhookLink, $message);
-				$webhook->send();
-			}
+			$this->sendPunishmentWebhook($data->player->getName(), "kick");
 		} else {
 			$this->violations = 0;
 		}
+	}
+
+	private function sendAlertWebhook(string $player, string $debug): void {
+		$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
+		$webhookLink = $webhookSettings["link"];
+		$canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
+
+		if (!$canSend) {
+			return;
+		}
+
+		$message = new Message();
+		$message->setContent("");
+
+		$embed = new Embed();
+		$embed->setTitle("Anti-cheat alert");
+		$embed->setColor(0xFFC300);
+		$embed->setDescription("
+		Player: **`$player`**
+		Violations: **`{$this->violations}`**
+		Codename: **`{$this->getCodeName()}`**
+		Detection name: **`{$this->name} ({$this->subType})`**
+		Debug data: **`$debug`**
+		");
+
+		$message->addEmbed($embed);
+
+		$webhook = new Webhook($webhookLink, $message);
+		$webhook->send();
+	}
+
+	private function sendPunishmentWebhook(string $player, string $type): void {
+		$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
+		$webhookLink = $webhookSettings["link"];
+		$canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
+
+		if (!$canSend) {
+			return;
+		}
+
+		$message = new Message();
+		$message->setContent("");
+
+		$embed = new Embed();
+		$embed->setTitle("Anti-cheat punishment");
+		$embed->setColor(0xFF0000);
+		$embed->setDescription("
+		Player: **`$player`**
+		Type: **`$type`**
+		Codename: **`{$this->getCodeName()}`**
+		Detection name: **`{$this->name} ({$this->subType})`**
+		");
+		$message->addEmbed($embed);
+
+		$webhook = new Webhook($webhookLink, $message);
+		$webhook->send();
 	}
 
 	protected function setback(PlayerData $data): void {

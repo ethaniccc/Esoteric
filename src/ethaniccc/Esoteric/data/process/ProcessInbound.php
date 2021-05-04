@@ -539,17 +539,6 @@ final class ProcessInbound {
 			$data->protocol = $pk->protocol;
 			$data->playerOS = $pk->clientData["DeviceOS"];
 			$data->isMobile = in_array($pk->clientData["DeviceOS"], [DeviceOS::AMAZON, DeviceOS::ANDROID, DeviceOS::IOS]);
-			if (!in_array($data->playerOS, [DeviceOS::ANDROID, DeviceOS::IOS, DeviceOS::WINDOWS_10, DeviceOS::NINTENDO])) {
-				try {
-					$data = $packet->chainData;
-					$parts = explode(".", $data['chain'][2]);
-					$jwt = json_decode(base64_decode($parts[1]), true);
-					$titleID = $jwt['extraData']['titleId'];
-				} catch (Exception $e) {
-					$titleID = "N/A";
-				}
-				Esoteric::getInstance()->loggerThread->write("Device info for {$data->player->getName()} [os={$data->playerOS} titleID=$titleID]");
-			}
 		} elseif ($packet instanceof LevelSoundEventPacket) {
 			if ($packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE) {
 				$this->click($data);
