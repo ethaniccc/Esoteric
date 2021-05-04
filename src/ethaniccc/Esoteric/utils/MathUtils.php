@@ -2,7 +2,6 @@
 
 namespace ethaniccc\Esoteric\utils;
 
-use DivisionByZeroError;
 use ErrorException;
 use pocketmine\math\Vector3;
 use function abs;
@@ -92,7 +91,7 @@ final class MathUtils {
 			}
 
 			return $efficiencyFirst * ($varianceSquared / pow($variance / $sum, 2)) - $efficiencySecond;
-		} catch (DivisionByZeroError $e) {
+		} catch (ErrorException $e) {
 			return 0.0;
 		}
 	}
@@ -110,7 +109,7 @@ final class MathUtils {
 			$variance = self::getVariance($data);
 
 			return $variance > 0 ? 3 * ($mean - $median) / $variance : 0;
-		} catch (DivisionByZeroError $e) {
+		} catch (ErrorException $e) {
 			return 0.0;
 		}
 	}

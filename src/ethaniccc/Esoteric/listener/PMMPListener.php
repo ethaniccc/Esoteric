@@ -98,7 +98,6 @@ class PMMPListener implements Listener {
 		if ($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
 			return;
 		}
-		$esoteric = Esoteric::getInstance();
 		$playerData->inboundProcessor->execute($packet, $playerData);
 		foreach ($playerData->checks as $check) {
 			if ($check->enabled()) {

@@ -43,7 +43,8 @@ class ProcessOutbound {
 		} elseif ($packet instanceof UpdateBlockPacket) {
 			$blockVector = new Vector3($packet->x, $packet->y, $packet->z);
 			foreach ($data->inboundProcessor->placedBlocks as $key => $block) {
-				// block metas can screw this up
+				// check if the block's position sent in UpdateBlockPacket is the same as the placed block
+				// and if the block runtime ID sent in the packet equals the
 				if ($blockVector->equals($block) && $block->getRuntimeId() === $packet->blockRuntimeId) {
 					unset($data->inboundProcessor->placedBlocks[$key]);
 					break;
@@ -54,74 +55,62 @@ class ProcessOutbound {
 				$data->motion = $packet->motion;
 				$data->ticksSinceMotion = 0;
 			});
-		} elseif ($packet instanceof MobEffectPacket) {
-			if ($packet->entityRuntimeId === $data->player->getId()) {
-				switch ($packet->eventId) {
-					case MobEffectPacket::EVENT_ADD:
-						$effectData = new EffectData();
-						$effectData->effectId = $packet->effectId;
-						$effectData->ticks = $packet->duration;
+		} elseif ($packet instanceof MobEffectPacket && $packet->entityRuntimeId === $data->player->getId()) {
+			switch ($packet->eventId) {
+				case MobEffectPacket::EVENT_ADD:
+					$effectData = new EffectData();
+					$effectData->effectId = $packet->effectId;
+					$effectData->ticks = $packet->duration;
+					$effectData->amplifier = $packet->amplifier + 1;
+					$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $effectData): void {
+						$data->effects[$effectData->effectId] = $effectData;
+					});
+					break;
+				case MobEffectPacket::EVENT_MODIFY:
+					$effectData = $data->effects[$packet->effectId] ?? null;
+					if ($effectData === null)
+						return;
+					$handler->send($data, $handler->next($data), function (int $timestamp) use (&$effectData, $packet): void {
 						$effectData->amplifier = $packet->amplifier + 1;
-						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $effectData): void {
-							$data->effects[$effectData->effectId] = $effectData;
+						$effectData->ticks = $packet->duration;
+					});
+					break;
+				case MobEffectPacket::EVENT_REMOVE:
+					if (isset($data->effects[$packet->effectId])) {
+						// removed before the effect duration has wore off client-side
+						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $packet): void {
+							unset($data->effects[$packet->effectId]);
 						});
-						break;
-					case MobEffectPacket::EVENT_MODIFY:
-						$effectData = $data->effects[$packet->effectId] ?? null;
-						if ($effectData === null)
-							return;
-						$handler->send($data, $handler->next($data), function (int $timestamp) use (&$effectData, $packet): void {
-							$effectData->amplifier = $packet->amplifier + 1;
-							$effectData->ticks = $packet->duration;
-						});
-						break;
-					case MobEffectPacket::EVENT_REMOVE:
-						if (isset($data->effects[$packet->effectId])) {
-							// removed before the effect duration has wore off client-side
-							$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $packet): void {
-								unset($data->effects[$packet->effectId]);
-							});
-						}
-						break;
-				}
+					}
+					break;
 			}
 		} elseif ($packet instanceof SetPlayerGameTypePacket) {
 			$mode = $packet->gamemode;
 			$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $mode): void {
 				$data->gamemode = $mode;
 			});
-		} elseif ($packet instanceof SetActorDataPacket) {
-			if ($data->player->getId() === $packet->entityRuntimeId) {
-				if ($data->immobile !== ($currentImmobile = $data->player->isImmobile())) {
-					if ($data->loggedIn) {
-						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $currentImmobile): void {
-							$data->immobile = $currentImmobile;
-						});
-					} else {
+		} elseif ($packet instanceof SetActorDataPacket && $data->player->getId() === $packet->entityRuntimeId) {
+			if ($data->immobile !== ($currentImmobile = $data->player->isImmobile())) {
+				if ($data->loggedIn) {
+					$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $currentImmobile): void {
 						$data->immobile = $currentImmobile;
-					}
+					});
+				} else {
+					$data->immobile = $currentImmobile;
 				}
-				$AABB = $data->player->getBoundingBox();
-				$hitboxWidth = ($AABB->maxX - $AABB->minX) / 2;
-				$hitboxHeight = $AABB->maxY - $AABB->minY;
-				if ($hitboxWidth !== $data->hitboxWidth) {
-					if ($data->loggedIn) {
-						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $hitboxWidth): void {
-							$data->hitboxWidth = $hitboxWidth;
-						});
-					} else {
-						$data->hitboxWidth = $hitboxWidth;
-					}
-				}
-				if ($hitboxHeight !== $data->hitboxWidth) {
-					if ($data->loggedIn) {
-						$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $hitboxHeight): void {
-							$data->hitboxHeight = $hitboxHeight;
-						});
-					} else {
-						$data->hitboxHeight = $hitboxHeight;
-					}
-				}
+			}
+			$AABB = $data->player->getBoundingBox();
+			$hitboxWidth = ($AABB->maxX - $AABB->minX) / 2;
+			$hitboxHeight = $AABB->maxY - $AABB->minY;
+			if ($hitboxWidth !== $data->hitboxWidth) {
+				$data->loggedIn ? $handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $hitboxWidth): void {
+					$data->hitboxWidth = $hitboxWidth;
+				}) : $data->hitboxWidth = $hitboxWidth;
+			}
+			if ($hitboxHeight !== $data->hitboxWidth) {
+				$data->loggedIn ? $handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $hitboxHeight): void {
+					$data->hitboxHeight = $hitboxHeight;
+				}) : $data->hitboxHeight = $hitboxHeight;
 			}
 		} elseif ($packet instanceof NetworkChunkPublisherUpdatePacket) {
 			if (!$data->loggedIn) {
