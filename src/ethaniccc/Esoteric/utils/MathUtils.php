@@ -106,7 +106,7 @@ final class MathUtils {
 			sort($numbers);
 
 			$mean = $sum / $count;
-			$median = ($count % 2 !== 0) ? $numbers[$count / 2] : ($numbers[($count - 1) / 2] + $numbers[$count / 2]) / 2;
+			$median = ($count % 2 !== 0) ? $numbers[$count * 0.5] : ($numbers[($count - 1) * 0.5] + $numbers[$count * 0.5]) * 0.5;
 			$variance = self::getVariance($data);
 
 			return $variance > 0 ? 3 * ($mean - $median) / $variance : 0;
@@ -127,8 +127,9 @@ final class MathUtils {
 	}
 
 	public static function getOutliers(array $collection): float {
-		$q1 = self::getMedian(array_splice($collection, 0, (int) ceil(count($collection) / 2)));
-		$q3 = self::getMedian(array_splice($collection, (int) ceil(count($collection) / 2), count($collection)));
+		$collectionCount = count($collection);
+		$q1 = self::getMedian(array_splice($collection, 0, (int) ceil($countHalf = $collectionCount * 0.5)));
+		$q3 = self::getMedian(array_splice($collection, (int) ceil($countHalf), $collectionCount));
 
 		$iqr = abs($q1 - $q3);
 		$lowThreshold = $q1 - 1.5 * $iqr;
@@ -149,10 +150,11 @@ final class MathUtils {
 	}
 
 	public static function getMedian(array $data): float {
-		if (count($data) % 2 === 0) {
-			return ($data[count($data) / 2] + $data[count($data) / 2 - 1]) / 2;
+		$count = count($data);
+		if ($count % 2 === 0) {
+			return ($data[$count * 0.5] + $data[$count * 0.5 - 1]) * 0.5;
 		} else {
-			return $data[count($data) / 2];
+			return $data[$count * 0.5];
 		}
 	}
 
@@ -161,11 +163,11 @@ final class MathUtils {
 	}
 
 	public static function getArrayGCD(array $nums): float {
-		if (count($nums) < 2) {
+		if (($count = count($nums)) < 2) {
 			return 0.0;
 		}
 		$result = $nums[0];
-		for ($i = 1; $i < count($nums); $i++) {
+		for ($i = 1; $i < $count; $i++) {
 			$result = self::getGCD($nums[$i], $result);
 		}
 		return $result;
@@ -208,7 +210,7 @@ final class MathUtils {
 	 * @param float|int $maxDiff
 	 * @return bool - If the entity can interact with the position
 	 */
-	public static function canInteract(Vector3 $eyePos, Vector3 $pos, Vector3 $dV, float $maxDistance, float $maxDiff = M_SQRT3 / 2): bool {
+	public static function canInteract(Vector3 $eyePos, Vector3 $pos, Vector3 $dV, float $maxDistance, float $maxDiff = M_SQRT3 * 0.5): bool {
 		if ($eyePos->distanceSquared($pos) > $maxDistance ** 2) {
 			return false;
 		}

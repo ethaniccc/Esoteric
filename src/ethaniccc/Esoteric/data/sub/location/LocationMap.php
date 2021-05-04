@@ -106,7 +106,7 @@ final class LocationMap {
 					$locationData->lastLocation = clone $locationData->currentLocation;
 				}
 				$bb = $entity->getBoundingBox();
-				$locationData->hitboxWidth = ($bb->maxX - $bb->minX) / 2;
+				$locationData->hitboxWidth = ($bb->maxX - $bb->minX) * 0.5;
 				$locationData->hitboxHeight = $bb->maxY - $bb->minY;
 				$locationData->history->add($locationData->lastLocation);
 				$locationData->newPosRotationIncrements--;

@@ -102,7 +102,7 @@ class ProcessOutbound {
 					}
 				}
 				$AABB = $data->player->getBoundingBox();
-				$hitboxWidth = ($AABB->maxX - $AABB->minX) / 2;
+				$hitboxWidth = ($AABB->maxX - $AABB->minX) * 0.5;
 				$hitboxHeight = $AABB->maxY - $AABB->minY;
 				if ($hitboxWidth !== $data->hitboxWidth) {
 					if ($data->loggedIn) {
