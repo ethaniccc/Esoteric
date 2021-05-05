@@ -2,9 +2,9 @@
   <img width="300" height="300" src="https://media.discordapp.net/attachments/727159224320131133/826094659000205322/Esoteric_11A13E3.gif?width=300&height=300">
 </p>
 
-<p align="center"><b><font size="+16">Esoteric</font></b></p>
+<p align="center"><b><font size="+16">Esoteric for Gophertunnel</font></b></p>
 
-Esoteric is another anti-cheat made for PocketMine-MP. Compared to Mockingbird, this has more checks
+Esoteric is another anti-cheat made for PocketMine-MP and ported to gophertunnel for proxies. Compared to Mockingbird, this has more checks
 I'm deciding to not disclose to the public.
  
 ## Supported Versions
@@ -59,18 +59,3 @@ These are a list of the current detections Esoteric has, along with descriptions
   - C: Checks if the player is jumping without holding their specified jump button. This also checks if their jump delay is invalid.
 - **Nuker**
   - A: Checks if the player is breaking blocks too quickly.
-  
-## Permission List
-```
-ac
-|
--> ac.alerts
--> ac.bypass
--> ac.command
-   |
-   -> ac.command.help
-   -> ac.command.logs
-   -> ac.command.delay
-   -> ac.command.banwave
-   -> ac.command.timings
-```
