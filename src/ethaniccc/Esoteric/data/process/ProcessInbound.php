@@ -559,10 +559,8 @@ final class ProcessInbound {
 		if (count($data->clickSamples) === 20) {
 			try {
 				$data->cps = 20 / MathUtils::getAverage(...$data->clickSamples);
-				$data->isClickDataIsValid = $data->cps !== 100.0;
 			} catch (ErrorException $e) {
 				$data->cps = INF;
-				$data->isClickDataIsValid = false;
 			}
 
 			$data->kurtosis = MathUtils::getKurtosis(...$data->clickSamples);

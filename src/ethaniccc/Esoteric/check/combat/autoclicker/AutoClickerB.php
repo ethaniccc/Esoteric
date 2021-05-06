@@ -20,7 +20,7 @@ class AutoClickerB extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ((($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY) || ($packet instanceof LevelSoundEventPacket && $packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE)) && $data->runClickChecks && $data->isClickDataIsValid) {
+		if ((($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY) || ($packet instanceof LevelSoundEventPacket && $packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE)) && $data->runClickChecks) {
 			$this->samples->add("kurtosis={$data->kurtosis} skewness={$data->skewness} outliers={$data->outliers}");
 			$duplicates = $this->samples->duplicates();
 			if ($this->samples->full() && $duplicates >= $this->option("max_duplicates", 4) && $data->cps > 10) {

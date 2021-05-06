@@ -168,8 +168,6 @@ final class PlayerData {
 	/** @var int - Last tick the client clicked. */
 	public $lastClickTick = 0;
 	/** @var bool */
-	public $isClickDataIsValid = true;
-	/** @var bool */
 	public $isDataClosed = false;
 	/** @var Block|null */
 	public $blockBroken;
