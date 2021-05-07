@@ -17,15 +17,22 @@ prefix: "§l§6Eso§fteric§7>§r"
 # Alert cooldown
 alert_cooldown: 4
 
-# Length in days to ban the player for, leave as "p" for permanent, this will only work if the punishment type is set to "ban"
-ban_length: 7
-
 # Tags: {prefix}, {player}, {check_name}, {check_subtype}, {violations}, {data}
 alert_message: "{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]"
 
 # Tags: {prefix}, {code}, {expires} < ban only
 kick_message: "{prefix} Kicked (code={code})\nContact staff with a screenshot of this message if this issue persists"
 ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of this message if this is a mistake\nExpires: {expires}"
+
+# Length in days to ban the player for, leave as "p" for permanent, this will only work if the punishment type is set to "ban"
+ban_length: 7
+
+# Message to broadcast when a player is banned, leave as "none" to disable
+# Tags: {prefix}, {player}, {check_name}, {code_name}, {violations}, {expires}
+ban_broadcast: "none"
+# Message to broadcast when a player is kicked, leave as "none" to disable
+# Tags: {prefix}, {player}, {check_name}, {code_name}, {violations}
+kick_broadcast: "none"
 
 # Setback types: smooth, instant, or none
 setback_type: "none"
