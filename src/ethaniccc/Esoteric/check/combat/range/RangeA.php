@@ -31,6 +31,7 @@ class RangeA extends Check {
 			$locationData = $data->entityLocationMap->get($data->target);
 			if ($locationData !== null) {
 				if ($locationData->isSynced <= 30 || $data->ticksSinceTeleport <= 10 || $locationData->currentLocation->world->getId() !== $data->player->getWorld()->getId()) {
+					$this->waiting = false;
 					return;
 				}
 				$AABB = AABB::fromPosition($locationData->lastLocation, $locationData->hitboxWidth + 0.1001, $locationData->hitboxHeight + 0.1001);
