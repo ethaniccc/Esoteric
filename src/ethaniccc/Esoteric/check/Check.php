@@ -213,6 +213,7 @@ abstract class Check {
 		$embed = new Embed();
 		$embed->setTitle("Anti-cheat punishment");
 		$embed->setColor(0xFF0000);
+		$embed->setFooter((new DateTime('now'))->format("m/d/y @ h:m:s A"));
 		$embed->setDescription("
 		Player: **`$player`**
 		Type: **`$type`**
