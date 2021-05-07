@@ -32,9 +32,11 @@ use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
 use pocketmine\block\Block;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
-use pocketmine\Player;
+use pocketmine\player\GameMode;
+use pocketmine\player\Player;
 use function array_filter;
 use function count;
 use function microtime;
@@ -45,8 +47,10 @@ final class PlayerData {
 	/** @var Vector3 - A zero vector, duh. */
 	public static $ZERO_VECTOR;
 
-	/** @var Player */
+	/** @var Player|null */
 	public $player;
+	/** @var NetworkSession */
+	public $session;
 	/** @var string - The spl_object_hash identifier of the player. */
 	public $hash;
 	/** @var string - Identifier used in network interface */
@@ -154,7 +158,6 @@ final class PlayerData {
 	/** @var int - Current gamemode of the player. */
 	public $gamemode = 0;
 	public $isSprinting = false;
-	public $isSneaking = false;
 	public $movementSpeed = 0.1;
 	public $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
 	public $jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
@@ -177,13 +180,12 @@ final class PlayerData {
 	private $ticks = [];
 
 
-	public function __construct(Player $player) {
+	public function __construct(NetworkSession $session) {
 		if (self::$ZERO_VECTOR === null) {
 			self::$ZERO_VECTOR = new Vector3(0, 0, 0);
 		}
-		$this->player = $player;
-		$this->hash = spl_object_hash($player);
-		$this->networkIdentifier = "{$player->getAddress()} {$player->getPort()}";
+		$this->hash = spl_object_hash($session);
+		$this->networkIdentifier = "{$session->getIp()} {$session->getPort()}";
 		$zeroVec = clone self::$ZERO_VECTOR;
 
 		// AIDS START
@@ -214,7 +216,7 @@ final class PlayerData {
 
 	public function tick(): void {
 		$this->currentTick++;
-		$this->entityLocationMap->executeTick($this);
+		$this->entityLocationMap->executeTick();
 		$currentTime = microtime(true);
 		$this->ticks = array_filter($this->ticks, static function (float $time) use ($currentTime): bool {
 			return $currentTime - $time < 1;

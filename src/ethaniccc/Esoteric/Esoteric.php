@@ -5,57 +5,48 @@ namespace ethaniccc\Esoteric;
 use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use ethaniccc\Esoteric\listener\PMMPListener;
-use ethaniccc\Esoteric\network\CustomNetworkInterface;
+use ethaniccc\Esoteric\listener\Listener;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
 use ethaniccc\Esoteric\thread\LoggerThread;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
-use ethaniccc\Esoteric\webhook\WebhookThread;
 use Exception;
-use pocketmine\event\HandlerList;
+use pocketmine\event\HandlerListManager;
 use pocketmine\network\mcpe\protocol\PacketPool;
-use pocketmine\network\mcpe\RakLibInterface;
+use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
 use pocketmine\utils\Config;
-use function array_filter;
-use function array_keys;
-use function count;
-use function explode;
-use function max;
-use function mkdir;
-use function scandir;
-use function strtolower;
-use function var_dump;
+use const PTHREADS_INHERIT_NONE;
 
 final class Esoteric {
 
 	/** @var Esoteric|null */
 	private static $instance;
-	/** @var PluginBase */
+
+	/** @var bool */
+	public $running = false;
+	/** @var Plugin - Plugin that initialized Esoteric. */
 	public $plugin;
 	/** @var Settings */
 	public $settings;
-	/** @var PlayerDataManager */
-	public $dataManager;
+	/** @var LoggerThread */
+	public $logger;
+	/** @var Listener */
+	public $listener;
 	/** @var PlayerData[] */
 	public $hasAlerts = [];
+	/** @var PlayerDataManager */
+	public $dataManager;
 	/** @var string[] */
 	public $logCache = [];
-	/** @var Banwave|null */
-	public $banwave;
 	/** @var TickingTask */
 	public $tickingTask;
+	/** @var Banwave|null */
+	public $banwave;
 	/** @var EsotericCommand */
 	public $command;
-	/** @var PMMPListener */
-	public $listener;
-	/** @var CustomNetworkInterface */
-	public $networkInterface;
-	/** @var LoggerThread */
-	public $loggerThread;
 
 	/**
 	 * Esoteric constructor.
@@ -64,56 +55,34 @@ final class Esoteric {
 	 */
 	private function __construct(PluginBase $plugin, ?Config $config) {
 		$this->plugin = $plugin;
-		$this->settings = new Settings($config === null ? $this->getPlugin()->getConfig()->getAll() : $config->getAll());
+		$this->settings = new Settings($config->getAll());
+		$this->logger = new LoggerThread($this->getPlugin()->getDataFolder() . "esoteric.log");
+		$this->listener = new Listener();
 		$this->dataManager = new PlayerDataManager();
 		$this->tickingTask = new TickingTask();
 	}
 
-	public function getPlugin(): PluginBase {
-		return $this->plugin;
-	}
-
 	/**
-	 * @param PluginBase $plugin
-	 * @param Config|null $config
-	 * @param bool $start
+	 * @param PluginBase $plugin - Plugin to initialize Esoteric.
+	 * @param Config $settings - Configuration for Esoteric.
+	 * @param bool $start - If Esoteric should start after initialization.
 	 * @throws Exception
 	 */
-	public static function init(PluginBase $plugin, ?Config $config, bool $start = false) {
+	public static function init(PluginBase $plugin, Config $settings, bool $start = false): void {
 		if (self::$instance !== null)
-			throw new Exception("Esoteric is already started");
-		self::$instance = new self($plugin, $config);
+			throw new Exception("Esoteric has already been initialized by " . self::$instance->plugin->getName());
+		self::$instance = new self($plugin, $settings);
 		if ($start)
 			self::$instance->start();
 	}
 
-	/**
-	 * @throws Exception
-	 */
 	public function start(): void {
-		if (self::$instance === null)
-			throw new Exception("Esoteric has not been initialized");
-		$this->listener = new PMMPListener();
-		foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {
-			if ($interface instanceof RakLibInterface) {
-				$interface->shutdown();
-				Server::getInstance()->getNetwork()->unregisterInterface($interface);
-				$this->networkInterface = new CustomNetworkInterface(Server::getInstance());
-				Server::getInstance()->getNetwork()->registerInterface($this->networkInterface);
-				break;
-			}
-		}
-		$this->loggerThread = new LoggerThread($this->getPlugin()->getDataFolder() . "esoteric.log");
-		$this->loggerThread->start();
-		Server::getInstance()->getPluginManager()->registerEvents($this->listener, $this->plugin);
-		if (!WebhookThread::valid()) {
-			WebhookThread::init();
-		}
-		PacketPool::registerPacket(new PlayerAuthInputPacket());
-		$this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
-		$this->command = new EsotericCommand();
+		if ($this->running)
+			return;
 
-		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
+		$this->logger->start(PTHREADS_INHERIT_NONE);
+		$this->plugin->getServer()->getPluginManager()->registerEvents($this->listener, $this->plugin);
+		$this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
 		if ($this->settings->getWaveSettings()["enabled"]) {
 			@mkdir($this->getPlugin()->getDataFolder() . "banwaves");
 			$count = count(scandir($this->getPlugin()->getDataFolder() . "banwaves")) - 2;
@@ -130,39 +99,39 @@ final class Esoteric {
 				}));
 			}
 		}
+		$this->command = new EsotericCommand();
+		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
+		PacketPool::getInstance()->registerPacket(new PlayerAuthInputPacket());
+
+		$this->running = true;
 	}
 
+	public function getPlugin(): PluginBase {
+		return $this->plugin;
+	}
+
+	/**
+	 * @return Esoteric|null
+	 */
 	public static function getInstance(): ?self {
 		return self::$instance;
 	}
 
-	/**
-	 * @throws Exception
-	 */
 	public function stop(): void {
-		if (self::$instance === null)
-			throw new Exception("Esoteric has not been initialized");
-		$this->plugin->getScheduler()->cancelTask($this->tickingTask->getTaskId());
+		$this->logger->quit();
+		HandlerListManager::global()->unregisterAll($this->listener);
 		Server::getInstance()->getCommandMap()->unregister($this->command);
-		HandlerList::unregisterAll($this->listener);
-		if ($this->getBanwave() !== null) {
-			$this->getBanwave()->update();
-		}
-		if (!Server::getInstance()->isRunning() && WebhookThread::valid()) {
-			WebhookThread::getInstance()->stop();
-		}
-	}
+		$this->tickingTask->getHandler()->cancel();
 
-	public function getBanwave(): ?Banwave {
-		return $this->banwave;
-	}
-
-	public function getServer(): Server {
-		return Server::getInstance();
+		$this->running = false;
 	}
 
 	public function getSettings(): Settings {
 		return $this->settings;
+	}
+
+	public function getBanwave(): ?Banwave {
+		return $this->banwave;
 	}
 
 }

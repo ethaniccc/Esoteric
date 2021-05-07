@@ -5,8 +5,8 @@ namespace ethaniccc\Esoteric\check\movement\fly;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use function abs;
 use function max;
 use function min;
@@ -20,7 +20,7 @@ class FlyA extends Check {
 		parent::__construct("Fly", "A", "Estimates the next Y movement of the player", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket && $data->offGroundTicks >= 7 && $data->ticksSinceFlight >= 10) {
 			$predictedYMovement = (($this->lastBlockAbove ? 0 : $data->lastMoveDelta->y) - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
 			$difference = abs($data->currentMoveDelta->y - $predictedYMovement);

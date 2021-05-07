@@ -5,9 +5,9 @@ namespace ethaniccc\Esoteric\check\movement\motion;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use pocketmine\block\BlockIds;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
+use pocketmine\block\BlockLegacyIds;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use function round;
 
 class MotionA extends Check {
@@ -18,7 +18,7 @@ class MotionA extends Check {
 		parent::__construct("Motion", "A", "Checks for impossible upward motion", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket) {
 			if ($data->ticksSinceFlight >= 10) {
 				$currentYMovement = $this->getRawYMotion($data);
@@ -46,10 +46,10 @@ class MotionA extends Check {
 		}
 
 		foreach ($data->lastBlocksBelow as $block) {
-			if ($block->getId() === BlockIds::SLIME_BLOCK) {
+			if ($block->getId() === BlockLegacyIds::SLIME_BLOCK) {
 				$this->lastPreviousYMovement *= -1;
 				break;
-			} elseif ($block->getId() === BlockIds::BED_BLOCK) {
+			} elseif ($block->getId() === BlockLegacyIds::BED_BLOCK) {
 				$currentYMovement -= 0.658;
 				break;
 			}

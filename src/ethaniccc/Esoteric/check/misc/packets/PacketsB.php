@@ -4,9 +4,9 @@ namespace ethaniccc\Esoteric\check\misc\packets;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 
 class PacketsB extends Check {
 
@@ -16,7 +16,7 @@ class PacketsB extends Check {
 		parent::__construct("Packets", "B", "Checks if the player is sending the wrong movement packet", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket) {
 			++$this->delay;
 		} elseif ($packet instanceof MovePlayerPacket) {

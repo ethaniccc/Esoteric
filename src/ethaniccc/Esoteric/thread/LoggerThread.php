@@ -2,9 +2,10 @@
 
 namespace ethaniccc\Esoteric\thread;
 
-use pocketmine\Thread;
+use pocketmine\thread\Thread;
 use Threaded;
 use function fclose;
+use function fopen;
 use function fwrite;
 use function usleep;
 use const PHP_EOL;
@@ -25,7 +26,16 @@ class LoggerThread extends Thread {
 		return parent::start($options);
 	}
 
-	public function run() {
+	public function quit(): void {
+		$this->running = false;
+		parent::quit();
+	}
+
+	public function write(string $data): void {
+		$this->queue[] = $data . PHP_EOL;
+	}
+
+	protected function onRun(): void {
 		while ($this->running) {
 			$count = 0;
 			$log = fopen($this->log, "a");
@@ -35,19 +45,8 @@ class LoggerThread extends Thread {
 			}
 			fclose($log);
 			if ($count === 0) {
-				usleep(1000000 / 10);
+				usleep(100000);
 			}
 		}
 	}
-
-	public function quit() {
-		$this->running = false;
-		parent::quit();
-	}
-
-	public function write(string $data): void {
-		$this->queue[] = $data . PHP_EOL;
-	}
-
-
 }

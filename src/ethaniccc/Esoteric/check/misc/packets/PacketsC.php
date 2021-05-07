@@ -4,9 +4,9 @@ namespace ethaniccc\Esoteric\check\misc\packets;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use ethaniccc\Esoteric\protocol\InputConstants;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 
 class PacketsC extends Check {
 
@@ -16,7 +16,7 @@ class PacketsC extends Check {
 		parent::__construct("Packets", "C", "Checks if the user is jumping while not pressing the jump key", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket && $data->loggedIn && $data->ticksSinceSpawn >= 20) {
 			$hasJumpFlag = InputConstants::hasFlag($packet, InputConstants::JUMPING);
 			if ($data->ticksSinceJump <= 1 && !$hasJumpFlag) {

@@ -41,10 +41,6 @@ final class MathUtils {
 		return sqrt($variance / $count);
 	}
 
-	public static function getAverage(float ...$nums): float {
-		return array_sum($nums) / count($nums);
-	}
-
 	public static function vectorAngle(Vector3 $a, Vector3 $b): float {
 		try {
 			$dot = min(max($a->dot($b) / ($a->length() * $b->length()), -1), 1);
@@ -54,7 +50,6 @@ final class MathUtils {
 		}
 	}
 
-	// see https://github.com/eldariamc/client/blob/c01d23eb05ed83abb4fee00f9bf603b6bc3e2e27/src/main/java/net/minecraft/entity/EntityLivingBase.java#L2129
 	public static function directionVectorFromValues(float $yaw, float $pitch): Vector3 {
 		$var2 = cos(-$yaw * 0.017453292 - M_PI);
 		$var3 = sin(-$yaw * 0.017453292 - M_PI);
@@ -62,6 +57,8 @@ final class MathUtils {
 		$var5 = sin(-$pitch * 0.017453292);
 		return new Vector3($var3 * $var4, $var5, $var2 * $var4);
 	}
+
+	// see https://github.com/eldariamc/client/blob/c01d23eb05ed83abb4fee00f9bf603b6bc3e2e27/src/main/java/net/minecraft/entity/EntityLivingBase.java#L2129
 
 	public static function getKurtosis(float ...$data): float {
 		try {
@@ -88,6 +85,10 @@ final class MathUtils {
 		} catch (ErrorException $e) {
 			return 0.0;
 		}
+	}
+
+	public static function getAverage(float ...$nums): float {
+		return array_sum($nums) / count($nums);
 	}
 
 	public static function getSkewness(float ...$data): float {

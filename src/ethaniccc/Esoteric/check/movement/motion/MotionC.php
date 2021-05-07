@@ -5,9 +5,9 @@ namespace ethaniccc\Esoteric\check\movement\motion;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\utils\MathUtils;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use function round;
 
 class MotionC extends Check {
@@ -16,7 +16,7 @@ class MotionC extends Check {
 		parent::__construct("Motion", "C", "Checks if the player follows friction rules on-ground", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket && $data->onGroundTicks >= 6 && $data->ticksSinceFlight >= 10 && $data->inLoadedChunk && $data->ticksSinceTeleport > 3) {
 			$friction = MovementConstants::FRICTION;
 			$blockFriction = null;

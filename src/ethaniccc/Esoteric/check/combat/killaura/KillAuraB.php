@@ -4,10 +4,10 @@ namespace ethaniccc\Esoteric\check\combat\killaura;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\utils\AABB;
-use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use function count;
 use function in_array;
@@ -20,7 +20,7 @@ class KillAuraB extends Check {
 		parent::__construct("Killaura", "B", "Checks if the player hits too many entities in an instance", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof InventoryTransactionPacket) {
 			$trData = $packet->trData;
 			if ($trData instanceof UseItemOnEntityTransactionData && $trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {

@@ -3,74 +3,45 @@
 namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\utils\PacketUtils;
-use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
-use function mt_rand;
 
 final class NetworkStackLatencyHandler {
 
-	private $list = [];
-	private $currentTimestamp = [];
-
 	private static $instance = null;
+	private $queue = [];
 
-	public static function getInstance(): self{
-		if(self::$instance === null){
+	public static function getInstance(): self {
+		if (self::$instance === null) {
 			self::$instance = new self;
 		}
 		return self::$instance;
 	}
 
-	public function next(PlayerData $data, bool $needsResponse = true): NetworkStackLatencyPacket {
-		if (!isset($this->currentTimestamp[$data->hash])) {
-			$this->currentTimestamp[$data->hash] = 0;
-		}
-		$this->currentTimestamp[$data->hash] += mt_rand(1, 10) * 1000;
-		$pk = new NetworkStackLatencyPacket();
-		$pk->needResponse = $needsResponse;
-		$pk->timestamp = $this->currentTimestamp[$data->hash];
-		return $pk;
-	}
-
-	public function send(PlayerData $data, NetworkStackLatencyPacket $packet, callable $onResponse) {
-		if ($packet->needResponse) {
-			$timestamp = $packet->timestamp;
-			$pk = new BatchPacket();
-			$pk->addPacket($packet);
-			$pk->encode();
-			PacketUtils::sendPacketSilent($data, $pk, true, static function (int $ackID) use ($data, $timestamp): void {
-				$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
-			});
-			if (!isset($this->list[$data->hash])) {
-				$this->list[$data->hash] = [];
-			}
-			$this->list[$data->hash][$timestamp] = $onResponse;
-		}
-	}
-
-	public function forceHandle(PlayerData $data, int $timestamp, callable $onResponse): void {
-		if (!isset($this->list[$data->hash])) {
-			$this->list[$data->hash] = [];
-		}
-		$this->list[$data->hash][$timestamp] = $onResponse;
-	}
-
-	public function forceSet(PlayerData $data, int $timestamp): void {
-		$this->currentTimestamp[$data->hash] = $timestamp;
+	public function queue(PlayerData $data, callable $onResponse) {
+		$timestamp = $data->tickProcessor->getLatencyTimestamp();
+		$this->queue[$data->hash][$timestamp][] = $onResponse;
 	}
 
 	public function execute(PlayerData $data, int $timestamp): void {
-		$closure = $this->list[$data->hash][$timestamp] ?? null;
-		if ($closure !== null) {
-			$data->tickProcessor->response($timestamp);
-			$closure($timestamp);
-			unset($this->list[$data->hash][$timestamp]);
+		$queue = $this->queue[$data->hash][$timestamp] ?? null;
+		if ($queue !== null) {
+			foreach ($queue as $run)
+				$run($timestamp);
 		}
+		$data->tickProcessor->response($timestamp);
+		unset($this->queue[$data->hash][$timestamp]);
+	}
+
+	public function send(PlayerData $data): void {
+		$pk = new NetworkStackLatencyPacket();
+		$pk->timestamp = $data->tickProcessor->currentTimestamp;
+		$pk->needResponse = true;
+		$data->player->getNetworkSession()->sendDataPacket($pk, true);
+		$data->tickProcessor->waiting[$pk->timestamp] = $data->currentTick;
 	}
 
 	public function remove(string $hash): void {
-		unset($this->list[$hash]);
+		unset($this->queue[$hash]);
 	}
 
 }

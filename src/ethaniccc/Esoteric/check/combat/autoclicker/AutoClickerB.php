@@ -5,9 +5,9 @@ namespace ethaniccc\Esoteric\check\combat\autoclicker;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\EvictingList;
-use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use function round;
 
 class AutoClickerB extends Check {
@@ -19,7 +19,7 @@ class AutoClickerB extends Check {
 		$this->samples = new EvictingList($this->option("samples", 10));
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ((($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY) || ($packet instanceof LevelSoundEventPacket && $packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE)) && $data->runClickChecks) {
 			$this->samples->add("kurtosis={$data->kurtosis} skewness={$data->skewness} outliers={$data->outliers}");
 			$duplicates = $this->samples->duplicates();

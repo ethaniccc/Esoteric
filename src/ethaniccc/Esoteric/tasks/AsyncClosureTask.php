@@ -3,7 +3,6 @@
 namespace ethaniccc\Esoteric\tasks;
 
 use pocketmine\scheduler\AsyncTask;
-use pocketmine\Server;
 
 class AsyncClosureTask extends AsyncTask {
 
@@ -11,15 +10,15 @@ class AsyncClosureTask extends AsyncTask {
 
 	public function __construct(callable $onRun, callable $onComplete = null) {
 		$this->onRun = $onRun;
-		$this->storeLocal($onComplete);
+		$this->storeLocal("complete", $onComplete);
 	}
 
-	public function onRun() {
+	public function onRun(): void {
 		($this->onRun)();
 	}
 
-	public function onCompletion(Server $server) {
-		$onComplete = $this->fetchLocal();
+	public function onCompletion(): void {
+		$onComplete = $this->fetchLocal("complete");
 		if ($onComplete !== null) {
 			$onComplete();
 		}

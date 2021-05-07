@@ -2,9 +2,8 @@
 
 namespace ethaniccc\Esoteric\data;
 
-use ethaniccc\Esoteric\data\process\ACKHandler;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
-use pocketmine\Player;
+use pocketmine\network\mcpe\NetworkSession;
 use function spl_object_hash;
 use function stripos;
 use function strlen;
@@ -15,8 +14,8 @@ class PlayerDataManager {
 	/** @var PlayerData[] */
 	private $data = [];
 
-	public function get(Player $player): ?PlayerData {
-		return $this->data[spl_object_hash($player)] ?? null;
+	public function get(NetworkSession $session): ?PlayerData {
+		return $this->data[spl_object_hash($session)] ?? null;
 	}
 
 	public function getFromName(string $username): ?PlayerData {
@@ -24,6 +23,8 @@ class PlayerDataManager {
 		$name = strtolower($username);
 		$delta = PHP_INT_MAX;
 		foreach ($this->data as $data) {
+			if ($data->player === null)
+				continue;
 			if (stripos($data->player->getName(), $name) === 0) {
 				$curDelta = strlen($data->player->getName()) - strlen($name);
 				if ($curDelta < $delta) {
@@ -42,25 +43,16 @@ class PlayerDataManager {
 		return $this->data[$hash] ?? null;
 	}
 
-	public function getFromNetworkIdentifier(string $identifier): ?PlayerData {
-		foreach ($this->data as $playerData) {
-			if ($playerData->networkIdentifier === $identifier)
-				return $playerData;
-		}
-		return null;
-	}
-
-	public function add(Player $player): PlayerData {
-		$data = new PlayerData($player);
+	public function add(NetworkSession $session): PlayerData {
+		$data = new PlayerData($session);
 		$this->data[$data->hash] = $data;
 		return $data;
 	}
 
-	public function remove(Player $player): void {
-		$hash = spl_object_hash($player);
+	public function remove(NetworkSession $session): void {
+		$hash = spl_object_hash($session);
 		unset($this->data[$hash]);
 		NetworkStackLatencyHandler::getInstance()->remove($hash);
-		ACKHandler::getInstance()->remove("{$player->getAddress()} {$player->getPort()}");
 	}
 
 	/**

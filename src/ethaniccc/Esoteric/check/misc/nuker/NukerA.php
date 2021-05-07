@@ -4,11 +4,13 @@ namespace ethaniccc\Esoteric\check\misc\nuker;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerBlockAction;
-use pocketmine\block\BlockIds;
-use pocketmine\entity\Effect;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerBlockAction;
+use pocketmine\block\BlockLegacyIds as BlockIds;
+use pocketmine\entity\effect\VanillaEffects;
+use pocketmine\item\Item;
+use pocketmine\item\ItemFactory;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\network\mcpe\protocol\types\GameMode;
 use function ceil;
 use function in_array;
@@ -29,7 +31,7 @@ class NukerA extends Check {
 		parent::__construct("Nuker", "A", "...", true);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket) {
 			if ($packet->blockActions === null && $packet->itemInteractionData === null) {
 				$this->shouldSubtract = true;
@@ -54,8 +56,9 @@ class NukerA extends Check {
 				$block = $data->blockBroken;
 				if ($block !== null && $block->getId() !== BlockIds::AIR && !in_array($packet->itemInteractionData->heldItem->getId(), self::$allowBypass)) {
 					// 0.05 seconds in a tick
-					$expected = $block->getBreakTime($packet->itemInteractionData->heldItem);
-					$hasteEffect = $data->effects[Effect::HASTE] ?? null;
+					$stack = $packet->itemInteractionData->heldItem;
+					$expected = $block->getBreakInfo()->getBreakTime(ItemFactory::getInstance()->get($stack->getId(), $stack->getMeta()));
+					$hasteEffect = $data->effects[VanillaEffects::HASTE()->getRuntimeId()] ?? null;
 					if ($hasteEffect !== null) {
 						// idk how to actually account for haste, just default to a 1 tick difference
 						$expected = $hasteEffect->amplifier >= 10 ? 0 : 1;

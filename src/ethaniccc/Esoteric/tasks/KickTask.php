@@ -2,7 +2,7 @@
 
 namespace ethaniccc\Esoteric\tasks;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 use pocketmine\scheduler\Task;
 
 class KickTask extends Task {
@@ -17,7 +17,8 @@ class KickTask extends Task {
 		$this->reason = $reason;
 	}
 
-	public function onRun(int $currentTick) {
+	public function onRun(): void {
 		$this->player->kick($this->reason, false);
 	}
+
 }

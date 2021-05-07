@@ -5,8 +5,8 @@ namespace ethaniccc\Esoteric\check\movement\velocity;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use function min;
 use function round;
 
@@ -18,7 +18,7 @@ class VelocityA extends Check {
 		parent::__construct("Velocity", "A", "Checks if the user is taking an abnormal amount of vertical knockback.", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket) {
 			if ($data->ticksSinceMotion === 1 && $data->ticksSinceJump !== 1) {
 				$this->yMotion = $data->motion->y;

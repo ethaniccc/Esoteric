@@ -43,11 +43,12 @@ class AABB extends AxisAlignedBB {
 	}
 
 	public static function fromBlock(Block $block): AABB {
-		$b = $block->getBoundingBox();
-		if ($b !== null) {
+		$b = $block->getCollisionBoxes()[0] ?? null;
+		if ($b !== null || count($block->getCollisionBoxes()) > 0) {
 			return new AABB($b->minX, $b->minY, $b->minZ, $b->maxX, $b->maxY, $b->maxZ);
 		} else {
-			return new AABB($block->getX(), $block->getY(), $block->getZ(), $block->getX() + 1, $block->getY() + 1, $block->getZ() + 1);
+			$pos = $block->getPos();
+			return new AABB($pos->getX(), $pos->getY(), $pos->getZ(), $pos->getX() + 1, $pos->getY() + 1, $pos->getZ() + 1);
 		}
 	}
 
@@ -61,10 +62,6 @@ class AABB extends AxisAlignedBB {
 
 	public function grow(float $x, float $y, float $z): AABB {
 		return new AABB($this->minX - $x, $this->minY - $y, $this->minZ - $z, $this->maxX + $x, $this->maxY, $this->maxZ);
-	}
-
-	public function stretch(float $x, float $y, float $z): AABB {
-		return new AABB($this->minX, $this->minY, $this->minZ, $this->maxX + $x, $this->maxY, $this->maxZ);
 	}
 
 	public function contains(Vector3 $pos): bool {

@@ -1,6 +1,6 @@
 <?php
 
-namespace ethaniccc\Esoteric\data\sub\protocol;
+namespace ethaniccc\Esoteric\protocol;
 
 final class LegacyItemSlot {
 

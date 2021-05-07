@@ -16,13 +16,10 @@ use function explode;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
-use function intval;
 use function is_numeric;
 use function json_decode;
 use function json_encode;
 use function str_replace;
-use function var_dump;
-use const PHP_EOL;
 
 final class Banwave {
 
@@ -114,7 +111,7 @@ final class Banwave {
 			$settings = Esoteric::getInstance()->getSettings()->getWaveSettings();
 			$data = $this->getAllPlayers();
 			$usernames = array_keys($data);
-			$task = new ClosureTask(function (int $currentTick) use (&$task, &$runs, &$data, &$usernames, $settings, $maxRuns): void {
+			$task = new ClosureTask(function () use (&$task, &$runs, &$data, &$usernames, $settings, $maxRuns): void {
 				if ($runs === 0) {
 					Server::getInstance()->broadcastMessage($settings["start_message"]);
 				} elseif ($runs > $maxRuns) {

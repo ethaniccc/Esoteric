@@ -8,7 +8,7 @@ use pocketmine\plugin\PluginBase;
 
 final class Loader extends PluginBase {
 
-	public function onEnable() {
+	public function onEnable(): void {
 		try {
 			Esoteric::init($this, $this->getConfig(), true);
 		} catch (Exception $e) {
@@ -16,7 +16,7 @@ final class Loader extends PluginBase {
 		}
 	}
 
-	public function onDisable() {
+	public function onDisable(): void {
 		try {
 			Esoteric::getInstance()->stop();
 		} catch (Exception $e) {

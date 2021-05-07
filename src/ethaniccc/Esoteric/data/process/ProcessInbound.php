@@ -3,33 +3,32 @@
 namespace ethaniccc\Esoteric\data\process;
 
 use ErrorException;
+use ethaniccc\Esoteric\Constants;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
-use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerBlockAction;
 use ethaniccc\Esoteric\Esoteric;
+use ethaniccc\Esoteric\protocol\InputConstants;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerBlockAction;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
-use ethaniccc\Esoteric\utils\Pair;
-use Ev;
-use Exception;
 use pocketmine\block\Block;
+use pocketmine\block\BlockIdentifier;
+use pocketmine\block\BlockLegacyIds;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
 use pocketmine\entity\Attribute;
-use pocketmine\entity\Effect;
-use pocketmine\level\Location;
+use pocketmine\entity\effect\VanillaEffects;
+use pocketmine\entity\Location;
+use pocketmine\item\ItemFactory;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
-use pocketmine\network\mcpe\protocol\BatchPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
@@ -37,25 +36,22 @@ use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketViolationWarningPacket;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\network\mcpe\protocol\SetLocalPlayerAsInitializedPacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
-use pocketmine\tile\Spawnable;
 use pocketmine\timings\TimingsHandler;
 use function abs;
 use function array_shift;
-use function base64_decode;
 use function count;
-use function explode;
 use function floor;
 use function fmod;
 use function in_array;
-use function json_decode;
 use function round;
-use function var_export;
+use function var_dump;
 
 final class ProcessInbound {
 
@@ -71,8 +67,11 @@ final class ProcessInbound {
 	public static $movementTimings;
 	/** @var TimingsHandler */
 	public static $collisionTimings;
+
 	/** @var Block[] */
-	public $placedBlocks = [];
+	public $queuedBlocks = [];
+	/** @var Block[] */
+	public $needUpdateBlocks = [];
 
 	private $lastPredictedY = 0.0;
 	private $yawRotationSamples, $pitchRotationSamples;
@@ -90,7 +89,7 @@ final class ProcessInbound {
 		$this->pitchRotationSamples = new EvictingList(10);
 	}
 
-	public function execute(DataPacket $packet, PlayerData $data): void {
+	public function execute(ServerboundPacket $packet, PlayerData $data): void {
 		self::$timings->startTiming();
 		if ($packet instanceof PlayerAuthInputPacket && $data->loggedIn) {
 			$data->blockBroken = null;
@@ -98,14 +97,14 @@ final class ProcessInbound {
 			if (count($data->packetDeltas) > 20) {
 				array_shift($data->packetDeltas);
 			}
-			$location = Location::fromObject($packet->getPosition()->subtract(0, 1.62, 0), $data->player->getLevel(), $packet->getYaw(), $packet->getPitch());
+			$location = Location::fromObject($packet->getPosition()->subtract(0, 1.62, 0), $data->player->getWorld(), $packet->getYaw(), $packet->getPitch());
 			$data->inLoadedChunk = $data->chunkSendPosition->distance($data->currentLocation->floor()) <= $data->player->getViewDistance() * 16;
 			$data->teleported = false;
 			$data->hasMovementSuppressed = false;
 			$data->lastLocation = clone $data->currentLocation;
 			$data->currentLocation = $location;
 			$data->lastMoveDelta = $data->currentMoveDelta;
-			$data->currentMoveDelta = $data->currentLocation->subtract($data->lastLocation)->asVector3();
+			$data->currentMoveDelta = $data->currentLocation->subtractVector($data->lastLocation)->asVector3();
 			$data->previousYaw = $data->currentYaw;
 			$data->previousPitch = $data->currentPitch;
 			$data->currentYaw = $location->yaw;
@@ -121,7 +120,7 @@ final class ProcessInbound {
 				$this->yawRotationSamples->add($data->currentYawDelta);
 				if ($this->yawRotationSamples->full()) {
 					$count = 0;
-					$this->yawRotationSamples->iterate(static function (float $delta) use(&$count): void {
+					$this->yawRotationSamples->iterate(static function (float $delta) use (&$count): void {
 						$fullKeyboardSens = round(round($delta, 2) * MovementConstants::FULL_KEYBOARD_ROTATION_MULTIPLIER, 3);
 						if (fmod($fullKeyboardSens, 1) <= 1E-7) {
 							++$count;
@@ -136,7 +135,7 @@ final class ProcessInbound {
 				$this->pitchRotationSamples->add($data->currentPitchDelta);
 				if ($this->pitchRotationSamples->full()) {
 					$count = 0;
-					$this->pitchRotationSamples->iterate(static function (float $delta) use(&$count): void {
+					$this->pitchRotationSamples->iterate(static function (float $delta) use (&$count): void {
 						$fullKeyboardSens = round(round($delta, 2) * MovementConstants::FULL_KEYBOARD_ROTATION_MULTIPLIER, 3);
 						if (fmod($fullKeyboardSens, 1) <= 1E-7) {
 							++$count;
@@ -150,7 +149,7 @@ final class ProcessInbound {
 			$data->boundingBox = AABB::from($data);
 			$data->directionVector = MathUtils::directionVectorFromValues($data->currentYaw, $data->currentPitch);
 			$validMovement = $data->currentMoveDelta->lengthSquared() >= MovementConstants::MOVEMENT_THRESHOLD_SQUARED;
-			$data->movementSpeed = $data->player->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->getValue();
+			$data->movementSpeed = $data->player->getAttributeMap()->get(Attribute::MOVEMENT_SPEED)->getValue();
 
 			if ($validMovement || $data->currentYawDelta > 0 || $data->currentPitchDelta > 0) {
 				$pk = new MovePlayerPacket();
@@ -162,7 +161,7 @@ final class ProcessInbound {
 				$pk->mode = MovePlayerPacket::MODE_NORMAL;
 				$pk->onGround = $data->onGround;
 				$pk->tick = $packet->getTick();
-				$data->player->handleMovePlayer($pk);
+				$data->player->getNetworkSession()->getHandler()->handleMovePlayer($pk);
 			}
 
 			if (InputConstants::hasFlag($packet, InputConstants::START_SPRINTING)) {
@@ -174,8 +173,8 @@ final class ProcessInbound {
 				$pk->x = $location->x;
 				$pk->y = $location->y;
 				$pk->z = $location->z;
-				$pk->face = $data->player->getDirection();
-				$data->player->handlePlayerAction($pk);
+				$pk->face = $data->player->getHorizontalFacing();
+				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::STOP_SPRINTING)) {
 				$data->isSprinting = false;
@@ -186,8 +185,8 @@ final class ProcessInbound {
 				$pk->x = $location->x;
 				$pk->y = $location->y;
 				$pk->z = $location->z;
-				$pk->face = $data->player->getDirection();
-				$data->player->handlePlayerAction($pk);
+				$pk->face = $data->player->getHorizontalFacing();
+				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::START_SNEAKING)) {
 				$pk = new PlayerActionPacket();
@@ -196,8 +195,8 @@ final class ProcessInbound {
 				$pk->x = $location->x;
 				$pk->y = $location->y;
 				$pk->z = $location->z;
-				$pk->face = $data->player->getDirection();
-				$data->player->handlePlayerAction($pk);
+				$pk->face = $data->player->getHorizontalFacing();
+				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::STOP_SNEAKING)) {
 				$pk = new PlayerActionPacket();
@@ -206,8 +205,8 @@ final class ProcessInbound {
 				$pk->x = $location->x;
 				$pk->y = $location->y;
 				$pk->z = $location->z;
-				$pk->face = $data->player->getDirection();
-				$data->player->handlePlayerAction($pk);
+				$pk->face = $data->player->getHorizontalFacing();
+				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::START_JUMPING)) {
 				$data->ticksSinceJump = 0;
@@ -217,8 +216,8 @@ final class ProcessInbound {
 				$pk->x = $location->x;
 				$pk->y = $location->y;
 				$pk->z = $location->z;
-				$pk->face = $data->player->getDirection();
-				$data->player->handlePlayerAction($pk);
+				$pk->face = $data->player->getHorizontalFacing();
+				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 			}
 
 			if ($packet->blockActions !== null) {
@@ -231,8 +230,8 @@ final class ProcessInbound {
 							$pk->x = $action->blockPos->x;
 							$pk->y = $action->blockPos->y;
 							$pk->z = $action->blockPos->z;
-							$pk->face = $data->player->getDirection();
-							$data->player->handlePlayerAction($pk);
+							$pk->face = $data->player->getHorizontalFacing();
+							$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 							break;
 						case PlayerBlockAction::CONTINUE:
 						case PlayerBlockAction::CRACK_BREAK:
@@ -242,8 +241,8 @@ final class ProcessInbound {
 							$pk->x = $action->blockPos->x;
 							$pk->y = $action->blockPos->y;
 							$pk->z = $action->blockPos->z;
-							$pk->face = $data->player->getDirection();
-							$data->player->handlePlayerAction($pk);
+							$pk->face = $data->player->getHorizontalFacing();
+							$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 							break;
 						case PlayerBlockAction::ABORT_BREAK:
 							$pk = new PlayerActionPacket();
@@ -252,8 +251,8 @@ final class ProcessInbound {
 							$pk->x = $action->blockPos->x;
 							$pk->y = $action->blockPos->y;
 							$pk->z = $action->blockPos->z;
-							$pk->face = $data->player->getDirection();
-							$data->player->handlePlayerAction($pk);
+							$pk->face = $data->player->getHorizontalFacing();
+							$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 							break;
 						case PlayerBlockAction::STOP_BREAK:
 							$pk = new PlayerActionPacket();
@@ -262,8 +261,8 @@ final class ProcessInbound {
 							$pk->x = $location->x;
 							$pk->y = $location->y;
 							$pk->z = $location->z;
-							$pk->face = $data->player->getDirection();
-							$data->player->handlePlayerAction($pk);
+							$pk->face = $data->player->getHorizontalFacing();
+							$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 							break;
 						case PlayerBlockAction::PREDICT_DESTROY:
 							break;
@@ -278,31 +277,17 @@ final class ProcessInbound {
 				$player->doCloseInventory();
 				$item = $player->getInventory()->getItemInHand();
 				$oldItem = clone $item;
-				$currentBlock = $data->player->getLevel()->getBlock($packet->itemInteractionData->blockPos);
+				$currentBlock = $data->player->getWorld()->getBlock($packet->itemInteractionData->blockPos);
 				$canInteract = $player->canInteract($packet->itemInteractionData->blockPos->add(0.5, 0.5, 0.5), $player->isCreative() ? 13 : 7);
-				$useBreakOn = $player->getLevel()->useBreakOn($packet->itemInteractionData->blockPos, $item, $player, true);
+				$useBreakOn = $player->getWorld()->useBreakOn($packet->itemInteractionData->blockPos, $item, $player, true);
 				if ($canInteract and $useBreakOn) {
 					if ($player->isSurvival()) {
 						if (!$item->equalsExact($oldItem) and $oldItem->equalsExact($player->getInventory()->getItemInHand())) {
 							$player->getInventory()->setItemInHand($item);
-							$player->getInventory()->sendHeldItem($player->getViewers());
 						}
 					}
 					// can you even break more than 1 block in a tick?
 					$data->blockBroken = clone $currentBlock;
-				} else {
-					$player->getInventory()->sendContents($player);
-					$player->getInventory()->sendHeldItem($player);
-					$target = $player->getLevel()->getBlock($packet->itemInteractionData->blockPos);
-					$blocks = $target->getAllSides();
-					$blocks[] = $target;
-					$player->getLevel()->sendBlocks([$player], $blocks, UpdateBlockPacket::FLAG_ALL_PRIORITY);
-					foreach ($blocks as $b) {
-						$tile = $player->getLevel()->getTile($b);
-						if ($tile instanceof Spawnable) {
-							$tile->spawnTo($player);
-						}
-					}
 				}
 			}
 
@@ -316,10 +301,10 @@ final class ProcessInbound {
 					unset($data->effects[$effectData->effectId]);
 				} else {
 					switch ($effectData->effectId) {
-						case Effect::JUMP_BOOST:
+						case VanillaEffects::JUMP_BOOST()->getRuntimeId():
 							$data->jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION + ($effectData->amplifier / 10);
 							break;
-						case Effect::LEVITATION:
+						case VanillaEffects::LEVITATION()->getRuntimeId():
 							$data->ticksSinceFlight = 0;
 							break;
 					}
@@ -330,7 +315,7 @@ final class ProcessInbound {
 				self::$collisionTimings->startTiming();
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
-				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), $location->getLevel(), LevelUtils::SEARCH_ALL, false);
+				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), $location->getWorld(), LevelUtils::SEARCH_ALL, false);
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
 				$data->blocksBelow = [];
@@ -344,7 +329,7 @@ final class ProcessInbound {
 					if (!$data->isCollidedHorizontally) {
 						$data->isCollidedHorizontally = $block->isSolid() && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.5, -0.01, 0.5));
 					}
-					if ($block->y <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0.3, 0.05, 0.3))) {
+					if ($block->getPos()->y <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0.3, 0.05, 0.3))) {
 						$data->expectedOnGround = true;
 						$data->blocksBelow[] = $block;
 					}
@@ -372,7 +357,7 @@ final class ProcessInbound {
 				$flag2 = $expectedMoveY < 0;
 				$AABB1 = $data->boundingBox->expandedCopy(0, 0.1, 0);
 				$AABB1->minY = $data->boundingBox->maxY - 0.4;
-				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && count($data->player->getLevel()->getCollisionBlocks($AABB1, true)) !== 0;
+				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && count($data->player->getWorld()->getCollisionBlocks($AABB1, true)) !== 0;
 				$data->isCollidedVertically = $flag1;
 				$predictedMoveY = $this->lastPredictedY;
 				if ($data->ticksSinceMotion === 0) {
@@ -397,49 +382,43 @@ final class ProcessInbound {
 
 			// TODO: There's a stupid bug where setting a block with UpdateBlockPacket won't do anything, make future attempts to fix this BS.
 
-			foreach ($this->placedBlocks as $blockVector) {
+			foreach ($this->needUpdateBlocks as $blockVector) {
+				$blockPos = $blockVector->getPos();
 				$hasCollision = AABB::fromBlock($blockVector)->intersectsWith($data->boundingBox->expandedCopy(0.2, 0.2, 0.2));
 				if ($hasCollision) {
 					$data->expectedOnGround = true;
 					$data->onGround = true;
-					$data->isCollidedHorizontally = $blockVector->y >= floor($location->y);
+					$data->isCollidedHorizontally = $blockPos->y >= floor($location->y);
 					$data->blocksBelow[] = $blockVector;
 				}
 				if ($validMovement || $hasCollision) {
-					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
+					$realBlock = $data->player->getWorld()->getBlock($blockPos, false, false);
 					$handler = NetworkStackLatencyHandler::getInstance();
-					$handler->send($data, $handler->next($data), function (int $timestamp) use ($hasCollision, $data, $realBlock, $handler): void {
-						$p = new BatchPacket();
-						$pk = new UpdateBlockPacket();
-						$pk->x = $realBlock->x;
-						$pk->y = $realBlock->y;
-						$pk->z = $realBlock->z;
+					$handler->queue($data, function (int $timestamp) use ($blockPos, $hasCollision, $data, $realBlock, $handler): void {
 						if ($realBlock instanceof Liquid) {
-							$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId(0, 0);
-							$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
-							$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
-							$p->addPacket($pk);
 							$pk = new UpdateBlockPacket();
-							$pk->x = $realBlock->x;
-							$pk->y = $realBlock->y;
-							$pk->z = $realBlock->z;
+							$pk->x = $blockPos->x;
+							$pk->y = $blockPos->y;
+							$pk->z = $blockPos->z;
+							$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId((BlockLegacyIds::AIR << 4) | 0);
+							$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+							$data->player->getNetworkSession()->addToSendBuffer($pk);
 						}
-						$pk->blockRuntimeId = $realBlock->getRuntimeId();
-						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
+						$pk = new UpdateBlockPacket();
+						$pk->x = $blockPos->x;
+						$pk->y = $blockPos->y;
+						$pk->z = $blockPos->z;
+						$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($realBlock->getFullId());
 						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
-						$p->addPacket($pk);
-						$n = $handler->next($data);
-						$p->addPacket($n);
-						$p->encode();
-						PacketUtils::sendPacketSilent($data, $p);
-						if ($hasCollision && floor($data->currentLocation->y) > $realBlock->y) {
+						$data->player->getNetworkSession()->addToSendBuffer($pk);
+						if ($hasCollision && floor($data->currentLocation->y) > $blockPos->y) {
 							// prevent the player from possibly false flagging when removing ghost blocks fail
-							$data->player->teleport($realBlock->asPosition()->add(0.5, 0, 0.5));
+							$data->player->teleport($blockPos->add(0.5, 0, 0.5));
 						}
-						$handler->forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
-							foreach ($this->placedBlocks as $key => $vector) {
-								if ($vector->equals($realBlock->asVector3())) {
-									unset($this->placedBlocks[$key]);
+						$handler->queue($data, function (int $timestamp) use ($data, $realBlock): void {
+							foreach ($this->needUpdateBlocks as $key => $vector) {
+								if ($vector->getPos()->equals($realBlock->getPos()->asVector3())) {
+									unset($this->needUpdateBlocks[$key]);
 									break;
 								}
 							}
@@ -497,24 +476,25 @@ final class ProcessInbound {
 			} elseif ($trData instanceof UseItemTransactionData) {
 				$clickedBlockPos = $trData->getBlockPos();
 				$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
-				$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
+				$blockToReplace = $data->player->getWorld()->getBlock($newBlockPos, false, false);
 				if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks) {
-					$block = $trData->getItemInHand()->getItemStack()->getBlock();
-					if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
-						$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
+					$stack = $trData->getItemInHand()->getItemStack();
+					$block = ItemFactory::getInstance()->get($stack->getId(), $stack->getMeta(), $stack->getCount(), $stack->getNbt())->getBlock();
+					if ($stack->getId() < 0) {
+						$block = new UnknownBlock(new BlockIdentifier($stack->getId(), $stack->getMeta()));
 					}
-					foreach ($this->placedBlocks as $k => $other) {
-						if ($other->asVector3()->equals($blockToReplace->asVector3())) {
+					foreach ($this->queuedBlocks as $k => $other) {
+						if ($other->getPos()->asVector3()->equals($blockToReplace->getPos()->asVector3())) {
 							return;
 						}
 					}
 					if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
-						$block->position($blockToReplace->asPosition());
+						$block->position($blockToReplace->getPos()->getWorld(), $newBlockPos->x, $newBlockPos->y, $newBlockPos->z);
 						$blockAABB = AABB::fromBlock($block);
 						if ((!$block instanceof UnknownBlock || $block->isSolid() && !$block->isTransparent()) /* <- so let's talk about that.... */ && $blockAABB->intersectsWith($data->boundingBox->expandedCopy(0.01, 0.01, 0.01))) {
 							return;
 						}
-						$this->placedBlocks[] = clone $block;
+						$this->queuedBlocks[] = clone $block;
 					}
 				}
 			}
@@ -525,26 +505,20 @@ final class ProcessInbound {
 			self::$networkStackLatencyTimings->stopTiming();
 		} elseif ($packet instanceof SetLocalPlayerAsInitializedPacket) {
 			$data->loggedIn = true;
-			$data->gamemode = $data->player->getGamemode();
-			$data->hasAlerts = $data->player->hasPermission("ac.alerts");
+			$data->gamemode = $data->player->getGamemode()->getMagicNumber();
+			$data->hasAlerts = $data->player->hasPermission(Constants::ALERT_PERMISSION);
 		} elseif ($packet instanceof AdventureSettingsPacket) {
 			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
-			/* if ($packet->getFlag(AdventureSettingsPacket::BUILD) && !$data->canPlaceBlocks) {
-				SUS
-			} */
 		} elseif ($packet instanceof LoginPacket) {
-			// ignore modified data other plugins may have put in.. DUM DUM plugins
-			$pk = new LoginPacket($packet->getBuffer());
-			$pk->decode();
-			$data->protocol = $pk->protocol;
-			$data->playerOS = $pk->clientData["DeviceOS"];
-			$data->isMobile = in_array($pk->clientData["DeviceOS"], [DeviceOS::AMAZON, DeviceOS::ANDROID, DeviceOS::IOS]);
+			$clientData = PacketUtils::parseClientData($packet->clientDataJwt);
+			$data->playerOS = $clientData->DeviceOS;
+			$data->isMobile = in_array($clientData->DeviceOS, [DeviceOS::AMAZON, DeviceOS::ANDROID, DeviceOS::IOS]);
 		} elseif ($packet instanceof LevelSoundEventPacket) {
 			if ($packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE) {
 				$this->click($data);
 			}
 		} elseif ($packet instanceof PacketViolationWarningPacket) {
-			Esoteric::getInstance()->loggerThread->write("Violation warning for {$data->player->getName()} || (message={$packet->getMessage()} sev={$packet->getSeverity()} pkID={$packet->getPacketId()})");
+			Esoteric::getInstance()->logger->write("Violation warning for {$data->player->getName()} || (message={$packet->getMessage()} sev={$packet->getSeverity()} pkID={$packet->getPacketId()})");
 		}
 		self::$timings->stopTiming();
 	}

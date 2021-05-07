@@ -4,8 +4,8 @@ namespace ethaniccc\Esoteric\check\combat\aim;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
-use pocketmine\network\mcpe\protocol\DataPacket;
-use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use function abs;
 use function fmod;
 use function max;
@@ -17,7 +17,7 @@ class AimA extends Check {
 		parent::__construct("Aim", "A", "Checks for invalid headYaw to yaw patterns", true);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket && !$data->isFullKeyboardGameplay) {
 			$expectedHeadYaw = fmod(($packet->getYaw() > 0 ? 0 : 360) + $packet->getYaw(), 360);
 			$diff = fmod(abs($expectedHeadYaw - $packet->getHeadYaw()), 360);

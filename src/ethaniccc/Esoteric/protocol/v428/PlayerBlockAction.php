@@ -1,6 +1,6 @@
 <?php
 
-namespace ethaniccc\Esoteric\data\sub\protocol\v428;
+namespace ethaniccc\Esoteric\protocol\v428;
 
 use pocketmine\math\Vector3;
 

@@ -1,10 +1,11 @@
 <?php
 
-namespace ethaniccc\Esoteric\data\sub\protocol\v428;
+namespace ethaniccc\Esoteric\protocol\v428;
 
-use ethaniccc\Esoteric\data\sub\protocol\LegacyItemSlot;
+use ethaniccc\Esoteric\protocol\LegacyItemSlot;
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use pocketmine\network\mcpe\protocol\types\NetworkInventoryAction;
 
 class UseItemInteractionData {
@@ -25,7 +26,7 @@ class UseItemInteractionData {
 	public $blockFace;
 	/** @var int */
 	public $hotbarSlot;
-	/** @var Item */
+	/** @var ItemStack */
 	public $heldItem;
 	/** @var Vector3 */
 	public $playerPos;

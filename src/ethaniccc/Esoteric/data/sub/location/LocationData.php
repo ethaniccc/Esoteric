@@ -2,13 +2,14 @@
 
 namespace ethaniccc\Esoteric\data\sub\location;
 
-use ethaniccc\Esoteric\utils\EvictingList;
-use pocketmine\level\Position;
+use pocketmine\world\Position;
 
 final class LocationData {
 
 	/** @var int */
 	public $entityRuntimeId;
+	/** @var bool */
+	public $isPlayer;
 	/** @var Position */
 	public $currentLocation;
 	/** @var Position */
@@ -19,9 +20,17 @@ final class LocationData {
 	public $newPosRotationIncrements = 0;
 	/** @var int */
 	public $isSynced = 0;
-	/** @var EvictingList */
-	public $history;
 	/** @var float */
 	public $hitboxWidth = 0.3, $hitboxHeight = 1.8;
+
+	public function __construct(int $entityRuntimeId, bool $isPlayer, Position $location, float $hitboxWidth, float $hitboxHeight) {
+		$this->entityRuntimeId = $entityRuntimeId;
+		$this->isPlayer = $isPlayer;
+		$this->currentLocation = $location;
+		$this->lastLocation = $location;
+		$this->receivedLocation = $location;
+		$this->hitboxWidth = $hitboxWidth;
+		$this->hitboxHeight = $hitboxHeight;
+	}
 
 }

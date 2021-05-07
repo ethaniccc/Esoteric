@@ -4,9 +4,9 @@ namespace ethaniccc\Esoteric\check\movement\motion;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
+use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\utils\MathUtils;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use function max;
 use function min;
 use function round;
@@ -17,7 +17,7 @@ class MotionB extends Check {
 		parent::__construct("Motion", "B", "Checks if the player follows friction rules off-ground", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket && $data->offGroundTicks >= 5 && $data->ticksSinceFlight >= 10) {
 			$currentXZ = MathUtils::hypot($data->currentMoveDelta->x, $data->currentMoveDelta->z);
 			$lastXZ = MathUtils::hypot($data->lastMoveDelta->x, $data->lastMoveDelta->z);

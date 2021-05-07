@@ -1,6 +1,6 @@
 <?php
 
-namespace ethaniccc\Esoteric\data\sub\protocol;
+namespace ethaniccc\Esoteric\protocol;
 
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 

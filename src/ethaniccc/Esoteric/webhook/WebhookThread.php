@@ -5,7 +5,6 @@ namespace ethaniccc\Esoteric\webhook;
 use AttachableLogger;
 use Exception;
 use pocketmine\Server;
-use pocketmine\Thread;
 use Threaded;
 
 class WebhookThread extends Thread {

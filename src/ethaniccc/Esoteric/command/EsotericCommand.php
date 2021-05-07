@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric\command;
 
+use ethaniccc\Esoteric\Constants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\tasks\AsyncClosureTask;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
@@ -9,8 +10,9 @@ use ethaniccc\Esoteric\utils\banwave\Banwave;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
-use pocketmine\command\PluginIdentifiableCommand;
-use pocketmine\Player;
+use pocketmine\lang\Language;
+use pocketmine\permission\DefaultPermissions;
+use pocketmine\player\Player;
 use pocketmine\plugin\Plugin;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
@@ -25,8 +27,9 @@ use function str_repeat;
 use function strtolower;
 use function unserialize;
 use function var_export;
+use const PHP_EOL;
 
-class EsotericCommand extends Command implements PluginIdentifiableCommand {
+class EsotericCommand extends Command {
 
 	public function __construct() {
 		parent::__construct("ac", "Main command for the Esoteric anti-cheat", "/ac <sub_command>", ["anticheat"]);
@@ -41,15 +44,11 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 		}
 		switch ($subCommand) {
 			case "help":
-				if ($sender->hasPermission("ac.command.help")) {
-					$helpMessage = TextFormat::GRAY . str_repeat("-", 8) . " " . TextFormat::BOLD . TextFormat::GRAY . "[" . TextFormat::YELLOW . "Eso" . TextFormat::GOLD . "teric" . TextFormat::GRAY . "] " . TextFormat::RESET . TextFormat::GRAY . str_repeat("-", 8) . PHP_EOL . TextFormat::YELLOW . "/ac logs <player> - Get the anti-cheat logs of the specified player (permission=ac.command.logs)" . PHP_EOL . TextFormat::GOLD . "/ac delay <delay> - Set your alert cooldown delay (permission=ac.command.delay)" . PHP_EOL . TextFormat::YELLOW . "/ac alerts <on/off> - Toggle alerts on or off (permission=ac.alerts)" . PHP_EOL . TextFormat::GOLD . "/ac banwave <subcommand> - Do actions with banwaves (permission=ac.command.banwave)" . PHP_EOL . TextFormat::YELLOW . "/ac timings <seconds> - Enable timings for a certain amount of seconds to see performance (permission=ac.command.timings)";
-					$sender->sendMessage($helpMessage);
-				} else {
-					$sender->sendMessage($this->getPermissionMessage());
-				}
+				$helpMessage = TextFormat::GRAY . str_repeat("-", 8) . " " . TextFormat::BOLD . TextFormat::GRAY . "[" . TextFormat::YELLOW . "Eso" . TextFormat::GOLD . "teric" . TextFormat::GRAY . "] " . TextFormat::RESET . TextFormat::GRAY . str_repeat("-", 8) . PHP_EOL . TextFormat::YELLOW . "/ac logs <player> - Get the anti-cheat logs of the specified player (permission=ac.command.logs)" . PHP_EOL . TextFormat::GOLD . "/ac delay <delay> - Set your alert cooldown delay (permission=ac.command.delay)" . PHP_EOL . TextFormat::YELLOW . "/ac alerts <on/off> - Toggle alerts on or off (permission=ac.alerts)" . PHP_EOL . TextFormat::GOLD . "/ac banwave <subcommand> - Do actions with banwaves (permission=ac.command.banwave)" . PHP_EOL . TextFormat::YELLOW . "/ac timings <seconds> - Enable timings for a certain amount of seconds to see performance (permission=ac.command.timings)";
+				$sender->sendMessage($helpMessage);
 				break;
 			case "logs":
-				if ($sender->hasPermission("ac.command.logs")) {
+				if ($sender->hasPermission(Constants::LOGS_PERMISSION)) {
 					$selectedUser = $args[1] ?? null;
 					if ($selectedUser === null) {
 						$sender->sendMessage(TextFormat::RED . "You need to specify a player.");
@@ -79,9 +78,9 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				break;
 			case "delay":
 				if ($sender instanceof Player) {
-					if ($sender->hasPermission("ac.command.delay")) {
+					if ($sender->hasPermission(Constants::ALERT_PERMISSION)) {
 						$delay = (int) ($args[1] ?? Esoteric::getInstance()->getSettings()->getAlertCooldown());
-						$playerData = Esoteric::getInstance()->dataManager->get($sender);
+						$playerData = Esoteric::getInstance()->dataManager->get($sender->getNetworkSession());
 						$playerData->alertCooldown = $delay;
 						$sender->sendMessage(TextFormat::GREEN . "Your alert cooldown was set to $delay seconds");
 					} else {
@@ -91,8 +90,8 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				break;
 			case "alerts":
 				if ($sender instanceof Player) {
-					if ($sender->hasPermission("ac.alerts")) {
-						$playerData = Esoteric::getInstance()->dataManager->get($sender);
+					if ($sender->hasPermission(Constants::ALERT_PERMISSION)) {
+						$playerData = Esoteric::getInstance()->dataManager->get($sender->getNetworkSession());
 						if (isset($args[1])) {
 							switch ($args[1]) {
 								case "on":
@@ -120,7 +119,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				}
 				break;
 			case "banwave":
-				if ($sender->hasPermission("ac.command.banwave")) {
+				if ($sender->hasPermission(Constants::BANWAVE_PERMISSION)) {
 					if (Esoteric::getInstance()->getBanwave() === null) {
 						$sender->sendMessage(TextFormat::RED . "Banwaves are disabled");
 						return;
@@ -189,19 +188,20 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				}
 				break;
 			case "timings":
-				if ($sender->hasPermission("ac.command.timings")) {
+				if ($sender->hasPermission(Constants::TIMINGS_PERMISSION)) {
 					$time = (int) ($args[1] ?? 60);
-					Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings on");
-					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new ClosureTask(static function (int $currentTick): void {
-						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings paste");
-						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings off");
+					$s = new ConsoleCommandSender($sender->getServer(), new Language("eng"));
+					Server::getInstance()->dispatchCommand($s, "timings on");
+					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new ClosureTask(static function () use ($s): void {
+						Server::getInstance()->dispatchCommand($s, "timings paste");
+						Server::getInstance()->dispatchCommand($s, "timings off");
 					}), $time * 20);
 				} else {
 					$sender->sendMessage($this->getPermissionMessage());
 				}
 				break;
 			case "test":
-				if ($sender->isOp() && $sender instanceof Player) {
+				if ($sender->hasPermission(DefaultPermissions::ROOT_OPERATOR) && $sender instanceof Player) {
 				}
 				break;
 		}

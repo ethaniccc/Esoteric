@@ -4,8 +4,8 @@ namespace ethaniccc\Esoteric\utils;
 
 use Generator;
 use pocketmine\block\UnknownBlock;
-use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\world\World;
 use function ceil;
 use function floor;
 
@@ -17,12 +17,12 @@ final class LevelUtils {
 
 	/**
 	 * @param AxisAlignedBB $AABB
-	 * @param Level $level
+	 * @param World $level
 	 * @param int $searchOption
 	 * @param bool $first
 	 * @return Generator
 	 */
-	public static function checkBlocksInAABB(AxisAlignedBB $AABB, Level $level, int $searchOption, bool $first = false): Generator {
+	public static function checkBlocksInAABB(AxisAlignedBB $AABB, World $level, int $searchOption, bool $first = false): Generator {
 		$minX = (int) floor($AABB->minX);
 		$maxX = (int) ceil($AABB->maxX);
 		$minY = (int) floor($AABB->minY);
