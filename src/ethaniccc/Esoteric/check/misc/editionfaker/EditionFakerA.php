@@ -33,31 +33,32 @@ class EditionFakerA extends Check {
 			} catch (Exception $e) {
 				return;
 			}
-			$expectedOS = new EvictingList(5);
 			$givenOS = $packet->clientData["DeviceOS"];
 			switch ($titleID) {
 				case "896928775":
-					$expectedOS->add(DeviceOS::WINDOWS_10);
+					$expectedOS = DeviceOS::WINDOWS_10;
 					break;
 				case "2047319603":
-					$expectedOS->add(DeviceOS::NINTENDO);
+					$expectedOS = DeviceOS::NINTENDO;
 					break;
 				case "1739947436":
-					$expectedOS->add(DeviceOS::IOS);
-					$expectedOS->add(DeviceOS::ANDROID);
+					$expectedOS = DeviceOS::ANDROID;
+					break;
+				case "2044456598":
+					$expectedOS = DeviceOS::PLAYSTATION;
+					break;
+				case "1828326430":
+					$expectedOS = DeviceOS::XBOX;
+					break;
+				case "1810924247":
+					$expectedOS = DeviceOS::IOS;
 					break;
 				default:
 					Esoteric::getInstance()->loggerThread->write("Unknown TitleID from " . TextFormat::clean($packet->username) . " (titleID=$titleID os=$givenOS)");
 					return;
 			}
-			if ($expectedOS->size() > 0) {
-				$passed = false;
-				$expectedOS->iterate(static function (int $deviceOS) use (&$passed, $givenOS): void {
-					if (!$passed && $deviceOS === $givenOS) {
-						$passed = true;
-					}
-				});
-				if (!$passed) $this->flag($data);
+			if ($givenOS !== $expectedOS) {
+				$this->flag($data, ["titleID" => $titleID, "givenOS" => $givenOS, "expectedOS" => $expectedOS]);
 			}
 		}
 	}
