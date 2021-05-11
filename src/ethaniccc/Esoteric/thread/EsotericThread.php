@@ -45,6 +45,7 @@ class EsotericThread extends Thread {
 			$start = microtime(true);
 			$this->tick();
 			$delta = microtime(true) - $start;
+
 			if ($delta > (1 / self::TICKS_PER_SECOND)) {
 				$this->logger->debug("delta=$delta, Esoteric thread not sleeping");
 			} else {
