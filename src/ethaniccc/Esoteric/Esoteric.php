@@ -2,14 +2,21 @@
 
 namespace ethaniccc\Esoteric;
 
+use ethaniccc\Esoteric\network\RaklibOverride;
 use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
+use ethaniccc\Esoteric\tasks\TickingTask;
+use ethaniccc\Esoteric\thread\EsotericThread;
 use Exception;
 use pocketmine\event\HandlerListManager;
 use pocketmine\network\mcpe\protocol\PacketPool;
+use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
 use pocketmine\utils\Config;
+use function sleep;
+use function var_dump;
 use const PTHREADS_INHERIT_NONE;
 
 final class Esoteric {
@@ -23,6 +30,12 @@ final class Esoteric {
 	public $plugin;
 	/** @var Settings */
 	public $settings;
+	/** @var EsotericThread */
+	public $thread;
+	/** @var Listener */
+	public $listener;
+	/** @var TickingTask */
+	public $tickingTask;
 
 	/**
 	 * Esoteric constructor.
@@ -32,6 +45,7 @@ final class Esoteric {
 	private function __construct(PluginBase $plugin, ?Config $config) {
 		$this->plugin = $plugin;
 		$this->settings = new Settings($config->getAll());
+		$this->listener = new Listener();
 	}
 
 	/**
@@ -51,6 +65,26 @@ final class Esoteric {
 	public function start(): void {
 		if ($this->running)
 			return;
+
+		$this->getPlugin()->getScheduler()->scheduleTask(new ClosureTask(function(): void {
+			foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {
+				if ($interface instanceof RakLibInterface) {
+					Server::getInstance()->getNetwork()->unregisterInterface($interface);
+					$interface->shutdown();
+					break;
+				}
+			}
+
+			Server::getInstance()->getNetwork()->registerInterface(new RaklibOverride(Server::getInstance()));
+		}));
+
+		$this->thread = new EsotericThread($this->getPlugin()->getLogger());
+		$this->thread->start(PTHREADS_INHERIT_NONE);
+
+		$this->tickingTask = new TickingTask();
+		$this->getPlugin()->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
+
+		Server::getInstance()->getPluginManager()->registerEvents($this->listener, $this->getPlugin());
 
 		PacketPool::getInstance()->registerPacket(new PlayerAuthInputPacket());
 	}
