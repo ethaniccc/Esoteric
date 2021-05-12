@@ -2,9 +2,13 @@
 
 namespace ethaniccc\Esoteric\data;
 
+use ethaniccc\Esoteric\data\sub\world\VirtualWorld;
 use ethaniccc\Esoteric\handlers\InboundHandler;
 use ethaniccc\Esoteric\handlers\OutboundHandler;
+use ethaniccc\Esoteric\thread\EsotericThread;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\TextPacket;
+use pocketmine\utils\TextFormat;
 use Threaded;
 
 final class Data extends Threaded {
@@ -14,7 +18,13 @@ final class Data extends Threaded {
 
 	/** @var int - Current client tick */
 	public $currentTick = 0;
+	/** @var bool - Boolean value of wether or not the player is logged in. */
+	public $loggedIn = false;
 
+	/** @var VirtualWorld */
+	public $world;
+	/** @var int */
+	public $currentChunkHash = -111;
 	/** @var Vector3 */
 	public $currentPosition, $lastPosition;
 	/** @var Vector3 */
@@ -32,6 +42,8 @@ final class Data extends Threaded {
 
 	public function __construct(string $identifier) {
 		$this->identifier = $identifier;
+		$this->world = new VirtualWorld();
+
 		$zero = new Vector3(0, 0, 0);
 		$this->currentMoveDelta = $zero;
 		$this->lastMoveDelta = $zero;
@@ -42,6 +54,10 @@ final class Data extends Threaded {
 
 		$this->inboundHandler = new InboundHandler();
 		$this->outboundHandler = new OutboundHandler();
+	}
+
+	public function queueDebugMessageSend(string $message): void {
+		EsotericThread::getInstance()->queuePacket(TextPacket::raw(TextFormat::BOLD . TextFormat::DARK_GRAY . "[" . TextFormat::DARK_RED . "DEBUG" . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . $message), $this->identifier);
 	}
 
 }

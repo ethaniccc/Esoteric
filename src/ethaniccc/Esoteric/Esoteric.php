@@ -15,6 +15,9 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
 use pocketmine\utils\Config;
+use ReflectionClass;
+use ReflectionProperty;
+use function file_exists;
 use function sleep;
 use function var_dump;
 use const PTHREADS_INHERIT_NONE;
@@ -78,7 +81,15 @@ final class Esoteric {
 			Server::getInstance()->getNetwork()->registerInterface(new RaklibOverride(Server::getInstance()));
 		}));
 
-		$this->thread = new EsotericThread($this->getPlugin()->getLogger());
+		$reflectionClass = new ReflectionClass($this->getPlugin());
+		$reflection = new ReflectionProperty($reflectionClass->getParentClass()->getName(), "file");
+		$reflection->setAccessible(true);
+		$path = $reflection->getValue($this->getPlugin()) . "vendor/autoload.php";
+		if (!file_exists($path)) {
+			$path = null;
+		}
+
+		$this->thread = new EsotericThread($this->getPlugin()->getLogger(), $path);
 		$this->thread->start(PTHREADS_INHERIT_NONE);
 
 		$this->tickingTask = new TickingTask();

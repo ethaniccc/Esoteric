@@ -13,6 +13,12 @@ class TickingTask extends Task {
 	public function onRun(): void {
 		foreach (Server::getInstance()->getOnlinePlayers() as $player) {
 			$identifier = "{$player->getNetworkSession()->getIp()} {$player->getNetworkSession()->getPort()}";
+			$queue = Esoteric::getInstance()->thread->sendPacketQueue[$identifier] ?? null;
+			if ($queue !== null) {
+				while(($packet = $queue->shift()) !== null) {
+					$player->getNetworkSession()->addToSendBuffer($packet);
+				}
+			}
 			$currentTimestamp = Esoteric::getInstance()->thread->getCurrentTimestamp($identifier);
 			if ($currentTimestamp !== -1) {
 				$pk = new NetworkStackLatencyPacket();

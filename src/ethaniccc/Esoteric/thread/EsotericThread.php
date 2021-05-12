@@ -14,6 +14,7 @@ use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\thread\Thread;
 use Threaded;
+use function gc_disable;
 use function microtime;
 use function mt_rand;
 use function usleep;
@@ -42,6 +43,8 @@ class EsotericThread extends Thread {
 
 	/** @var bool */
 	private $shouldUpdateTimestamps = false;
+	/** @var string */
+	private $otherDependenciesPath;
 
 	private static $instance;
 
@@ -49,9 +52,10 @@ class EsotericThread extends Thread {
 		return self::$instance;
 	}
 
-	public function __construct(AttachableLogger $logger) {
+	public function __construct(AttachableLogger $logger, ?string $otherDependenciesPath = null) {
 		$this->setClassLoader();
 		$this->logger = $logger;
+		$this->otherDependenciesPath = $otherDependenciesPath;
 	}
 
 	public function queueInbound(string $identifier, ServerboundPacket $packet): void {
@@ -78,6 +82,13 @@ class EsotericThread extends Thread {
 		$this->shouldUpdateTimestamps = true;
 	}
 
+	public function queuePacket(ClientboundPacket $packet, string $identifier): void {
+		if (!isset($this->sendPacketQueue[$identifier])) {
+			$this->sendPacketQueue[$identifier] = new Threaded();
+		}
+		$this->sendPacketQueue[$identifier][] = $packet;
+	}
+
 	protected function onRun(): void {
 		self::$instance = $this;
 		$this->inboundQueue = new Threaded();
@@ -87,6 +98,9 @@ class EsotericThread extends Thread {
 		$this->dataManager = new DataManager();
 		$this->networkStackLatencyHandler = new NetworkStackLatencyHandler();
 		$this->registerClassLoader();
+		if ($this->otherDependenciesPath !== null) {
+			require $this->otherDependenciesPath;
+		}
 		PacketPool::getInstance()->registerPacket(new PlayerAuthInputPacket());
 		while (!$this->isKilled) {
 			$start = microtime(true);

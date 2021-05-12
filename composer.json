@@ -1,4 +1,7 @@
 {
     "name": "ethaniccc/esoteric",
-    "description": "An anti-cheat made for PocketMine-MP"
+    "description": "An anti-cheat made for PocketMine-MP",
+    "require": {
+        "opis/closure": "^3.6"
+    }
 }
