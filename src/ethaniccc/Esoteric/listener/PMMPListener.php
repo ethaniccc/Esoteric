@@ -7,6 +7,7 @@ use ethaniccc\Esoteric\utils\PacketUtils;
 use LogicException;
 use pocketmine\event\entity\EntityLevelChangeEvent;
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
@@ -22,6 +23,7 @@ use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
 use pocketmine\Player;
+use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
 use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\Binary;
@@ -90,6 +92,19 @@ class PMMPListener implements Listener {
 	}
 
 	/**
+	 * @param PlayerJoinEvent $event
+	 * @priority LOWEST
+	 */
+	public function join(PlayerJoinEvent $event): void {
+		$data = Esoteric::getInstance()->dataManager->get($event->getPlayer());
+		if ($data !== null) {
+			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new ClosureTask(function (int $currentTick) use ($data): void {
+				$data->hasAlerts = $data->player->hasPermission("ac.alerts");
+			}));
+		}
+	}
+
+	/**
 	 * @param DataPacketReceiveEvent $event
 	 * @priority HIGHEST
 	 * @ignoreCancelled false
@@ -97,6 +112,9 @@ class PMMPListener implements Listener {
 	public function inbound(DataPacketReceiveEvent $event): void {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
+		if ($packet instanceof PlayerAuthInputPacket) {
+			$event->setCancelled();
+		}
 		if (in_array($player->getName(), Esoteric::getInstance()->exemptList)) {
 			return;
 		}
@@ -111,9 +129,6 @@ class PMMPListener implements Listener {
 				$check->inbound($packet, $playerData);
 				$check->getTimings()->stopTiming();
 			}
-		}
-		if ($packet instanceof PlayerAuthInputPacket) {
-			$event->setCancelled();
 		}
 	}
 

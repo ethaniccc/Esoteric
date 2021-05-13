@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\command;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\tasks\AsyncClosureTask;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
+use ethaniccc\Esoteric\tasks\KickTask;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
@@ -18,6 +19,7 @@ use pocketmine\utils\TextFormat;
 use function count;
 use function implode;
 use function in_array;
+use function mt_rand;
 use function range;
 use function round;
 use function serialize;
@@ -234,6 +236,25 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 							}
 							Esoteric::getInstance()->exemptList[] = $selected;
 							$sender->sendMessage(Esoteric::getInstance()->getSettings()->getPrefix() . TextFormat::GREEN . " $selected was exempted from Esoteric");
+							break;
+						case "remove":
+							$selected = $args[2] ?? null;
+							if ($selected === null) {
+								$sender->sendMessage(TextFormat::RED . "You need to specify a player to un-exempt");
+								return;
+							}
+							if (($player = Server::getInstance()->getPlayer($selected)) !== null) {
+								$selected = $player->getName();
+								$rand = mt_rand(1, 50);
+								Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new KickTask($player, "Error processing packet (0x$rand) - rejoin the server"));
+							}
+							foreach (Esoteric::getInstance()->exemptList as $k => $n) {
+								if (strtolower($n) === strtolower($selected)) {
+									unset(Esoteric::getInstance()->exemptList[$k]);
+									break;
+								}
+							}
+							$sender->sendMessage(Esoteric::getInstance()->getSettings()->getPrefix() . TextFormat::RED . " $selected was un-exempted from Esoteric");
 							break;
 					}
 				} else {
