@@ -24,11 +24,21 @@ use function array_filter;
 use function array_keys;
 use function count;
 use function explode;
+use function fclose;
+use function file_exists;
+use function file_get_contents;
+use function file_put_contents;
+use function fopen;
+use function fread;
+use function implode;
 use function max;
 use function mkdir;
 use function scandir;
+use function stream_get_contents;
 use function strtolower;
 use function var_dump;
+use const PHP_EOL;
+use const PHP_INT_MAX;
 
 final class Esoteric {
 
@@ -44,6 +54,8 @@ final class Esoteric {
 	public $hasAlerts = [];
 	/** @var string[] */
 	public $logCache = [];
+	/** @var array */
+	public $exemptList = [];
 	/** @var Banwave|null */
 	public $banwave;
 	/** @var TickingTask */
@@ -113,6 +125,12 @@ final class Esoteric {
 		$this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
 		$this->command = new EsotericCommand();
 
+		if (!file_exists($this->getPlugin()->getDataFolder() . "exempt.txt")) {
+			file_put_contents($this->getPlugin()->getDataFolder() . "exempt.txt", "");
+		}
+		$contents = file_get_contents($this->getPlugin()->getDataFolder() . "exempt.txt");
+		$this->exemptList = explode(PHP_EOL, $contents);
+
 		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
 		if ($this->settings->getWaveSettings()["enabled"]) {
 			@mkdir($this->getPlugin()->getDataFolder() . "banwaves");
@@ -148,6 +166,7 @@ final class Esoteric {
 		if ($this->getBanwave() !== null) {
 			$this->getBanwave()->update();
 		}
+		file_put_contents($this->plugin->getDataFolder() . "exempt.txt", implode(PHP_EOL, $this->exemptList));
 		if (!Server::getInstance()->isRunning() && WebhookThread::valid()) {
 			WebhookThread::getInstance()->stop();
 		}

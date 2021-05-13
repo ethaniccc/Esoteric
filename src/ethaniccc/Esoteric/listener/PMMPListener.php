@@ -72,6 +72,9 @@ class PMMPListener implements Listener {
 	 */
 	public function quit(PlayerQuitEvent $event): void {
 		$data = Esoteric::getInstance()->dataManager->get($event->getPlayer());
+		if ($data === null) {
+			return;
+		}
 		$message = null;
 		foreach ($data->checks as $check) {
 			$checkData = $check->getData();
@@ -94,6 +97,9 @@ class PMMPListener implements Listener {
 	public function inbound(DataPacketReceiveEvent $event): void {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
+		if (in_array($player->getName(), Esoteric::getInstance()->exemptList)) {
+			return;
+		}
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
 		if ($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
 			return;
@@ -118,6 +124,9 @@ class PMMPListener implements Listener {
 	public function outbound(DataPacketSendEvent $event): void {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
+		if (in_array($player->getName(), Esoteric::getInstance()->exemptList)) {
+			return;
+		}
 		$playerData = Esoteric::getInstance()->dataManager->get($player);
 		if ($playerData === null) {
 			return;

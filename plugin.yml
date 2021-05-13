@@ -36,3 +36,6 @@ permissions:
           ac.command.timings:
             description: Enable timings for a certain period of time to see server performance with Esoteric
             default: op
+          ac.command.exempt:
+            description: Get access to exempt sub commands in Esoteric
+            default: op

@@ -25,6 +25,7 @@ use function str_repeat;
 use function strtolower;
 use function unserialize;
 use function var_export;
+use const PHP_EOL;
 
 class EsotericCommand extends Command implements PluginIdentifiableCommand {
 
@@ -196,6 +197,45 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings paste");
 						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings off");
 					}), $time * 20);
+				} else {
+					$sender->sendMessage($this->getPermissionMessage());
+				}
+				break;
+			case "exempt":
+				if ($sender->hasPermission("ac.command.exempt")) {
+					$sub = $args[1] ?? null;
+					if ($sub === null) {
+						$sender->sendMessage(TextFormat::RED . "Available sub commands: all, get, add");
+						return;
+					}
+					switch ($sub) {
+						case "all":
+							$sender->sendMessage(Esoteric::getInstance()->getSettings()->getPrefix() . " People that are exempted from Esoteric: " . implode(", ", Esoteric::getInstance()->exemptList));
+							break;
+						case "get":
+							$selected = $args[2] ?? null;
+							if ($selected === null) {
+								$sender->sendMessage(TextFormat::RED . "You need to specify a player to get the exempt status of");
+								return;
+							}
+							if (($player = Server::getInstance()->getPlayer($selected)) !== null) {
+								$selected = $player->getName();
+							}
+							$sender->sendMessage(in_array($selected, Esoteric::getInstance()->exemptList) ? TextFormat::GREEN . "$selected is exempt from Esoteric" : TextFormat::RED . "$selected is not exempt from Esoteric");
+							break;
+						case "add":
+							$selected = $args[2] ?? null;
+							if ($selected === null) {
+								$sender->sendMessage(TextFormat::RED . "You need to specify a player to exempt");
+								return;
+							}
+							if (($player = Server::getInstance()->getPlayer($selected)) !== null) {
+								$selected = $player->getName();
+							}
+							Esoteric::getInstance()->exemptList[] = $selected;
+							$sender->sendMessage(Esoteric::getInstance()->getSettings()->getPrefix() . TextFormat::GREEN . " $selected was exempted from Esoteric");
+							break;
+					}
 				} else {
 					$sender->sendMessage($this->getPermissionMessage());
 				}
