@@ -6,6 +6,8 @@ use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\Ray;
+use pocketmine\level\particle\DustParticle;
+use pocketmine\level\particle\FlameParticle;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
@@ -44,19 +46,20 @@ class RangeA extends Check {
 				} else {
 					$this->buffer = max($this->buffer - 0.04, 0);
 				}
-				if (!$data->isMobile && $locationData->isPlayer) {
+				if (!$data->isMobile) {
 					$ray = new Ray($data->attackPos, $data->directionVector);
 					$intersection = $AABB->calculateIntercept($ray->origin, $ray->traverse(7));
-					if ($intersection !== null && !$AABB->isVectorInside($data->attackPos) && !$AABB->intersectsWith($data->boundingBox)) {
+					$attackingAABB = AABB::fromPosition($data->attackPos->subtract(0, 1.62));
+					if ($intersection !== null && !$AABB->intersectsWith($attackingAABB)) {
 						$raycastDist = $intersection->getHitVector()->distance($data->attackPos);
-						if ($raycastDist > $this->option("max_dist", 3.01)) {
+						if ($raycastDist > $this->option("max_dist", 3.01) && $rawDistance >= 2.8) {
 							$flagged = true;
-							if (++$this->secondaryBuffer >= 3) {
+							if (++$this->secondaryBuffer >= 1.5) {
 								$this->flag($data, ["dist" => round($raycastDist, 3), "type" => "raycast"]);
 								$this->secondaryBuffer = min($this->secondaryBuffer, 3);
 							}
 						} else {
-							$this->secondaryBuffer = max($this->secondaryBuffer - 0.04, 0);
+							$this->secondaryBuffer = max($this->secondaryBuffer - 0.01, 0);
 						}
 					}
 				}

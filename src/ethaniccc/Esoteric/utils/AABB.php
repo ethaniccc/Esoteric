@@ -18,12 +18,6 @@ class AABB extends AxisAlignedBB {
 
 	public function __construct(float $minX, $minY, float $minZ, float $maxX, float $maxY, float $maxZ) {
 		parent::__construct($minX, $minY ?? 0.0, $minZ, $maxX, $maxY, $maxZ);
-		$this->minX = $minX;
-		$this->minY = $minY;
-		$this->minZ = $minZ;
-		$this->maxX = $maxX;
-		$this->maxY = $maxY;
-		$this->maxZ = $maxZ;
 		$this->minVector = new Vector3($this->minX, $this->minY, $this->minZ);
 		$this->maxVector = new Vector3($this->maxX, $this->maxY, $this->maxZ);
 	}
