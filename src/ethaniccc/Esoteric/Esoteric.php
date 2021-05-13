@@ -108,8 +108,8 @@ final class Esoteric {
 		$this->listener = new PMMPListener();
 		foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {
 			if ($interface instanceof RakLibInterface) {
-				$interface->shutdown();
 				Server::getInstance()->getNetwork()->unregisterInterface($interface);
+				$interface->shutdown();
 				$this->networkInterface = new CustomNetworkInterface(Server::getInstance());
 				Server::getInstance()->getNetwork()->registerInterface($this->networkInterface);
 				break;
