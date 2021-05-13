@@ -10,7 +10,10 @@ use pocketmine\level\Position;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\Player;
 use pocketmine\Server;
+use function array_shift;
+use function array_unique;
 use function count;
 
 /**
@@ -78,6 +81,7 @@ final class LocationMap {
 					$locationData->lastLocation = clone $location;
 					$locationData->receivedLocation = clone $location;
 					$locationData->history = new EvictingList(3);
+					$locationData->isPlayer = Server::getInstance()->findEntity($entityRuntimeId) instanceof Player;
 					$this->locations[$entityRuntimeId] = $locationData;
 				} else {
 					$locationData = $this->locations[$entityRuntimeId];
@@ -95,12 +99,16 @@ final class LocationMap {
 				unset($this->locations[$entityRuntimeId]);
 				unset($this->needSendArray[$entityRuntimeId]);
 			} else {
+				$locationData->levelHistory[] = ($level = $locationData->receivedLocation->level) === null ? -1 : $level->getId();
+				if (count($locationData->levelHistory) > 3) {
+					array_shift($locationData->levelHistory);
+				}
 				if ($locationData->newPosRotationIncrements > 0) {
 					$locationData->lastLocation = clone $locationData->currentLocation;
 					$locationData->currentLocation->x = ($locationData->currentLocation->x + (($locationData->receivedLocation->x - $locationData->currentLocation->x) / $locationData->newPosRotationIncrements));
 					$locationData->currentLocation->y = ($locationData->currentLocation->y + (($locationData->receivedLocation->y - $locationData->currentLocation->y) / $locationData->newPosRotationIncrements));
 					$locationData->currentLocation->z = ($locationData->currentLocation->z + (($locationData->receivedLocation->z - $locationData->currentLocation->z) / $locationData->newPosRotationIncrements));
-					$locationData->currentLocation->level = $entity->getLevel();
+					$locationData->currentLocation->level = ((count($locationData->levelHistory) - count(array_unique($locationData->levelHistory)) + 1) === count($locationData->levelHistory)) ? $entity->getLevel() : $locationData->lastLocation->getLevel();
 				} elseif ($locationData->newPosRotationIncrements === 0) {
 					// don't need to clone all the time... lol
 					$locationData->lastLocation = clone $locationData->currentLocation;

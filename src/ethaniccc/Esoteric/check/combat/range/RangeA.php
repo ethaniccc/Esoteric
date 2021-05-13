@@ -36,6 +36,7 @@ class RangeA extends Check {
 				$AABB = AABB::fromPosition($locationData->lastLocation, $locationData->hitboxWidth + 0.1001, $locationData->hitboxHeight + 0.1001);
 				$rawDistance = $AABB->distanceFromVector($data->attackPos);
 				if ($rawDistance > $this->option("max_raw", 3.05)) {
+					$flagged = true;
 					if (++$this->buffer >= 3) {
 						$this->flag($data, ["dist" => round($rawDistance, 3), "type" => "raw"]);
 						$this->buffer = min($this->buffer, 4.5);
@@ -43,12 +44,13 @@ class RangeA extends Check {
 				} else {
 					$this->buffer = max($this->buffer - 0.04, 0);
 				}
-				if (!$data->isMobile) {
+				if (!$data->isMobile && $locationData->isPlayer) {
 					$ray = new Ray($data->attackPos, $data->directionVector);
 					$intersection = $AABB->calculateIntercept($ray->origin, $ray->traverse(7));
 					if ($intersection !== null && !$AABB->isVectorInside($data->attackPos) && !$AABB->intersectsWith($data->boundingBox)) {
 						$raycastDist = $intersection->getHitVector()->distance($data->attackPos);
 						if ($raycastDist > $this->option("max_dist", 3.01)) {
+							$flagged = true;
 							if (++$this->secondaryBuffer >= 3) {
 								$this->flag($data, ["dist" => round($raycastDist, 3), "type" => "raycast"]);
 								$this->secondaryBuffer = min($this->secondaryBuffer, 3);
@@ -57,6 +59,9 @@ class RangeA extends Check {
 							$this->secondaryBuffer = max($this->secondaryBuffer - 0.04, 0);
 						}
 					}
+				}
+				if (!isset($flagged)) {
+					$this->reward(0.004);
 				}
 			}
 			$this->waiting = false;

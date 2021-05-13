@@ -23,5 +23,9 @@ final class LocationData {
 	public $history;
 	/** @var float */
 	public $hitboxWidth = 0.3, $hitboxHeight = 1.8;
+	/** @var bool */
+	public $isPlayer = false;
+	/** @var int[] */
+	public $levelHistory = [];
 
 }
