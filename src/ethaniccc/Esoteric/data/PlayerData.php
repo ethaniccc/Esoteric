@@ -15,6 +15,7 @@ use ethaniccc\Esoteric\check\misc\nuker\NukerA;
 use ethaniccc\Esoteric\check\misc\packets\PacketsA;
 use ethaniccc\Esoteric\check\misc\packets\PacketsB;
 use ethaniccc\Esoteric\check\misc\packets\PacketsC;
+use ethaniccc\Esoteric\check\misc\timer\TimerA;
 use ethaniccc\Esoteric\check\movement\fly\FlyA;
 use ethaniccc\Esoteric\check\movement\fly\FlyB;
 use ethaniccc\Esoteric\check\movement\fly\FlyC;
@@ -211,6 +212,7 @@ final class PlayerData {
 			new PacketsA(), new PacketsB(), new PacketsC(), # Packet checks
 			new EditionFakerA(), # EditionFaker checks
 			new NukerA(), # Nuker checks
+			new TimerA(),# Timer checks
 		];
 	}
 

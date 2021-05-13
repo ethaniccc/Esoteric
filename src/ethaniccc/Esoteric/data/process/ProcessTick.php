@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\data\process;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
+use ethaniccc\Esoteric\tasks\KickTask;
 use function count;
 use function floor;
 use function max;
@@ -32,14 +33,14 @@ class ProcessTick {
 			$timeoutSettings = Esoteric::getInstance()->getSettings()->getTimeoutSettings();
 			if ($timeoutSettings["enabled"]) {
 				if (count($this->waiting) >= $timeoutSettings["total_packets"] && ($tickDiff = max($this->waiting) - min($this->waiting)) >= $timeoutSettings["ticks"]) {
-					$data->player->sendMessage("diff=$tickDiff count=" . count($this->waiting));
-					//Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new KickTask($data->player, "Timed out (Contact a staff member if this issue persists)"));
+					//$data->player->sendMessage("diff=$tickDiff count=" . count($this->waiting));
+					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new KickTask($data->player, "Timed out (Contact a staff member if this issue persists)"));
 				}
 			} else {
 				$this->waiting = [];
 			}
 			$this->currentTimestamp = $this->nextTimestamp;
-			$this->nextTimestamp = mt_rand(1, 1000000000000000) * 1000;
+			$this->nextTimestamp = mt_rand(1, 100000000000) * 1000;
 		}
 	}
 

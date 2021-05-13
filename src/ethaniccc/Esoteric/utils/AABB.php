@@ -9,6 +9,7 @@ use pocketmine\math\RayTraceResult;
 use pocketmine\math\Vector3;
 use function max;
 use function sqrt;
+use function var_dump;
 
 class AABB extends AxisAlignedBB {
 
@@ -17,8 +18,7 @@ class AABB extends AxisAlignedBB {
 	public $minVector, $maxVector;
 
 	public function __construct(float $minX, $minY, float $minZ, float $maxX, float $maxY, float $maxZ) {
-		// TODO: Why is minY sometimes zero? Refer to issue
-		parent::__construct($minX, $minY ?? 0.0, $minZ, $maxX, $maxX, $maxZ);
+		parent::__construct($minX, $minY, $minZ, $maxX, $maxY, $maxZ);
 		$this->minX = $minX;
 		$this->minY = $minY;
 		$this->minZ = $minZ;
@@ -31,7 +31,7 @@ class AABB extends AxisAlignedBB {
 
 	public static function from(PlayerData $data): self {
 		$pos = $data->currentLocation;
-		return new AABB($pos->x - $data->hitboxHeight, $pos->y, $pos->z - $data->hitboxHeight, $pos->x + $data->hitboxHeight, $pos->y + $data->hitboxHeight, $pos->z + $data->hitboxHeight);
+		return new AABB($pos->x - $data->hitboxWidth, $pos->y, $pos->z - $data->hitboxWidth, $pos->x + $data->hitboxWidth, $pos->y + $data->hitboxHeight, $pos->z + $data->hitboxWidth);
 	}
 
 	public static function fromAxisAlignedBB(AxisAlignedBB $alignedBB): AABB {
