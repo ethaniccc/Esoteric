@@ -17,8 +17,7 @@ class AABB extends AxisAlignedBB {
 	public $minVector, $maxVector;
 
 	public function __construct(float $minX, $minY, float $minZ, float $maxX, float $maxY, float $maxZ) {
-		// TODO: Why is minY sometimes zero? Refer to issue
-		parent::__construct($minX, $minY ?? 0.0, $minZ, $maxX, $maxX, $maxZ);
+		parent::__construct($minX, $minY ?? 0.0, $minZ, $maxX, $maxY, $maxZ);
 		$this->minX = $minX;
 		$this->minY = $minY;
 		$this->minZ = $minZ;
