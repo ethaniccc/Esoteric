@@ -189,3 +189,10 @@ detections:
       punishment_type: kick
       max_vl: 2
       code: JPPM
+  # Timer detections
+  Timer:
+    A:
+      enabled: true
+      punishment_type: kick
+      max_vl: 5
+      code: Paradox
