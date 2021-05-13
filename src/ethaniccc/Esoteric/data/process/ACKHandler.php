@@ -16,9 +16,6 @@ class ACKHandler {
 	}
 
 	public function add(string $identifier, int $ackID, callable $receive): void {
-		if (!isset($this->list[$identifier])) {
-			$this->list[$identifier] = [];
-		}
 		$this->list[$identifier][$ackID] = $receive;
 	}
 
