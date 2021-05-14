@@ -112,17 +112,14 @@ class PMMPListener implements Listener {
 	public function inbound(DataPacketReceiveEvent $event): void {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
+		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
+		$playerData->inboundProcessor->execute($packet, $playerData);
 		if ($packet instanceof PlayerAuthInputPacket) {
 			$event->setCancelled();
 		}
-		if (in_array($player->getName(), Esoteric::getInstance()->exemptList)) {
+		if (in_array($player->getName(), Esoteric::getInstance()->exemptList) || $playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
 			return;
 		}
-		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
-		if ($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
-			return;
-		}
-		$playerData->inboundProcessor->execute($packet, $playerData);
 		foreach ($playerData->checks as $check) {
 			if ($check->enabled()) {
 				$check->getTimings()->startTiming();
