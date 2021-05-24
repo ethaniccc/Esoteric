@@ -345,7 +345,6 @@ final class ProcessInbound {
 				$checkAABB->minY -= MovementConstants::GROUND_MODULO * 2;
 				// ^ give more leniency if there's a possibility something may screw up when checking for block AABB's (fences, walls, etc.)
 				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL, 1, MovementConstants::GROUND_MODULO);
-				$data->player->sendMessage("the block below you is " . $data->world->getBlock($data->currentLocation->subtract(0, MovementConstants::GROUND_MODULO))->getName());
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
 				$data->blocksBelow = [];
