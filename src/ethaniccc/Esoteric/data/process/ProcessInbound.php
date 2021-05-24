@@ -46,9 +46,11 @@ use pocketmine\tile\Spawnable;
 use pocketmine\timings\TimingsHandler;
 use function abs;
 use function array_shift;
+use function ceil;
 use function count;
 use function floor;
 use function fmod;
+use function implode;
 use function in_array;
 use function round;
 use function var_dump;
@@ -340,9 +342,10 @@ final class ProcessInbound {
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
 				$checkAABB = $data->boundingBox->expandedCopy(0.5, 0, 0.5);
-				$checkAABB->minY -= ((abs($data->currentMoveDelta->y - $this->lastClientPrediction->y) > 0.005 && fmod(round($data->currentLocation->y, 4), MovementConstants::GROUND_MODULO) === 0.0)) ? 0.75 : 0.25;
+				$checkAABB->minY -= MovementConstants::GROUND_MODULO * 2;
 				// ^ give more leniency if there's a possibility something may screw up when checking for block AABB's (fences, walls, etc.)
-				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL);
+				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL, 1, MovementConstants::GROUND_MODULO);
+				$data->player->sendMessage("the block below you is " . $data->world->getBlock($data->currentLocation->subtract(0, MovementConstants::GROUND_MODULO))->getName());
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
 				$data->blocksBelow = [];
@@ -356,7 +359,7 @@ final class ProcessInbound {
 					if (!$data->isCollidedHorizontally) {
 						$data->isCollidedHorizontally = $block->isSolid() && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.5, -0.01, 0.5));
 					}
-					if ($block->y <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0.3, 0.05, 0.3))) {
+					if ($block->y <= ceil($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0.3, 0.05, 0.3))) {
 						$data->expectedOnGround = true;
 						$data->blocksBelow[] = $block;
 					}

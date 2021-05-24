@@ -18,7 +18,7 @@ Until this notice is removed, please refrain from using future Esoteric versions
 - [x] Banwaves - for the memes.
 - [x] Discord webhook alerts.
 - [x] Commands to edit alert delay, turn on/off alerts, and get player logs.
-- [ ] Create a functional exempt list for each detection.
+- [x] Create a functional exempt list
 
 ## Detections
 

@@ -19,25 +19,27 @@ final class LevelUtils {
 	 * @param AxisAlignedBB $AABB
 	 * @param VirtualWorld $world
 	 * @param int $searchOption
+	 * @param float $epsilonXZ
+	 * @param float $epsilonY
 	 * @param bool $first
 	 * @return Generator
 	 */
-	public static function checkBlocksInAABB(AxisAlignedBB $AABB, VirtualWorld $world, int $searchOption, bool $first = false): Generator {
-		$minX = (int) floor($AABB->minX);
-		$maxX = (int) ceil($AABB->maxX);
-		$minY = (int) floor($AABB->minY);
-		$maxY = (int) ceil($AABB->maxY);
-		$minZ = (int) floor($AABB->minZ);
-		$maxZ = (int) ceil($AABB->maxZ);
+	public static function checkBlocksInAABB(AxisAlignedBB $AABB, VirtualWorld $world, int $searchOption, float $epsilonXZ = 1, float $epsilonY = 1, bool $first = false): Generator {
+		$minX = floor($AABB->minX);
+		$maxX = ceil($AABB->maxX);
+		$minY = floor($AABB->minY);
+		$maxY = ceil($AABB->minY);
+		$minZ = floor($AABB->minZ);
+		$maxZ = ceil($AABB->maxZ);
 		$curr = $world->getBlockAt($minX, $minY, $minZ);
 		switch ($searchOption) {
 			case self::SEARCH_ALL:
 				yield $curr;
 				if ($first)
 					return;
-				for ($x = $minX; $x < $maxX; ++$x) {
-					for ($y = $minY; $y < $maxY; ++$y) {
-						for ($z = $minZ; $z < $maxZ; ++$z) {
+				for ($x = $minX; $x < $maxX; $x += $epsilonXZ) {
+					for ($y = $minY; $y < $maxY; $y += $epsilonY) {
+						for ($z = $minZ; $z < $maxZ; $z += $epsilonXZ) {
 							yield $world->getBlockAt($x, $y, $z);
 						}
 					}
@@ -49,9 +51,9 @@ final class LevelUtils {
 					if ($first)
 						return;
 				}
-				for ($x = $minX; $x < $maxX; ++$x) {
-					for ($y = $minY; $y < $maxY; ++$y) {
-						for ($z = $minZ; $z < $maxZ; ++$z) {
+				for ($x = $minX; $x < $maxX; $x += $epsilonXZ) {
+					for ($y = $minY; $y < $maxY; $y += $epsilonY) {
+						for ($z = $minZ; $z < $maxZ; $z += $epsilonXZ) {
 							$block = $world->getBlockAt($x, $y, $z);
 							if ($block->hasEntityCollision()) {
 								yield $block;
@@ -68,9 +70,9 @@ final class LevelUtils {
 					if ($first)
 						return;
 				}
-				for ($x = $minX; $x < $maxX; ++$x) {
-					for ($y = $minY; $y < $maxY; ++$y) {
-						for ($z = $minZ; $z < $maxZ; ++$z) {
+				for ($x = $minX; $x < $maxX; $x += $epsilonXZ) {
+					for ($y = $minY; $y < $maxY; $y += $epsilonY) {
+						for ($z = $minZ; $z < $maxZ; $z += $epsilonXZ) {
 							$block = $world->getBlockAt($x, $y, $z);
 							if ($block->isSolid() || $block instanceof UnknownBlock) {
 								yield $block;
