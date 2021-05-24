@@ -10,13 +10,12 @@ use function mt_rand;
 
 final class NetworkStackLatencyHandler {
 
+	private static $instance = null;
 	private $list = [];
 	private $currentTimestamp = [];
 
-	private static $instance = null;
-
-	public static function getInstance(): self{
-		if(self::$instance === null){
+	public static function getInstance(): self {
+		if (self::$instance === null) {
 			self::$instance = new self;
 		}
 		return self::$instance;

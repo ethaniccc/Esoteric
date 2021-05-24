@@ -4,13 +4,11 @@ namespace ethaniccc\Esoteric\check\combat\aim;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use function abs;
 use function max;
 use function round;
-use function var_export;
 
 class AimB extends Check {
 

@@ -16,13 +16,10 @@ use function explode;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
-use function intval;
 use function is_numeric;
 use function json_decode;
 use function json_encode;
 use function str_replace;
-use function var_dump;
-use const PHP_EOL;
 
 final class Banwave {
 

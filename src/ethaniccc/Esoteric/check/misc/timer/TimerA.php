@@ -26,7 +26,7 @@ class TimerA extends Check {
 				return;
 			}
 			$currentTime = microtime(true) * 1000;
-			if($this->lastTime === null){
+			if ($this->lastTime === null) {
 				$this->lastTime = $currentTime;
 				return;
 			}
@@ -37,7 +37,7 @@ class TimerA extends Check {
 			// add the time difference between the two packet (this should be near one tick - which evens out the subtraction of one)
 			$this->balance += $timeDiff;
 			// if the balance is too low (the time difference is usually less than one tick)
-			if($this->balance <= -5){
+			if ($this->balance <= -5) {
 				$this->flag($data);
 				$this->balance = 0;
 			}

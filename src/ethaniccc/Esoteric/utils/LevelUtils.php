@@ -5,9 +5,7 @@ namespace ethaniccc\Esoteric\utils;
 use ethaniccc\Esoteric\utils\world\VirtualWorld;
 use Generator;
 use pocketmine\block\UnknownBlock;
-use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Vector3;
 use function ceil;
 use function floor;
 

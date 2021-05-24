@@ -10,11 +10,8 @@ use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\Thread;
 use Threaded;
 use Volatile;
-use function count;
-use function memory_get_usage;
 use function microtime;
 use function usleep;
-use function var_dump;
 
 /**
  * Class DecompressLevelChunkThread
@@ -23,13 +20,11 @@ use function var_dump;
  */
 class DecompressLevelChunkThread extends Thread {
 
+	private const TPS = 50;
 	private static $callables = [];
 	private $currentID = 0;
-
 	private $queue;
 	private $results;
-
-	private const TPS = 50;
 
 	public function __construct() {
 		$this->queue = new Threaded();

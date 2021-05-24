@@ -3,15 +3,12 @@
 namespace ethaniccc\Esoteric\utils\world;
 
 use ethaniccc\Esoteric\Esoteric;
-use Generator;
 use pocketmine\block\Air;
 use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 use pocketmine\level\format\Chunk;
 use pocketmine\level\Level;
 use pocketmine\math\Vector3;
-use function strpos;
-use function var_dump;
 
 final class VirtualWorld {
 
@@ -27,8 +24,9 @@ final class VirtualWorld {
 		$this->chunks[Level::chunkHash($chunkX, $chunkZ)] = $chunk;
 	}
 
-	public function getChunk(int $chunkX, int $chunkZ): ?Chunk {
-		return $this->chunks[Level::chunkHash($chunkX, $chunkZ)] ?? null;
+	public function removeChunk(int $chunkX, int $chunkZ): void {
+		$this->chunks[Level::chunkHash($chunkX, $chunkZ)] = null;
+		unset($this->chunks[Level::chunkHash($chunkX, $chunkZ)]);
 	}
 
 	public function getChunkByHash(int $hash): ?Chunk {
@@ -40,11 +38,6 @@ final class VirtualWorld {
 	 */
 	public function getAllChunks(): array {
 		return $this->chunks;
-	}
-
-	public function removeChunk(int $chunkX, int $chunkZ): void {
-		$this->chunks[Level::chunkHash($chunkX, $chunkZ)] = null;
-		unset($this->chunks[Level::chunkHash($chunkX, $chunkZ)]);
 	}
 
 	public function removeChunkByHash(int $hash): void {
@@ -79,6 +72,10 @@ final class VirtualWorld {
 			return;
 		}
 		$chunk->setBlock($pos->x & 0x0f, $pos->y, $pos->z & 0x0f, $id, $meta);
+	}
+
+	public function getChunk(int $chunkX, int $chunkZ): ?Chunk {
+		return $this->chunks[Level::chunkHash($chunkX, $chunkZ)] ?? null;
 	}
 
 }

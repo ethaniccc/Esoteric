@@ -3,15 +3,12 @@
 namespace ethaniccc\Esoteric\check\misc\editionfaker;
 
 use ethaniccc\Esoteric\check\Check;
-use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\utils\EvictingList;
+use ethaniccc\Esoteric\Esoteric;
 use Exception;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
-use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
-use ethaniccc\Esoteric\Esoteric;
 use pocketmine\utils\TextFormat;
 use function base64_decode;
 use function explode;

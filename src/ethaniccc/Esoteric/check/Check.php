@@ -38,19 +38,6 @@ abstract class Check {
 	public $violations = 0;
 	public $buffer = 0;
 
-	public static function getDataString(array $data): string {
-		$dataString = "";
-		$n = count($data);
-		$i = 1;
-		foreach ($data as $name => $value) {
-			$dataString .= "$name=$value";
-			if ($i !== $n)
-				$dataString .= " ";
-			$i++;
-		}
-		return $dataString;
-	}
-
 	public function __construct(string $name, string $subType, string $description, bool $experimental = false) {
 		$this->name = $name;
 		$this->subType = $subType;
@@ -115,8 +102,51 @@ abstract class Check {
 		}
 	}
 
+	public static function getDataString(array $data): string {
+		$dataString = "";
+		$n = count($data);
+		$i = 1;
+		foreach ($data as $name => $value) {
+			$dataString .= "$name=$value";
+			if ($i !== $n)
+				$dataString .= " ";
+			$i++;
+		}
+		return $dataString;
+	}
+
 	public function getCodeName(): string {
 		return $this->option("code", "{$this->name}({$this->subType})");
+	}
+
+	private function sendAlertWebhook(string $player, string $debug): void {
+		$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
+		$webhookLink = $webhookSettings["link"];
+		$canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
+
+		if (!$canSend) {
+			return;
+		}
+
+		$message = new Message();
+		$message->setContent("");
+
+		$embed = new Embed();
+		$embed->setTitle("Anti-cheat alert");
+		$embed->setColor(0xFFC300);
+		$embed->setFooter((new DateTime('now'))->format("m/d/y @ h:m:s A"));
+		$embed->setDescription("
+		Player: **`$player`**
+		Violations: **`{$this->violations}`**
+		Codename: **`{$this->getCodeName()}`**
+		Detection name: **`{$this->name} ({$this->subType})`**
+		Debug data: **`$debug`**
+		");
+
+		$message->addEmbed($embed);
+
+		$webhook = new Webhook($webhookLink, $message);
+		$webhook->send();
 	}
 
 	protected function warn(PlayerData $data, array $extraData): void {
@@ -152,7 +182,7 @@ abstract class Check {
 			$string = str_replace(["{prefix}", "{code}", "{expires}"], [$esoteric->getSettings()->getPrefix(), $this->getCodeName(), $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], $esoteric->getSettings()->getBanMessage());
 			$esoteric->getPlugin()->getScheduler()->scheduleTask(new BanTask($data->player, $string, $expiration));
 			$this->sendPunishmentWebhook($data->player->getName(), "ban");
-			if(($bc = $esoteric->getSettings()->getBanBroadcast()) !== "none") {
+			if (($bc = $esoteric->getSettings()->getBanBroadcast()) !== "none") {
 				$esoteric->getServer()->broadcastMessage(str_replace(["{prefix}", "{player}", "{check_name}", "{code_name}", "{violations}", "{expires}"], [$esoteric->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->getCodeName(), $this->violations, $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], $bc));
 			}
 		} elseif ($this->option("punishment_type") === "kick") {
@@ -160,42 +190,12 @@ abstract class Check {
 			$string = str_replace(["{prefix}", "{code}"], [$esoteric->getSettings()->getPrefix(), $this->getCodeName()], $esoteric->getSettings()->getKickMessage());
 			$esoteric->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, $string), 1);
 			$this->sendPunishmentWebhook($data->player->getName(), "kick");
-			if(($bc = $esoteric->getSettings()->getKickBroadcast()) !== "none") {
+			if (($bc = $esoteric->getSettings()->getKickBroadcast()) !== "none") {
 				$esoteric->getServer()->broadcastMessage(str_replace(["{prefix}", "{player}", "{check_name}", "{code_name}", "{violations}"], [$esoteric->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->getCodeName(), $this->violations], $bc));
 			}
 		} else {
 			$this->violations = 0;
 		}
-	}
-
-	private function sendAlertWebhook(string $player, string $debug): void {
-		$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
-		$webhookLink = $webhookSettings["link"];
-		$canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
-
-		if (!$canSend) {
-			return;
-		}
-
-		$message = new Message();
-		$message->setContent("");
-
-		$embed = new Embed();
-		$embed->setTitle("Anti-cheat alert");
-		$embed->setColor(0xFFC300);
-		$embed->setFooter((new DateTime('now'))->format("m/d/y @ h:m:s A"));
-		$embed->setDescription("
-		Player: **`$player`**
-		Violations: **`{$this->violations}`**
-		Codename: **`{$this->getCodeName()}`**
-		Detection name: **`{$this->name} ({$this->subType})`**
-		Debug data: **`$debug`**
-		");
-
-		$message->addEmbed($embed);
-
-		$webhook = new Webhook($webhookLink, $message);
-		$webhook->send();
 	}
 
 	private function sendPunishmentWebhook(string $player, string $type): void {

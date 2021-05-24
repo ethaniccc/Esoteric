@@ -175,10 +175,10 @@ final class PlayerData {
 	public $blockBroken;
 	/** @var bool */
 	public $isFullKeyboardGameplay = true;
-	/** @var int[] */
-	private $ticks = [];
 	/** @var VirtualWorld */
 	public $world;
+	/** @var int[] */
+	private $ticks = [];
 
 	public function __construct(Player $player) {
 		if (self::$ZERO_VECTOR === null) {

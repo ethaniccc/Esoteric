@@ -14,9 +14,6 @@ use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
-use ethaniccc\Esoteric\utils\Pair;
-use Ev;
-use Exception;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
@@ -47,16 +44,11 @@ use pocketmine\tile\Spawnable;
 use pocketmine\timings\TimingsHandler;
 use function abs;
 use function array_shift;
-use function base64_decode;
 use function count;
-use function explode;
 use function floor;
 use function fmod;
-use function implode;
 use function in_array;
-use function json_decode;
 use function round;
-use function var_export;
 
 final class ProcessInbound {
 
@@ -124,7 +116,7 @@ final class ProcessInbound {
 				$this->yawRotationSamples->add($data->currentYawDelta);
 				if ($this->yawRotationSamples->full()) {
 					$count = 0;
-					$this->yawRotationSamples->iterate(static function (float $delta) use(&$count): void {
+					$this->yawRotationSamples->iterate(static function (float $delta) use (&$count): void {
 						$fullKeyboardSens = round(round($delta, 2) * MovementConstants::FULL_KEYBOARD_ROTATION_MULTIPLIER, 3);
 						if (fmod($fullKeyboardSens, 1) <= 1E-7) {
 							++$count;
@@ -139,7 +131,7 @@ final class ProcessInbound {
 				$this->pitchRotationSamples->add($data->currentPitchDelta);
 				if ($this->pitchRotationSamples->full()) {
 					$count = 0;
-					$this->pitchRotationSamples->iterate(static function (float $delta) use(&$count): void {
+					$this->pitchRotationSamples->iterate(static function (float $delta) use (&$count): void {
 						$fullKeyboardSens = round(round($delta, 2) * MovementConstants::FULL_KEYBOARD_ROTATION_MULTIPLIER, 3);
 						if (fmod($fullKeyboardSens, 1) <= 1E-7) {
 							++$count;

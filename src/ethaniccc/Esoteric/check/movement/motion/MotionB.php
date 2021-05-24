@@ -26,8 +26,7 @@ class MotionB extends Check {
 				$prediction += 0.3;
 			}
 			$diff = $currentXZ - $prediction;
-			if ($diff > 0.00001 && $data->ticksSinceMotion > 3 && $data->ticksSinceInCobweb >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInLiquid >= 10 && $currentXZ > 0 && $lastXZ > 0 && !$data->teleported
-				&& !$data->isInVoid) {
+			if ($diff > 0.00001 && $data->ticksSinceMotion > 3 && $data->ticksSinceInCobweb >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInLiquid >= 10 && $currentXZ > 0 && $lastXZ > 0 && !$data->teleported && !$data->isInVoid) {
 				if (++$this->buffer >= 2) {
 					$this->flag($data, ["diff" => round($diff, 5),]);
 					$this->setback($data);
