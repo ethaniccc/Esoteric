@@ -20,7 +20,7 @@ use function usleep;
  */
 class DecompressLevelChunkThread extends Thread {
 
-	private const TPS = 50;
+	private const TPS = 40;
 	private static $callables = [];
 	private $currentID = 0;
 	private $queue;

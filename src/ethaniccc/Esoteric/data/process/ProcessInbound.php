@@ -13,6 +13,7 @@ use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
+use ethaniccc\Esoteric\utils\MovementUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\block\Block;
 use pocketmine\block\Cobweb;
@@ -23,6 +24,7 @@ use pocketmine\block\Vine;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
 use pocketmine\level\Location;
+use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\BatchPacket;
@@ -49,6 +51,7 @@ use function floor;
 use function fmod;
 use function in_array;
 use function round;
+use function var_dump;
 
 final class ProcessInbound {
 
@@ -67,7 +70,8 @@ final class ProcessInbound {
 	/** @var Block[] */
 	public $placedBlocks = [];
 
-	private $lastPredictedY = 0.0;
+	/** @var Vector3 */
+	private $lastClientPrediction;
 	private $yawRotationSamples, $pitchRotationSamples;
 
 	public function __construct() {
@@ -81,6 +85,7 @@ final class ProcessInbound {
 		}
 		$this->yawRotationSamples = new EvictingList(10);
 		$this->pitchRotationSamples = new EvictingList(10);
+		$this->lastClientPrediction = new Vector3(0, -0.08 * 0.98, 0);
 	}
 
 	public function execute(DataPacket $packet, PlayerData $data): void {
@@ -214,6 +219,12 @@ final class ProcessInbound {
 				$pk->face = $data->player->getDirection();
 				$data->player->handlePlayerAction($pk);
 			}
+			if (InputConstants::hasFlag($packet, InputConstants::START_GLIDING)) {
+				$data->isGliding = true;
+			}
+			if (InputConstants::hasFlag($packet, InputConstants::STOP_GLIDING)) {
+				$data->isGliding = false;
+			}
 
 			if ($packet->blockActions !== null) {
 				foreach ($packet->blockActions as $action) {
@@ -329,7 +340,7 @@ final class ProcessInbound {
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
 				$checkAABB = $data->boundingBox->expandedCopy(0.5, 0, 0.5);
-				$checkAABB->minY -= ((abs($data->currentMoveDelta->y - $this->lastPredictedY) > 0.005 && fmod(round($data->currentLocation->y, 4), MovementConstants::GROUND_MODULO) === 0.0)) ? 0.75 : 0.25;
+				$checkAABB->minY -= ((abs($data->currentMoveDelta->y - $this->lastClientPrediction->y) > 0.005 && fmod(round($data->currentLocation->y, 4), MovementConstants::GROUND_MODULO) === 0.0)) ? 0.75 : 0.25;
 				// ^ give more leniency if there's a possibility something may screw up when checking for block AABB's (fences, walls, etc.)
 				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL);
 				$data->expectedOnGround = false;
@@ -367,7 +378,7 @@ final class ProcessInbound {
 				if ($climbable > 0)
 					$data->ticksSinceInClimbable = 0; else ++$data->ticksSinceInClimbable;
 				self::$collisionTimings->stopTiming();
-				$expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
+				$expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::NORMAL_GRAVITY) * MovementConstants::GRAVITY_MULTIPLICATION;
 				$actualMoveY = $data->currentMoveDelta->y;
 				$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
 				$flag2 = $expectedMoveY < 0;
@@ -375,7 +386,7 @@ final class ProcessInbound {
 				$AABB1->minY = $data->boundingBox->maxY - 0.4;
 				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && count($data->player->getLevel()->getCollisionBlocks($AABB1, true)) !== 0;
 				$data->isCollidedVertically = $flag1;
-				$predictedMoveY = $this->lastPredictedY;
+				$predictedMoveY = $this->lastClientPrediction->y;
 				if ($data->ticksSinceMotion === 0) {
 					$predictedMoveY = $data->motion->y;
 				}
@@ -388,6 +399,14 @@ final class ProcessInbound {
 
 				if ($data->ticksSinceTeleport <= 1) {
 					$data->onGround = true;
+				}
+
+				if ($data->onGround && $data->isGliding) {
+					/**
+					 * This happens because sometimes the bloody client decides to not give a STOP_GLIDE flag in PlayerAuthInputPacket.
+					 * FFS microjang, fix your broken game....
+					 */
+					$data->isGliding = false;
 				}
 			}
 
@@ -479,13 +498,18 @@ final class ProcessInbound {
 			} else {
 				$data->ticksSinceSpawn = 0;
 			}
+			if ($data->isGliding) {
+				$data->ticksSinceGlide = 0;
+			} else {
+				++$data->ticksSinceGlide;
+			}
 
 			$data->moveForward = $packet->getMoveVecZ() * 0.98;
 			$data->moveStrafe = $packet->getMoveVecX() * 0.98;
 
 			$data->isInVoid = $location->y <= -35;
 
-			$this->lastPredictedY = $packet->getDelta()->y;
+			$this->lastClientPrediction = $packet->getDelta();
 			$data->tick();
 		} elseif ($packet instanceof InventoryTransactionPacket) {
 			self::$inventoryTransactionTimings->startTiming();

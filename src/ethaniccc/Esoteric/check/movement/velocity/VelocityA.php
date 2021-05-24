@@ -25,7 +25,7 @@ class VelocityA extends Check {
 			}
 
 			if ($this->yMotion > 0.005) {
-				if ($data->hasBlockAbove || $data->immobile || !$data->isAlive || $data->teleported || $data->isInVoid) {
+				if ($data->hasBlockAbove || $data->immobile || !$data->isAlive || $data->teleported || $data->isInVoid || $data->ticksSinceGlide < 3) {
 					$this->yMotion = 0.0;
 					$this->buffer = 0;
 					return;
@@ -42,7 +42,7 @@ class VelocityA extends Check {
 					$this->reward();
 				}
 
-				$this->yMotion = ($this->yMotion - 0.08) * MovementConstants::Y_MULTIPLICATION;
+				$this->yMotion = ($this->yMotion - 0.08) * MovementConstants::GRAVITY_MULTIPLICATION;
 			}
 		}
 	}

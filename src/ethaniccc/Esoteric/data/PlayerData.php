@@ -22,6 +22,7 @@ use ethaniccc\Esoteric\check\movement\fly\FlyC;
 use ethaniccc\Esoteric\check\movement\motion\MotionA;
 use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\motion\MotionC;
+use ethaniccc\Esoteric\check\movement\motion\MotionD;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
@@ -121,6 +122,10 @@ final class PlayerData {
 	public $ticksSinceInLiquid = 0, $ticksSinceInCobweb = 0, $ticksSinceInClimbable = 0;
 	/** @var int - Movements passed since the user teleported. */
 	public $ticksSinceTeleport = 0;
+	/** @var bool */
+	public $isGliding = false;
+	/** @var int */
+	public $ticksSinceGlide = 0;
 	/** @var bool - Boolean value for if the player is in the void. */
 	public $isInVoid = false;
 	/** @var bool */
@@ -209,7 +214,7 @@ final class PlayerData {
 			new KillAuraA(), new KillAuraB(), # Killaura checks
 			new RangeA(), # Range checks
 			new FlyA(), new FlyB(), new FlyC(), # Fly checks
-			new MotionA(), new MotionB(), new MotionC(), # Motion checks
+			new MotionA(), new MotionB(), new MotionC(), new MotionD(), # Motion checks
 			new VelocityA(), # Velocity checks
 			new PacketsA(), new PacketsB(), new PacketsC(), # Packet checks
 			new EditionFakerA(), # EditionFaker checks
