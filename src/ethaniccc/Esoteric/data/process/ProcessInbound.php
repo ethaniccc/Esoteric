@@ -52,6 +52,7 @@ use function count;
 use function explode;
 use function floor;
 use function fmod;
+use function implode;
 use function in_array;
 use function json_decode;
 use function round;
@@ -99,7 +100,9 @@ final class ProcessInbound {
 				array_shift($data->packetDeltas);
 			}
 			$location = Location::fromObject($packet->getPosition()->subtract(0, 1.62, 0), $data->player->getLevel(), $packet->getYaw(), $packet->getPitch());
-			$data->inLoadedChunk = $data->chunkSendPosition->distance($data->currentLocation->floor()) <= $data->player->getViewDistance() * 16;
+			$floor = $location->floor();
+			$currentChunk = $data->world->getChunk($floor->x >> 4, $floor->z >> 4);
+			$data->inLoadedChunk = $currentChunk !== null;
 			$data->teleported = false;
 			$data->hasMovementSuppressed = false;
 			$data->lastLocation = clone $data->currentLocation;
@@ -146,7 +149,6 @@ final class ProcessInbound {
 					$this->pitchRotationSamples->clear();
 				}
 			}
-			//$data->player->sendMessage("fullKeyboardGameplay=" . var_export($data->isFullKeyboardGameplay, true));
 			$data->boundingBox = AABB::from($data);
 			$data->directionVector = MathUtils::directionVectorFromValues($data->currentYaw, $data->currentPitch);
 			$validMovement = $data->currentMoveDelta->lengthSquared() >= MovementConstants::MOVEMENT_THRESHOLD_SQUARED;
@@ -326,11 +328,18 @@ final class ProcessInbound {
 				}
 			}
 
+			if ($data->teleported) {
+				$data->onGround = true;
+			}
+
 			if ($validMovement) {
 				self::$collisionTimings->startTiming();
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
-				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), $location->getLevel(), LevelUtils::SEARCH_ALL, false);
+				$checkAABB = $data->boundingBox->expandedCopy(0.5, 0, 0.5);
+				$checkAABB->minY -= ((abs($data->currentMoveDelta->y - $this->lastPredictedY) > 0.005 && fmod(round($data->currentLocation->y, 4), MovementConstants::GROUND_MODULO) === 0.0)) ? 0.75 : 0.25;
+				// ^ give more leniency if there's a possibility something may screw up when checking for block AABB's (fences, walls, etc.)
+				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL);
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
 				$data->blocksBelow = [];
@@ -437,6 +446,7 @@ final class ProcessInbound {
 							$data->player->teleport($realBlock->asPosition()->add(0.5, 0, 0.5));
 						}
 						$handler->forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
+							$data->world->setBlock($realBlock->asVector3(), $realBlock->getId(), $realBlock->getDamage());
 							foreach ($this->placedBlocks as $key => $vector) {
 								if ($vector->equals($realBlock->asVector3())) {
 									unset($this->placedBlocks[$key]);
@@ -495,27 +505,35 @@ final class ProcessInbound {
 				$data->attackPos = $trData->getPlayerPos();
 				$this->click($data);
 			} elseif ($trData instanceof UseItemTransactionData) {
-				$clickedBlockPos = $trData->getBlockPos();
-				$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
-				$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
-				if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks) {
-					$block = $trData->getItemInHand()->getItemStack()->getBlock();
-					if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
-						$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
-					}
-					foreach ($this->placedBlocks as $k => $other) {
-						if ($other->asVector3()->equals($blockToReplace->asVector3())) {
-							return;
+				if ($trData->getActionType() === UseItemTransactionData::ACTION_CLICK_BLOCK) {
+					$clickedBlockPos = $trData->getBlockPos();
+					$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
+					$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
+					if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks) {
+						$block = $trData->getItemInHand()->getItemStack()->getBlock();
+						if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
+							$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
+						}
+						foreach ($this->placedBlocks as $other) {
+							if ($other->asVector3()->equals($blockToReplace->asVector3())) {
+								return;
+							}
+						}
+						if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
+							$block->position($blockToReplace->asPosition());
+							$data->world->setBlock($block->asVector3(), $block->getId(), $block->getDamage());
+							$blockAABB = AABB::fromBlock($block);
+							if ((!$block instanceof UnknownBlock || $block->isSolid() && !$block->isTransparent()) /* <- so let's talk about that.... */ && $blockAABB->intersectsWith($data->boundingBox->expandedCopy(0.01, 0.01, 0.01))) {
+								return;
+							}
+							$this->placedBlocks[] = clone $block;
 						}
 					}
-					if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
-						$block->position($blockToReplace->asPosition());
-						$blockAABB = AABB::fromBlock($block);
-						if ((!$block instanceof UnknownBlock || $block->isSolid() && !$block->isTransparent()) /* <- so let's talk about that.... */ && $blockAABB->intersectsWith($data->boundingBox->expandedCopy(0.01, 0.01, 0.01))) {
-							return;
-						}
-						$this->placedBlocks[] = clone $block;
-					}
+				} elseif ($trData->getActionType() === UseItemTransactionData::ACTION_BREAK_BLOCK) {
+					// the client removes the broken block on it's side, when it receives an update from the server,
+					// it will determine if the block should be placed back, or if particles show and the block is set to air
+					// if BlockBreakEvent is cancelled, OutboundProcessor should catch a block update
+					$data->world->setBlock($trData->getBlockPos(), 0, 0);
 				}
 			}
 			self::$inventoryTransactionTimings->stopTiming();

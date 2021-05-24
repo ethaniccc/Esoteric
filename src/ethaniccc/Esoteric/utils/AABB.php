@@ -16,8 +16,8 @@ class AABB extends AxisAlignedBB {
 	public $maxX, $maxY, $maxZ;
 	public $minVector, $maxVector;
 
-	public function __construct(float $minX, $minY, float $minZ, float $maxX, float $maxY, float $maxZ) {
-		parent::__construct($minX, $minY ?? 0.0, $minZ, $maxX, $maxY, $maxZ);
+	public function __construct(float $minX, float $minY, float $minZ, float $maxX, float $maxY, float $maxZ) {
+		parent::__construct($minX, $minY, $minZ, $maxX, $maxY, $maxZ);
 		$this->minVector = new Vector3($this->minX, $this->minY, $this->minZ);
 		$this->maxVector = new Vector3($this->maxX, $this->maxY, $this->maxZ);
 	}
@@ -35,6 +35,12 @@ class AABB extends AxisAlignedBB {
 		return new AABB($pos->x - $width, $pos->y, $pos->z - $width, $pos->x + $width, $pos->y + $height, $pos->z + $width);
 	}
 
+	/**
+	 * @param Block $block
+	 * @return AABB
+	 * @author senqai / senpayeh
+	 * @link https://github.com/senqai/Sirius/blob/master/src/senpayeh/api/sirius/utils/blockbox/BlockBoxManager.php#L36
+	 */
 	public static function fromBlock(Block $block): AABB {
 		$b = $block->getBoundingBox();
 		if ($b !== null) {

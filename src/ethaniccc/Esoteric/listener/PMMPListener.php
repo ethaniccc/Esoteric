@@ -2,6 +2,8 @@
 
 namespace ethaniccc\Esoteric\listener;
 
+use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use LogicException;
@@ -12,6 +14,7 @@ use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\level\format\Chunk;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -29,9 +32,12 @@ use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\Binary;
 use pocketmine\utils\TextFormat;
 use RuntimeException;
+use function array_keys;
 use function count;
 use function in_array;
+use function microtime;
 use function round;
+use function spl_object_id;
 use function str_replace;
 use function strlen;
 use function strtolower;
@@ -47,6 +53,9 @@ class PMMPListener implements Listener {
 	public $checkTimings;
 	public $sendTimings;
 	public $decodingTimings;
+
+	/** @var PlayerData[][] */
+	public $levelChunkReceivers = [];
 
 	public function __construct() {
 		$this->checkTimings = new TimingsHandler("Esoteric Checks");
@@ -85,6 +94,13 @@ class PMMPListener implements Listener {
 					$message = "";
 				}
 				$message .= TextFormat::YELLOW . $checkData["full_name"] . TextFormat::WHITE . " - " . $checkData["description"] . TextFormat::GRAY . " (" . TextFormat::RED . "x" . var_export(round($checkData["violations"], 3), true) . TextFormat::GRAY . ")" . PHP_EOL;
+			}
+		}
+		foreach ($this->levelChunkReceivers as $id => $queue) {
+			foreach ($queue as $key => $other) {
+				if ($other->hash === $data->hash) {
+					unset($this->levelChunkReceivers[$id][$key]);
+				}
 			}
 		}
 		Esoteric::getInstance()->logCache[strtolower($event->getPlayer()->getName())] = $message === null ? TextFormat::GREEN . "This player has no logs" : $message;
@@ -148,6 +164,26 @@ class PMMPListener implements Listener {
 		}
 		if ($packet instanceof BatchPacket) {
 			$this->sendTimings->startTiming();
+			if ($packet->getCompressionLevel() > 0) {
+				$id = spl_object_id($packet);
+				if (!isset($this->levelChunkReceivers[$id])) {
+					Esoteric::getInstance()->chunkThread->queue($packet, function ($chunks) use ($id) {
+						foreach ($chunks as $chunk) {
+							foreach ($this->levelChunkReceivers[$id] as $data) {
+								if ($data->loggedIn) {
+									NetworkStackLatencyHandler::getInstance()->send($data, NetworkStackLatencyHandler::getInstance()->next($data), function (int $timestamp) use ($data, $chunk): void {
+										$data->world->addChunk(clone $chunk);
+									});
+								} else {
+									$data->world->addChunk(clone $chunk);
+								}
+							}
+						}
+						unset($this->levelChunkReceivers[$id]);
+					});
+				}
+				$this->levelChunkReceivers[$id][] = $playerData;
+			}
 			$gen = PacketUtils::getAllInBatch($packet);
 			foreach ($gen as $buff) {
 				$pk = PacketPool::getPacket($buff);
@@ -207,6 +243,10 @@ class PMMPListener implements Listener {
 			$data = Esoteric::getInstance()->dataManager->get($entity);
 			if ($data !== null) {
 				$data->inLoadedChunk = false;
+				$chunkKeys = array_keys($data->world->getAllChunks());
+				foreach ($chunkKeys as $key) {
+					$data->world->removeChunkByHash($key);
+				}
 			}
 		}
 	}

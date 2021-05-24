@@ -15,6 +15,7 @@ class TickingTask extends Task {
 				return !$data->player->isClosed() && $data->hasAlerts && $data->player->hasPermission("ac.alerts");
 			});
 		}
+		Esoteric::getInstance()->chunkThread->executeResults();
 		foreach (Esoteric::getInstance()->dataManager->getAll() as $playerData) {
 			$playerData->tickProcessor->execute($playerData);
 		}

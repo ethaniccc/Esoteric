@@ -31,6 +31,7 @@ use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
+use ethaniccc\Esoteric\utils\world\VirtualWorld;
 use pocketmine\block\Block;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
@@ -176,7 +177,8 @@ final class PlayerData {
 	public $isFullKeyboardGameplay = true;
 	/** @var int[] */
 	private $ticks = [];
-
+	/** @var VirtualWorld */
+	public $world;
 
 	public function __construct(Player $player) {
 		if (self::$ZERO_VECTOR === null) {
@@ -199,6 +201,8 @@ final class PlayerData {
 
 		$this->alertCooldown = Esoteric::getInstance()->getSettings()->getAlertCooldown();
 		$this->lastAlertTime = microtime(true);
+
+		$this->world = new VirtualWorld();
 
 		$this->checks = [new AimA(), new AimB(), # Aim checks
 			new AutoClickerA(), new AutoClickerB(), # Autoclicker checks

@@ -4,8 +4,10 @@ namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
+use pocketmine\block\BlockFactory;
 use pocketmine\entity\Attribute;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
@@ -20,6 +22,8 @@ use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\timings\TimingsHandler;
+use function abs;
+use function array_keys;
 
 class ProcessOutbound {
 
@@ -50,6 +54,10 @@ class ProcessOutbound {
 					break;
 				}
 			}
+			$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $packet): void {
+				$real = RuntimeBlockMapping::fromStaticRuntimeId($packet->blockRuntimeId);
+				$data->world->setBlock(new Vector3($packet->x, $packet->y, $packet->z), $real[0], 0); // ignore meta - wtf is going on??
+			});
 		} elseif ($packet instanceof SetActorMotionPacket && $packet->entityRuntimeId === $data->player->getId()) {
 			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $packet): void {
 				$data->motion = $packet->motion;
@@ -113,18 +121,17 @@ class ProcessOutbound {
 				}) : $data->hitboxHeight = $hitboxHeight;
 			}
 		} elseif ($packet instanceof NetworkChunkPublisherUpdatePacket) {
-			if (!$data->loggedIn) {
-				$data->inLoadedChunk = true;
+			$handler->send($data, $handler->next($data), function (int $timestamp) use ($packet, $data): void {
 				$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
-			} else {
-				if ($data->chunkSendPosition->distance($data->currentLocation->floor()) > $data->player->getViewDistance() * 16) {
-					$data->inLoadedChunk = false;
-					$handler->send($data, $handler->next($data), function (int $timestamp) use ($packet, $data): void {
-						$data->inLoadedChunk = true;
-						$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
-					});
+				$radius = $packet->radius >> 4;
+				$chunkX = $data->chunkSendPosition->x >> 4;
+				$chunkZ = $data->chunkSendPosition->z >> 4;
+				foreach ($data->world->getAllChunks() as $chunk) {
+					if (abs($chunk->getX() - $chunkX) > $radius || abs($chunk->getZ() - $chunkZ) > $radius) {
+						$data->world->removeChunk($chunk->getX(), $chunk->getZ());
+					}
 				}
-			}
+			});
 		} elseif ($packet instanceof AdventureSettingsPacket) {
 			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($packet, $data): void {
 				$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);

@@ -22,13 +22,13 @@ final class NetworkStackLatencyHandler {
 		return self::$instance;
 	}
 
-	public function next(PlayerData $data, bool $needsResponse = true): NetworkStackLatencyPacket {
+	public function next(PlayerData $data): NetworkStackLatencyPacket {
 		if (!isset($this->currentTimestamp[$data->hash])) {
 			$this->currentTimestamp[$data->hash] = 0;
 		}
 		$this->currentTimestamp[$data->hash] += mt_rand(1, 10) * 1000;
 		$pk = new NetworkStackLatencyPacket();
-		$pk->needResponse = $needsResponse;
+		$pk->needResponse = true;
 		$pk->timestamp = $this->currentTimestamp[$data->hash];
 		return $pk;
 	}

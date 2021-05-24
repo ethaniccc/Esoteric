@@ -6,13 +6,12 @@
 
 Esoteric is another anti-cheat made for PocketMine-MP. Compared to Mockingbird, this has more checks
 I'm deciding to not disclose to the public.
+
+**NOTICE: Esoteric is now currently in an experimental state - performance may degrade.
+Until this notice is removed, please refrain from using future Esoteric versions on big production servers.**
  
 ## Supported Versions
-
-The versions this anti-cheat currently supports are 1.16.220.
-
-**Protocol List:**
-- 431
+- 431 (1.16.220+)
 
 ## Planned Features
 

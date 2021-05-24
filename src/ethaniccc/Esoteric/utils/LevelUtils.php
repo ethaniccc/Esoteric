@@ -2,10 +2,12 @@
 
 namespace ethaniccc\Esoteric\utils;
 
+use ethaniccc\Esoteric\utils\world\VirtualWorld;
 use Generator;
 use pocketmine\block\UnknownBlock;
 use pocketmine\level\Level;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Vector3;
 use function ceil;
 use function floor;
 
@@ -17,19 +19,19 @@ final class LevelUtils {
 
 	/**
 	 * @param AxisAlignedBB $AABB
-	 * @param Level $level
+	 * @param VirtualWorld $world
 	 * @param int $searchOption
 	 * @param bool $first
 	 * @return Generator
 	 */
-	public static function checkBlocksInAABB(AxisAlignedBB $AABB, Level $level, int $searchOption, bool $first = false): Generator {
+	public static function checkBlocksInAABB(AxisAlignedBB $AABB, VirtualWorld $world, int $searchOption, bool $first = false): Generator {
 		$minX = (int) floor($AABB->minX);
 		$maxX = (int) ceil($AABB->maxX);
 		$minY = (int) floor($AABB->minY);
 		$maxY = (int) ceil($AABB->maxY);
 		$minZ = (int) floor($AABB->minZ);
 		$maxZ = (int) ceil($AABB->maxZ);
-		$curr = $level->getBlockAt($minX, $minY, $minZ);
+		$curr = $world->getBlockAt($minX, $minY, $minZ);
 		switch ($searchOption) {
 			case self::SEARCH_ALL:
 				yield $curr;
@@ -38,7 +40,7 @@ final class LevelUtils {
 				for ($x = $minX; $x < $maxX; ++$x) {
 					for ($y = $minY; $y < $maxY; ++$y) {
 						for ($z = $minZ; $z < $maxZ; ++$z) {
-							yield $level->getBlockAt($x, $y, $z, false, false);
+							yield $world->getBlockAt($x, $y, $z);
 						}
 					}
 				}
@@ -52,7 +54,7 @@ final class LevelUtils {
 				for ($x = $minX; $x < $maxX; ++$x) {
 					for ($y = $minY; $y < $maxY; ++$y) {
 						for ($z = $minZ; $z < $maxZ; ++$z) {
-							$block = $level->getBlockAt($x, $y, $z, false, false);
+							$block = $world->getBlockAt($x, $y, $z);
 							if ($block->hasEntityCollision()) {
 								yield $block;
 								if ($first)
@@ -71,7 +73,7 @@ final class LevelUtils {
 				for ($x = $minX; $x < $maxX; ++$x) {
 					for ($y = $minY; $y < $maxY; ++$y) {
 						for ($z = $minZ; $z < $maxZ; ++$z) {
-							$block = $level->getBlockAt($x, $y, $z, false, false);
+							$block = $world->getBlockAt($x, $y, $z);
 							if ($block->isSolid() || $block instanceof UnknownBlock) {
 								yield $block;
 								if ($first)
@@ -80,6 +82,7 @@ final class LevelUtils {
 						}
 					}
 				}
+				return; // don't you dare mention this line
 		}
 	}
 

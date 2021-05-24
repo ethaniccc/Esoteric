@@ -10,6 +10,7 @@ use ethaniccc\Esoteric\listener\PMMPListener;
 use ethaniccc\Esoteric\network\CustomNetworkInterface;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
+use ethaniccc\Esoteric\thread\DecompressLevelChunkThread;
 use ethaniccc\Esoteric\thread\LoggerThread;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use ethaniccc\Esoteric\webhook\WebhookThread;
@@ -24,21 +25,16 @@ use function array_filter;
 use function array_keys;
 use function count;
 use function explode;
-use function fclose;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
-use function fopen;
-use function fread;
 use function implode;
 use function max;
 use function mkdir;
 use function scandir;
-use function stream_get_contents;
 use function strtolower;
-use function var_dump;
 use const PHP_EOL;
-use const PHP_INT_MAX;
+use const PTHREADS_INHERIT_NONE;
 
 final class Esoteric {
 
@@ -68,6 +64,8 @@ final class Esoteric {
 	public $networkInterface;
 	/** @var LoggerThread */
 	public $loggerThread;
+	/** @var DecompressLevelChunkThread */
+	public $chunkThread;
 
 	/**
 	 * Esoteric constructor.
@@ -117,6 +115,8 @@ final class Esoteric {
 		}
 		$this->loggerThread = new LoggerThread($this->getPlugin()->getDataFolder() . "esoteric.log");
 		$this->loggerThread->start();
+		$this->chunkThread = new DecompressLevelChunkThread();
+		$this->chunkThread->start(PTHREADS_INHERIT_NONE);
 		Server::getInstance()->getPluginManager()->registerEvents($this->listener, $this->plugin);
 		if (!WebhookThread::valid()) {
 			WebhookThread::init();
