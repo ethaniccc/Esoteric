@@ -16,9 +16,11 @@ use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\MovementUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\block\Block;
+use pocketmine\block\BlockIds;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
+use pocketmine\block\SnowLayer;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
 use pocketmine\entity\Attribute;
@@ -53,7 +55,9 @@ use function fmod;
 use function implode;
 use function in_array;
 use function round;
+use function strpos;
 use function var_dump;
+use function var_export;
 
 final class ProcessInbound {
 
@@ -333,17 +337,12 @@ final class ProcessInbound {
 				}
 			}
 
-			if ($data->teleported) {
-				$data->onGround = true;
-			}
-
 			if ($validMovement) {
 				self::$collisionTimings->startTiming();
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
-				$checkAABB = $data->boundingBox->expandedCopy(0.5, 0, 0.5);
+				$checkAABB = $data->boundingBox->expandedCopy(0.25, 0, 0.25);
 				$checkAABB->minY -= MovementConstants::GROUND_MODULO * 2;
-				// ^ give more leniency if there's a possibility something may screw up when checking for block AABB's (fences, walls, etc.)
 				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL, 1, MovementConstants::GROUND_MODULO);
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
@@ -356,9 +355,10 @@ final class ProcessInbound {
 				foreach ($blocks as $block) {
 					/** @var Block $block */
 					if (!$data->isCollidedHorizontally) {
-						$data->isCollidedHorizontally = $block->isSolid() && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.5, -0.01, 0.5));
+						// snow layers are evil
+						$data->isCollidedHorizontally = $block->getId() !== BlockIds::AIR && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.5, 0, 0.5));
 					}
-					if ($block->y <= ceil($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0.3, 0.05, 0.3))) {
+					if (floor($block->y) <= floor($location->y) && (count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)) : $block->collidesWithBB($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)))) {
 						$data->expectedOnGround = true;
 						$data->blocksBelow[] = $block;
 					}
@@ -412,19 +412,27 @@ final class ProcessInbound {
 				}
 			}
 
+			if ($data->teleported) {
+				$data->expectedOnGround = true;
+				$data->onGround = true;
+			}
+
 			/**
 			 * Checks if there is a possible ghost block that the player is standing on. If there is a ghost block that the player is standing on,
-			 * we should remove it to prevent possible false-flags with a GroundSpoof check.
+			 * we should remove it to prevent possible false-flags with movement checks when block de-sync occurs. Overall, VirtualWorld accounts for this,
+			 * and this is just here as backup.
 			 */
 
 			// TODO: There's a stupid bug where setting a block with UpdateBlockPacket won't do anything, make future attempts to fix this BS.
 
 			foreach ($this->placedBlocks as $blockVector) {
-				$hasCollision = AABB::fromBlock($blockVector)->intersectsWith($data->boundingBox->expandedCopy(0.2, 0.2, 0.2));
+				$expand = 0.1;
+				$hasCollision = count($blockVector->getCollisionBoxes()) === 0 ? AABB::fromBlock($blockVector)->intersectsWith($data->boundingBox->expandedCopy($expand, $expand, $expand)) : $blockVector->collidesWithBB($data->boundingBox->expandedCopy($expand, $expand, $expand));
 				if ($hasCollision) {
 					$data->expectedOnGround = true;
 					$data->onGround = true;
-					$data->isCollidedHorizontally = $blockVector->y >= floor($location->y);
+					$data->isCollidedHorizontally = $blockVector->y >= floor($location->y) && $blockVector->y - $location->y <= ceil($data->hitboxHeight);
+					$data->isCollidedVertically = true;
 					$data->blocksBelow[] = $blockVector;
 				}
 				if ($validMovement || $hasCollision) {

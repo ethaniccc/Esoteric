@@ -53,7 +53,11 @@ final class VirtualWorld {
 		$chunkHash = Level::chunkHash($x >> 4, $z >> 4);
 		$chunk = $this->chunks[$chunkHash] ?? null;
 		if ($chunk === null) {
-			return new Air();
+			$air = new Air();
+			$air->x = $x;
+			$air->y = $y;
+			$air->z = $z;
+			return $air;
 		}
 		$fullState = $chunk->getFullBlock($x & 0x0f, $y, $z & 0x0f);
 		$block = clone BlockFactory::getBlockStatesArray()[$fullState];

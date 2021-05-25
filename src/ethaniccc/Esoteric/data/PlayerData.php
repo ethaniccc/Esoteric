@@ -39,6 +39,7 @@ use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\Player;
 use function array_filter;
+use function array_keys;
 use function count;
 use function microtime;
 use function spl_object_hash;
@@ -232,6 +233,13 @@ final class PlayerData {
 		});
 		$this->ticksPerSecond = count($this->ticks);
 		$this->ticks[] = $currentTime;
+	}
+
+	public function __destruct() {
+		$keys = array_keys($this->world->getAllChunks());
+		foreach ($keys as $key) {
+			$this->world->removeChunkByHash($key);
+		}
 	}
 
 }
