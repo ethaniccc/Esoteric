@@ -52,7 +52,7 @@ abstract class Check {
 			self::$settings["$name:$subType"] = $settings;
 		}
 		if (!isset(self::$timings["$name:$subType"])) {
-			self::$timings["$name:$subType"] = new TimingsHandler("Esoteric Check $name($subType)");
+			self::$timings["$name:$subType"] = new TimingsHandler("Esoteric Check $name($subType)", Esoteric::getInstance()->listener->checkTimings);
 		}
 	}
 

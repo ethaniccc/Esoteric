@@ -14,6 +14,7 @@ use pocketmine\lang\Language;
 use pocketmine\permission\DefaultPermissions;
 use pocketmine\player\Player;
 use pocketmine\plugin\Plugin;
+use pocketmine\plugin\PluginOwned;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat;
@@ -29,7 +30,7 @@ use function unserialize;
 use function var_export;
 use const PHP_EOL;
 
-class EsotericCommand extends Command {
+class EsotericCommand extends Command implements PluginOwned {
 
 	public function __construct() {
 		parent::__construct("ac", "Main command for the Esoteric anti-cheat", "/ac <sub_command>", ["anticheat"]);
@@ -207,7 +208,7 @@ class EsotericCommand extends Command {
 		}
 	}
 
-	public function getPlugin(): Plugin {
+	public function getOwningPlugin(): Plugin {
 		return Esoteric::getInstance()->getPlugin();
 	}
 

@@ -9,7 +9,6 @@ use pocketmine\math\RayTraceResult;
 use pocketmine\math\Vector3;
 use function max;
 use function sqrt;
-use function var_dump;
 
 class AABB extends AxisAlignedBB {
 

@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\webhook;
 use AttachableLogger;
 use Exception;
 use pocketmine\Server;
+use pocketmine\thread\Thread;
 use Threaded;
 
 class WebhookThread extends Thread {
@@ -44,8 +45,7 @@ class WebhookThread extends Thread {
 		return self::$instance;
 	}
 
-	public function run() {
-		$this->registerClassLoader();
+	public function onRun() : void {
 		while ($this->running) {
 			while (($webhook = $this->queue->shift()) !== null) {
 				/** @var Webhook $webhook */

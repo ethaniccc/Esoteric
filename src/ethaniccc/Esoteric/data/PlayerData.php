@@ -36,7 +36,6 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
-use pocketmine\player\GameMode;
 use pocketmine\player\Player;
 use function array_filter;
 use function count;

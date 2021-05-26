@@ -8,17 +8,26 @@ api: 4.0.0
 mcpe-protocol: [431]
 permissions:
   ac.alerts:
-    description: Get access to anti-cheat alerts
+    description: Gives access to anticheat alerts
     default: op
   ac.bypass:
-    description: Bypass Esoteric punishments
+    description: Allows to bypass anticheat punishments
     default: op
-  ac.logs:
-    description: Get access to Esoteric logs
+  ac.command.help:
+    description: Access to the anticheat's help command
     default: op
-  ac.banwave:
-    description: Execute Esoteric banwaves
+  ac.command.logs:
+    description: Access to get the anticheat logs of a player
     default: op
-  ac.timings:
-    description: Execute Timings for Esoteric
+  ac.command.delay:
+    description: Access to change the alert delay
+    default: op
+  ac.command.banwave:
+    description: Handle Esoteric ban waves
+    default: op
+  ac.command.timings:
+    description: Enable timings for a certain period of time to see server performance with Esoteric
+    default: op
+  ac.command.exempt:
+    description: Get access to exempt sub commands in Esoteric
     default: op

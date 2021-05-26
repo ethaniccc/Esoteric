@@ -51,7 +51,6 @@ use function floor;
 use function fmod;
 use function in_array;
 use function round;
-use function var_dump;
 
 final class ProcessInbound {
 

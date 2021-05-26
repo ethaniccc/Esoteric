@@ -8,7 +8,6 @@ use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\protocol\v428\PlayerBlockAction;
 use pocketmine\block\BlockLegacyIds as BlockIds;
 use pocketmine\entity\effect\VanillaEffects;
-use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\network\mcpe\protocol\types\GameMode;

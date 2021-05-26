@@ -51,8 +51,16 @@ final class Settings {
 		return $this->data["kick_message"] ?? "{prefix} Kicked (code={code})\nContact staff if this issue persists";
 	}
 
+	public function getKickBroadcast() : string {
+		return $this->data["kick_broadcast"];
+	}
+
 	public function getBanMessage(): string {
 		return $this->data["ban_message"] ?? "{prefix} Banned (code={code})\nMake a ticket if this is a mistake";
+	}
+
+	public function getBanBroadcast() : string {
+		return $this->data["ban_broadcast"];
 	}
 
 	public function getWebhookSettings(): array {
