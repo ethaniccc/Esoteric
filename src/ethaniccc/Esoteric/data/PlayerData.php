@@ -157,6 +157,10 @@ final class PlayerData {
 	public $isAlive = true;
 	/** @var int - Amount of client ticks that have passed since the player has spawned. */
 	public $ticksSinceSpawn = 0;
+	/** @var bool */
+	public $isGliding = false;
+	/** @var int */
+	public $ticksSinceGlide = 0;
 	/** @var int - Device OS of the player */
 	public $playerOS = DeviceOS::UNKNOWN;
 	/** @var int - Current gamemode of the player. */

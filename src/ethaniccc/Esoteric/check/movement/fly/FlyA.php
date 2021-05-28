@@ -21,7 +21,7 @@ class FlyA extends Check {
 	}
 
 	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
-		if ($packet instanceof PlayerAuthInputPacket && $data->offGroundTicks >= 7 && $data->ticksSinceFlight >= 10 && $data->inLoadedChunk) {
+		if ($packet instanceof PlayerAuthInputPacket && $data->offGroundTicks >= 7 && $data->ticksSinceFlight >= 10 && $data->inLoadedChunk && $data->ticksSinceGlide >= 5) {
 			$predictedYMovement = (($this->lastBlockAbove ? 0 : $data->lastMoveDelta->y) - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
 			$difference = abs($data->currentMoveDelta->y - $predictedYMovement);
 			if ($difference > $this->option("diff_max", 0.015) && !$data->teleported && $data->ticksSinceMotion > 1 && $data->ticksSinceInLiquid >= 5 && $data->ticksSinceInClimbable >= 5 && $data->ticksSinceInCobweb >= 5 && abs($predictedYMovement) > 0.005 && !$data->immobile && $data->inLoadedChunk && !$data->isCollidedHorizontally) {

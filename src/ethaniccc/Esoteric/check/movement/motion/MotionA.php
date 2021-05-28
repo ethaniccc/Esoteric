@@ -20,7 +20,7 @@ class MotionA extends Check {
 
 	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket) {
-			if ($data->ticksSinceFlight >= 10 && $data->inLoadedChunk) {
+			if ($data->ticksSinceFlight >= 10 && $data->inLoadedChunk && $data->ticksSinceGlide >= 5) {
 				$currentYMovement = $this->getRawYMotion($data);
 				$lastYMovement = $data->lastMoveDelta->y;
 				if ($currentYMovement > MovementConstants::STEP_HEIGHT && $currentYMovement > $lastYMovement && $currentYMovement > $this->lastPreviousYMovement && $currentYMovement > 0.03 && $data->ticksSinceInLiquid >= 10 && $data->ticksSinceInClimbable >= 10 && $data->ticksSinceInCobweb >= 10 && !$data->teleported) {

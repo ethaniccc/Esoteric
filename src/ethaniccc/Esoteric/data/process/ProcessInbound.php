@@ -224,6 +224,12 @@ final class ProcessInbound {
 				$pk->face = $data->player->getHorizontalFacing();
 				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 			}
+			if (InputConstants::hasFlag($packet, InputConstants::START_GLIDING)) {
+				$data->isGliding = true;
+			}
+			if (InputConstants::hasFlag($packet, InputConstants::STOP_GLIDING)) {
+				$data->isGliding = false;
+			}
 
 			if ($packet->blockActions !== null) {
 				foreach ($packet->blockActions as $action) {
@@ -379,6 +385,14 @@ final class ProcessInbound {
 				if ($data->ticksSinceTeleport <= 1) {
 					$data->onGround = true;
 				}
+
+				if ($data->onGround && $data->isGliding) {
+					/**
+					 * This happens because sometimes the bloody client decides to not give a STOP_GLIDE flag in PlayerAuthInputPacket.
+					 * FFS microjang, fix your broken game....
+					 */
+					$data->isGliding = false;
+				}
 			}
 
 			/**
@@ -462,6 +476,11 @@ final class ProcessInbound {
 				++$data->ticksSinceSpawn;
 			} else {
 				$data->ticksSinceSpawn = 0;
+			}
+			if ($data->isGliding) {
+				$data->ticksSinceGlide = 0;
+			} else {
+				++$data->ticksSinceGlide;
 			}
 
 			$data->moveForward = $packet->getMoveVecZ() * 0.98;
