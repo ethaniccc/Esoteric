@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
 use ethaniccc\Esoteric\listener\Listener;
+use ethaniccc\Esoteric\network\RaklibOverride;
 use ethaniccc\Esoteric\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
@@ -14,8 +15,10 @@ use ethaniccc\Esoteric\utils\banwave\Banwave;
 use Exception;
 use pocketmine\event\HandlerListManager;
 use pocketmine\network\mcpe\protocol\PacketPool;
+use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
 use pocketmine\utils\Config;
 use const PTHREADS_INHERIT_NONE;
@@ -79,6 +82,18 @@ final class Esoteric {
 	public function start(): void {
 		if ($this->running)
 			return;
+
+		$this->getPlugin()->getScheduler()->scheduleTask(new ClosureTask(function(): void {
+			foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {
+				if ($interface instanceof RakLibInterface) {
+					Server::getInstance()->getNetwork()->unregisterInterface($interface);
+					$interface->shutdown();
+					break;
+				}
+			}
+
+			Server::getInstance()->getNetwork()->registerInterface(new RaklibOverride(Server::getInstance()));
+		}));
 
 		$this->logger->start(PTHREADS_INHERIT_NONE);
 		$this->plugin->getServer()->getPluginManager()->registerEvents($this->listener, $this->plugin);

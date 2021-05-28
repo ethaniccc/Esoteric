@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
+use pocketmine\block\BlockFactory;
 use pocketmine\entity\Attribute;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
@@ -58,6 +59,10 @@ class ProcessOutbound {
 					unset($data->inboundProcessor->queuedBlocks[$key]);
 				}
 			}
+			$block = RuntimeBlockMapping::getInstance()->fromRuntimeId($packet->blockRuntimeId);
+			NetworkStackLatencyHandler::getInstance()->queue($data, function (int $timestamp) use ($data, $blockVector, $block): void {
+				$data->world->setBlock($blockVector, $block);
+			});
 		} elseif ($packet instanceof SetActorMotionPacket && $packet->entityRuntimeId === $data->player->getId()) {
 			$handler->queue($data, static function (int $timestamp) use ($data, $packet): void {
 				$data->motion = $packet->motion;
@@ -121,18 +126,17 @@ class ProcessOutbound {
 				}) : $data->hitboxHeight = $hitboxHeight;
 			}
 		} elseif ($packet instanceof NetworkChunkPublisherUpdatePacket) {
-			if (!$data->loggedIn) {
-				$data->inLoadedChunk = true;
+			NetworkStackLatencyHandler::getInstance()->queue($data, function (int $timestamp) use ($data, $packet): void {
 				$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
-			} else {
-				if ($data->chunkSendPosition->distance($data->currentLocation->floor()) > $data->player->getViewDistance() * 16) {
-					$data->inLoadedChunk = false;
-					$handler->queue($data, function (int $timestamp) use ($packet, $data): void {
-						$data->inLoadedChunk = true;
-						$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
-					});
+				$radius = $packet->radius >> 4;
+				$chunkX = $data->chunkSendPosition->x >> 4;
+				$chunkZ = $data->chunkSendPosition->z >> 4;
+				foreach ($data->world->getAllChunks() as $chunkData) {
+					if (abs($chunkData->getX() - $chunkX) > $radius || /** <- this should be an OR or an AND? */ abs($chunkData->getZ() - $chunkZ) > $radius) {
+						$data->world->removeChunk($chunkData->getX(), $chunkData->getZ());
+					}
 				}
-			}
+			});
 		} elseif ($packet instanceof AdventureSettingsPacket) {
 			$handler->queue($data, static function (int $timestamp) use ($packet, $data): void {
 				$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);

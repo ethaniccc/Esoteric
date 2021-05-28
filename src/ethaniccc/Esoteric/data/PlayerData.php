@@ -31,6 +31,7 @@ use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
+use ethaniccc\Esoteric\utils\world\VirtualWorld;
 use pocketmine\block\Block;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
@@ -50,6 +51,8 @@ final class PlayerData {
 
 	/** @var Player|null */
 	public $player;
+	/** @var VirtualWorld */
+	public $world;
 	/** @var NetworkSession */
 	public $session;
 	/** @var string - The spl_object_hash identifier of the player. */
@@ -201,6 +204,8 @@ final class PlayerData {
 
 		$this->alertCooldown = Esoteric::getInstance()->getSettings()->getAlertCooldown();
 		$this->lastAlertTime = microtime(true);
+
+		$this->world = new VirtualWorld();
 
 		$this->checks = [new AimA(), new AimB(), # Aim checks
 			new AutoClickerA(), new AutoClickerB(), # Autoclicker checks

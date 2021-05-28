@@ -15,7 +15,9 @@ use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
+use pocketmine\block\Air;
 use pocketmine\block\Block;
+use pocketmine\block\BlockBreakInfo;
 use pocketmine\block\BlockIdentifier;
 use pocketmine\block\BlockLegacyIds;
 use pocketmine\block\Cobweb;
@@ -46,12 +48,15 @@ use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\timings\TimingsHandler;
 use function abs;
 use function array_shift;
+use function array_unique;
 use function count;
 use function floor;
 use function fmod;
 use function in_array;
+use function iterator_count;
 use function round;
 use function var_dump;
+use function var_export;
 
 final class ProcessInbound {
 
@@ -98,7 +103,7 @@ final class ProcessInbound {
 				array_shift($data->packetDeltas);
 			}
 			$location = Location::fromObject($packet->getPosition()->subtract(0, 1.62, 0), $data->player->getWorld(), $packet->getYaw(), $packet->getPitch());
-			$data->inLoadedChunk = $data->chunkSendPosition->distance($data->currentLocation->floor()) <= $data->player->getViewDistance() * 16;
+			$data->inLoadedChunk = $data->world->getChunk(floor($location->x) >> 4, floor($location->z) >> 4) !== null;
 			$data->teleported = false;
 			$data->hasMovementSuppressed = false;
 			$data->lastLocation = clone $data->currentLocation;
@@ -315,7 +320,7 @@ final class ProcessInbound {
 				self::$collisionTimings->startTiming();
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
-				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), $location->getWorld(), LevelUtils::SEARCH_ALL, false);
+				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), $data->world, LevelUtils::SEARCH_ALL, false);
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
 				$data->blocksBelow = [];
@@ -326,10 +331,11 @@ final class ProcessInbound {
 				$cobweb = 0;
 				foreach ($blocks as $block) {
 					/** @var Block $block */
+					$names[] = $block->getName();
 					if (!$data->isCollidedHorizontally) {
 						$data->isCollidedHorizontally = $block->isSolid() && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.5, -0.01, 0.5));
 					}
-					if ($block->getPos()->y <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expandedCopy(0.3, 0.05, 0.3))) {
+					if (floor($block->getPos()->y) <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expand(0.25, 0.25, 0.25))) {
 						$data->expectedOnGround = true;
 						$data->blocksBelow[] = $block;
 					}
@@ -416,6 +422,7 @@ final class ProcessInbound {
 							$data->player->teleport($blockPos->add(0.5, 0, 0.5));
 						}
 						$handler->queue($data, function (int $timestamp) use ($data, $realBlock): void {
+							$data->world->setBlock($realBlock->getPos()->asVector3(), $realBlock->getFullId());
 							foreach ($this->needUpdateBlocks as $key => $vector) {
 								if ($vector->getPos()->equals($realBlock->getPos()->asVector3())) {
 									unset($this->needUpdateBlocks[$key]);
@@ -481,15 +488,16 @@ final class ProcessInbound {
 					$stack = $trData->getItemInHand()->getItemStack();
 					$block = ItemFactory::getInstance()->get($stack->getId(), $stack->getMeta(), $stack->getCount(), $stack->getNbt())->getBlock();
 					if ($stack->getId() < 0) {
-						$block = new UnknownBlock(new BlockIdentifier($stack->getId(), $stack->getMeta()));
+						$block = new UnknownBlock(new BlockIdentifier($stack->getId(), $stack->getMeta()), new BlockBreakInfo(0));
 					}
-					foreach ($this->queuedBlocks as $k => $other) {
+					foreach ($this->queuedBlocks as $other) {
 						if ($other->getPos()->asVector3()->equals($blockToReplace->getPos()->asVector3())) {
 							return;
 						}
 					}
 					if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
 						$block->position($blockToReplace->getPos()->getWorld(), $newBlockPos->x, $newBlockPos->y, $newBlockPos->z);
+						$data->world->setBlock($newBlockPos, $block->getFullId());
 						$blockAABB = AABB::fromBlock($block);
 						if ((!$block instanceof UnknownBlock || $block->isSolid() && !$block->isTransparent()) /* <- so let's talk about that.... */ && $blockAABB->intersectsWith($data->boundingBox->expandedCopy(0.01, 0.01, 0.01))) {
 							return;
