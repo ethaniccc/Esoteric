@@ -28,7 +28,7 @@ final class Ray {
 	}
 
 	public function traverse(float $distance): Vector3 {
-		return $this->origin->add($this->direction->multiply($distance));
+		return $this->origin->addVector($this->direction->multiply($distance));
 	}
 
 	public function getOrigin(): Vector3 {
