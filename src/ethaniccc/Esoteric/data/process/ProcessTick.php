@@ -20,7 +20,7 @@ class ProcessTick {
 	public function execute(PlayerData $data): void {
 		if ($data->loggedIn && $data->playerOS !== DeviceOS::PLAYSTATION) {
 			$data->entityLocationMap->send($data);
-			if ($data->currentTick % 5 === 0) {
+			if ($data->currentTick % 20 === 0) {
 				$currentTime = microtime(true);
 				$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
 				$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data, $currentTime): void {

@@ -82,4 +82,8 @@ final class VirtualWorld {
 		return $this->chunks[Level::chunkHash($chunkX, $chunkZ)] ?? null;
 	}
 
+	public function isValidChunk(int $x, int $z) : bool {
+		return isset($this->chunks[Level::chunkHash($x, $z)]);
+	}
+
 }

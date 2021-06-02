@@ -102,10 +102,9 @@ final class ProcessInbound {
 			if (count($data->packetDeltas) > 20) {
 				array_shift($data->packetDeltas);
 			}
-			$location = Location::fromObject($packet->getPosition()->subtract(0, 1.62, 0), $data->player->getLevel(), $packet->getYaw(), $packet->getPitch());
+			$location = Location::fromObject($packet->getPosition()->subtract(0, 1.62), $data->player->getLevel(), $packet->getYaw(), $packet->getPitch());
 			$floor = $location->floor();
-			$currentChunk = $data->world->getChunk($floor->x >> 4, $floor->z >> 4);
-			$data->inLoadedChunk = $currentChunk !== null;
+			$data->inLoadedChunk = $data->world->isValidChunk($floor->x >> 4, $floor->z >> 4);
 			$data->teleported = false;
 			$data->hasMovementSuppressed = false;
 			$data->lastLocation = clone $data->currentLocation;
@@ -343,7 +342,7 @@ final class ProcessInbound {
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
 				$checkAABB = $data->boundingBox->expandedCopy(0.25, 0, 0.25);
 				$checkAABB->minY -= MovementConstants::GROUND_MODULO * 2;
-				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL, 1, MovementConstants::GROUND_MODULO);
+				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL);
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
 				$data->blocksBelow = [];
@@ -354,9 +353,10 @@ final class ProcessInbound {
 				$cobweb = 0;
 				foreach ($blocks as $block) {
 					/** @var Block $block */
+					$horizontalAABB = $data->boundingBox->expandedCopy(0.25, 0, 0.25);
 					if (!$data->isCollidedHorizontally) {
 						// snow layers are evil
-						$data->isCollidedHorizontally = $block->getId() !== BlockIds::AIR && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.5, 0, 0.5));
+						$data->isCollidedHorizontally = $block->getId() !== BlockIds::AIR && (count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($horizontalAABB) : $block->collidesWithBB($horizontalAABB));
 					}
 					if (floor($block->y) <= floor($location->y) && (count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)) : $block->collidesWithBB($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)))) {
 						$data->expectedOnGround = true;

@@ -127,11 +127,11 @@ class PMMPListener implements Listener {
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
 		$playerData->inboundProcessor->execute($packet, $playerData);
-		if ($packet instanceof PlayerAuthInputPacket) {
-			$event->setCancelled();
-		}
 		if (in_array($player->getName(), Esoteric::getInstance()->exemptList) || $playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
 			return;
+		}
+		if ($packet instanceof PlayerAuthInputPacket) {
+			$event->setCancelled();
 		}
 		foreach ($playerData->checks as $check) {
 			if ($check->enabled()) {
@@ -153,10 +153,7 @@ class PMMPListener implements Listener {
 			return;
 		}
 		$playerData = Esoteric::getInstance()->dataManager->get($player);
-		if ($playerData === null) {
-			return;
-		}
-		if ($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
+		if ($playerData === null || $playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
 			return;
 		}
 		if ($packet instanceof BatchPacket) {
