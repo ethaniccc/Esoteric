@@ -13,14 +13,12 @@ use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
-use ethaniccc\Esoteric\utils\MovementUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\block\Block;
 use pocketmine\block\BlockIds;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
-use pocketmine\block\SnowLayer;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
 use pocketmine\entity\Attribute;
@@ -52,12 +50,8 @@ use function ceil;
 use function count;
 use function floor;
 use function fmod;
-use function implode;
 use function in_array;
 use function round;
-use function strpos;
-use function var_dump;
-use function var_export;
 
 final class ProcessInbound {
 
