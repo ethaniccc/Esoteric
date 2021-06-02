@@ -19,29 +19,30 @@ final class NetworkStackLatencyHandler {
 
 	public function queue(PlayerData $data, callable $onResponse) {
 		$timestamp = $data->tickProcessor->getLatencyTimestamp();
-		$this->queue[$data->hash][$timestamp][] = $onResponse;
+		$this->send($data);
+		$this->queue[$data->hash][$timestamp] = $onResponse;
 	}
 
 	public function execute(PlayerData $data, int $timestamp): void {
-		$queue = $this->queue[$data->hash][$timestamp] ?? null;
-		if ($queue !== null) {
-			foreach ($queue as $run)
-				$run($timestamp);
+		$callable = $this->queue[$data->hash][$timestamp] ?? null;
+		if ($callable !== null) {
+			($callable)($timestamp);
 		}
 		$data->tickProcessor->response($timestamp);
 		unset($this->queue[$data->hash][$timestamp]);
 	}
 
-	public function send(PlayerData $data): void {
+	public function remove(string $hash): void {
+		unset($this->queue[$hash]);
+	}
+
+	private function send(PlayerData $data): void {
 		$pk = new NetworkStackLatencyPacket();
 		$pk->timestamp = $data->tickProcessor->currentTimestamp;
 		$pk->needResponse = true;
-		$data->player->getNetworkSession()->sendDataPacket($pk, true);
+		$data->player->getNetworkSession()->addToSendBuffer($pk);
 		$data->tickProcessor->waiting[$pk->timestamp] = $data->currentTick;
-	}
-
-	public function remove(string $hash): void {
-		unset($this->queue[$hash]);
+		$data->tickProcessor->randomizeTimestamps();
 	}
 
 }

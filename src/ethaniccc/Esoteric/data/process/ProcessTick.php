@@ -22,7 +22,6 @@ class ProcessTick {
 	public function execute(PlayerData $data): void {
 		if ($data->loggedIn && $data->playerOS !== DeviceOS::PLAYSTATION) {
 			$data->entityLocationMap->send($data);
-			NetworkStackLatencyHandler::getInstance()->send($data);
 			if ($data->currentTick % 5 === 0) {
 				$currentTime = microtime(true);
 				$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
@@ -39,8 +38,7 @@ class ProcessTick {
 			} else {
 				$this->waiting = [];
 			}
-			$this->currentTimestamp = $this->nextTimestamp;
-			$this->nextTimestamp = mt_rand(1, 100000000000) * 1000;
+			$this->randomizeTimestamps();
 		}
 	}
 
@@ -54,6 +52,11 @@ class ProcessTick {
 			$this->nextTimestamp = mt_rand(1, 1000000000000000) * 1000;
 		}
 		return $this->currentTimestamp;
+	}
+
+	public function randomizeTimestamps(): void {
+		$this->currentTimestamp = $this->nextTimestamp;
+		$this->nextTimestamp = mt_rand(1, 100000000000) * 1000;
 	}
 
 }

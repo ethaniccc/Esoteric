@@ -72,7 +72,7 @@ class Listener implements \pocketmine\event\Listener {
 			}
 		}
 		if ($packet instanceof PlayerAuthInputPacket) {
-			$event->cancel();
+			$event->cancel(); // prevent debug from spamming console
 		}
 	}
 

@@ -18,17 +18,22 @@ use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\block\Air;
 use pocketmine\block\Block;
 use pocketmine\block\BlockBreakInfo;
+use pocketmine\block\BlockFactory;
 use pocketmine\block\BlockIdentifier;
 use pocketmine\block\BlockLegacyIds;
+use pocketmine\block\Cactus;
 use pocketmine\block\Cobweb;
+use pocketmine\block\Fence;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
+use pocketmine\color\Color;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\entity\Location;
 use pocketmine\item\ItemFactory;
+use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
@@ -46,15 +51,19 @@ use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionD
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\timings\TimingsHandler;
+use pocketmine\world\particle\DustParticle;
+use pocketmine\world\particle\FlameParticle;
 use function abs;
 use function array_shift;
 use function array_unique;
 use function count;
 use function floor;
 use function fmod;
+use function implode;
 use function in_array;
 use function iterator_count;
 use function round;
+use function strpos;
 use function var_dump;
 use function var_export;
 
@@ -326,7 +335,7 @@ final class ProcessInbound {
 				self::$collisionTimings->startTiming();
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
-				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.2, 0.5), $data->world, LevelUtils::SEARCH_ALL, false);
+				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(1, 1, 1), $data->world, LevelUtils::SEARCH_ALL, false);
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
 				$data->blocksBelow = [];
@@ -335,63 +344,65 @@ final class ProcessInbound {
 				$liquids = 0;
 				$climbable = 0;
 				$cobweb = 0;
-				foreach ($blocks as $block) {
-					/** @var Block $block */
-					$names[] = $block->getName();
-					if (!$data->isCollidedHorizontally) {
-						$data->isCollidedHorizontally = $block->isSolid() && AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.5, -0.01, 0.5));
+				if ($data->currentLocation->y > 0 && $data->currentLocation->y < 255) {
+					$verticalBB = $data->boundingBox->expandedCopy(0.25, 0.01, 0.25);
+					$horizontalBB = $data->boundingBox->expandedCopy(0.5, -0.01, 0.5);
+					foreach ($blocks as $block) {
+						/** @var Block $block */
+						if (!$data->isCollidedHorizontally) {
+							$data->isCollidedHorizontally = $block->collidesWithBB($horizontalBB);
+						}
+						if (floor($block->getPos()->y) <= floor($location->y) && $block->collidesWithBB($verticalBB)) {
+							$data->expectedOnGround = true;
+							$data->blocksBelow[] = $block;
+							$data->isCollidedVertically = true;
+						} elseif (floor($block->getPos()->y) > floor($location->y) && $block->collidesWithBB($verticalBB)) {
+							$data->isCollidedVertically = true;
+						}
+						if ($block instanceof Liquid) {
+							$liquids++;
+						} elseif ($block instanceof Cobweb) {
+							$cobweb++;
+						} elseif ($block instanceof Ladder || $block instanceof Vine) {
+							$climbable++;
+						}
 					}
-					if (floor($block->getPos()->y) <= floor($location->y) && $block->collidesWithBB($data->boundingBox->expand(0.25, 0.25, 0.25))) {
-						$data->expectedOnGround = true;
-						$data->blocksBelow[] = $block;
+					if ($liquids > 0)
+						$data->ticksSinceInLiquid = 0; else ++$data->ticksSinceInLiquid;
+
+					if ($cobweb > 0)
+						$data->ticksSinceInCobweb = 0; else ++$data->ticksSinceInCobweb;
+
+					if ($climbable > 0)
+						$data->ticksSinceInClimbable = 0; else ++$data->ticksSinceInClimbable;
+					self::$collisionTimings->stopTiming();
+					$expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
+					$actualMoveY = $data->currentMoveDelta->y;
+					$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
+					$flag2 = $expectedMoveY < 0;
+					$predictedMoveY = $this->lastPredictedY;
+					if ($data->ticksSinceMotion === 0) {
+						$predictedMoveY = $data->motion->y;
 					}
-					if ($block instanceof Liquid) {
-						$liquids++;
-					} elseif ($block instanceof Cobweb) {
-						$cobweb++;
-					} elseif ($block instanceof Ladder || $block instanceof Vine) {
-						$climbable++;
+					if ($data->ticksSinceJump === 0) {
+						$predictedMoveY = $data->jumpVelocity;
 					}
-				}
-				$data->isCollidedVertically = count($data->blocksBelow) > 0;
-				if ($liquids > 0)
-					$data->ticksSinceInLiquid = 0; else ++$data->ticksSinceInLiquid;
+					$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005;
+					$flag3 = abs($predictedMoveY - $actualMoveY) > 0.001;
+					$flag4 = $predictedMoveY < 0 || $data->isCollidedHorizontally;
+					$data->onGround = $flag3 && $flag4 && $data->expectedOnGround;
 
-				if ($cobweb > 0)
-					$data->ticksSinceInCobweb = 0; else ++$data->ticksSinceInCobweb;
+					if ($data->ticksSinceTeleport <= 1) {
+						$data->onGround = true;
+					}
 
-				if ($climbable > 0)
-					$data->ticksSinceInClimbable = 0; else ++$data->ticksSinceInClimbable;
-				self::$collisionTimings->stopTiming();
-				$expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::Y_SUBTRACTION) * MovementConstants::Y_MULTIPLICATION;
-				$actualMoveY = $data->currentMoveDelta->y;
-				$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
-				$flag2 = $expectedMoveY < 0;
-				$AABB1 = $data->boundingBox->expandedCopy(0, 0.1, 0);
-				$AABB1->minY = $data->boundingBox->maxY - 0.4;
-				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && count($data->player->getWorld()->getCollisionBlocks($AABB1, true)) !== 0;
-				$data->isCollidedVertically = $flag1;
-				$predictedMoveY = $this->lastPredictedY;
-				if ($data->ticksSinceMotion === 0) {
-					$predictedMoveY = $data->motion->y;
-				}
-				if ($data->ticksSinceJump === 0) {
-					$predictedMoveY = $data->jumpVelocity;
-				}
-				$flag3 = abs($predictedMoveY - $actualMoveY) > 0.001;
-				$flag4 = $predictedMoveY < 0 || $data->isCollidedHorizontally;
-				$data->onGround = $flag3 && $flag4 && $data->expectedOnGround;
-
-				if ($data->ticksSinceTeleport <= 1) {
-					$data->onGround = true;
-				}
-
-				if ($data->onGround && $data->isGliding) {
-					/**
-					 * This happens because sometimes the bloody client decides to not give a STOP_GLIDE flag in PlayerAuthInputPacket.
-					 * FFS microjang, fix your broken game....
-					 */
-					$data->isGliding = false;
+					if ($data->onGround && $data->isGliding) {
+						/**
+						 * This happens because sometimes the bloody client decides to not give a STOP_GLIDE flag in PlayerAuthInputPacket.
+						 * FFS microjang, fix your broken game....
+						 */
+						$data->isGliding = false;
+					}
 				}
 			}
 
@@ -404,12 +415,14 @@ final class ProcessInbound {
 
 			foreach ($this->needUpdateBlocks as $blockVector) {
 				$blockPos = $blockVector->getPos();
-				$hasCollision = AABB::fromBlock($blockVector)->intersectsWith($data->boundingBox->expandedCopy(0.2, 0.2, 0.2));
+				$hasCollision = $blockVector->collidesWithBB($data->boundingBox->expandedCopy(0.2, 0.2, 0.2));
 				if ($hasCollision) {
 					$data->expectedOnGround = true;
 					$data->onGround = true;
-					$data->isCollidedHorizontally = $blockPos->y >= floor($location->y);
-					$data->blocksBelow[] = $blockVector;
+					$data->isCollidedHorizontally = $blockPos->y > floor($location->y);
+					if ($blockPos->y <= floor($location->y)) {
+						$data->blocksBelow[] = $blockVector;
+					}
 				}
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getWorld()->getBlock($blockPos, false, false);
@@ -433,7 +446,7 @@ final class ProcessInbound {
 						$data->player->getNetworkSession()->addToSendBuffer($pk);
 						if ($hasCollision && floor($data->currentLocation->y) > $blockPos->y) {
 							// prevent the player from possibly false flagging when removing ghost blocks fail
-							$data->player->teleport($blockPos->add(0.5, 0, 0.5));
+							$data->player->teleport(new Vector3($data->currentLocation->x, $blockPos->y, $data->currentLocation->z));
 						}
 						$handler->queue($data, function (int $timestamp) use ($data, $realBlock): void {
 							$data->world->setBlock($realBlock->getPos()->asVector3(), $realBlock->getFullId());
@@ -505,12 +518,13 @@ final class ProcessInbound {
 				$blockToReplace = $data->player->getWorld()->getBlock($newBlockPos, false, false);
 				if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks) {
 					$stack = $trData->getItemInHand()->getItemStack();
-					$block = ItemFactory::getInstance()->get($stack->getId(), $stack->getMeta(), $stack->getCount(), $stack->getNbt())->getBlock();
+					$state = RuntimeBlockMapping::getInstance()->fromRuntimeId($stack->getBlockRuntimeId());
+					$block = BlockFactory::getInstance()->get($state >> 4, $state & 0xf);
 					if ($stack->getId() < 0) {
 						$block = new UnknownBlock(new BlockIdentifier($stack->getId(), $stack->getMeta()), new BlockBreakInfo(0));
 					}
 					foreach ($this->queuedBlocks as $other) {
-						if ($other->getPos()->asVector3()->equals($blockToReplace->getPos()->asVector3())) {
+						if ($other->getPos()->asVector3()->equals($blockToReplace->getPos())) {
 							return;
 						}
 					}

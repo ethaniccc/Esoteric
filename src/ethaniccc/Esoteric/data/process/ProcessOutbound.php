@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\data\process;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use pocketmine\block\BlockFactory;
+use pocketmine\block\BlockLegacyIds;
 use pocketmine\entity\Attribute;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
@@ -23,6 +24,7 @@ use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\player\GameMode;
 use pocketmine\timings\TimingsHandler;
+use function var_dump;
 
 class ProcessOutbound {
 
@@ -53,6 +55,7 @@ class ProcessOutbound {
 				// check if the block's position sent in UpdateBlockPacket is the same as the placed block
 				// and if the block runtime ID sent in the packet equals the
 				if ($blockVector->equals($block->getPos())) {
+					// problems with meta screwing over this check
 					if ($block->getFullId() !== RuntimeBlockMapping::getInstance()->fromRuntimeId($packet->blockRuntimeId)) {
 						$data->inboundProcessor->needUpdateBlocks[] = $block;
 					}
@@ -60,6 +63,9 @@ class ProcessOutbound {
 				}
 			}
 			$block = RuntimeBlockMapping::getInstance()->fromRuntimeId($packet->blockRuntimeId);
+			/* if ($block >> 4 === BlockLegacyIds::FENCE && $block & 0xf === 7) {
+				$block = (BlockLegacyIds::FENCE << 4) | 0; // TODO: There has to be a better way to get around this than just hardcoding...
+			} */
 			NetworkStackLatencyHandler::getInstance()->queue($data, function (int $timestamp) use ($data, $blockVector, $block): void {
 				$data->world->setBlock($blockVector, $block);
 			});

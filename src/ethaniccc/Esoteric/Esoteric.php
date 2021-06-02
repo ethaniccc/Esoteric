@@ -13,7 +13,16 @@ use ethaniccc\Esoteric\tasks\TickingTask;
 use ethaniccc\Esoteric\thread\LoggerThread;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use Exception;
+use pocketmine\block\BlockBreakInfo;
+use pocketmine\block\BlockFactory;
+use pocketmine\block\BlockIdentifier;
+use pocketmine\block\BlockLegacyIds;
+use pocketmine\block\BlockToolType;
+use pocketmine\block\Cactus;
+use pocketmine\block\WoodenFence;
 use pocketmine\event\HandlerListManager;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\plugin\Plugin;
@@ -94,6 +103,21 @@ final class Esoteric {
 
 			Server::getInstance()->getNetwork()->registerInterface(new RaklibOverride(Server::getInstance()));
 		}));
+
+		BlockFactory::getInstance()->register(new class() extends Cactus {
+			public function __construct() {
+				parent::__construct(new BlockIdentifier(BlockLegacyIds::CACTUS, 0), "Cactus", new BlockBreakInfo(0.4));
+			}
+			protected function recalculateCollisionBoxes(): array {
+				static $shrinkSize = 1 / 16;
+				return [AxisAlignedBB::one()->contract($shrinkSize, 0, $shrinkSize)]; // the shrink can cause issues
+			}
+		}, true);
+		BlockFactory::getInstance()->register(new class() extends WoodenFence {
+			public function __construct() {
+				parent::__construct(new BlockIdentifier(BlockLegacyIds::FENCE, 7), "Oak Fence [Hack]",  new BlockBreakInfo(2.0, BlockToolType::AXE, 0, 15.0));
+			}
+		});
 
 		$this->logger->start(PTHREADS_INHERIT_NONE);
 		$this->plugin->getServer()->getPluginManager()->registerEvents($this->listener, $this->plugin);
