@@ -38,7 +38,11 @@ class NetworkSessionOverride extends NetworkSession {
 		$data = Esoteric::getInstance()->dataManager->get($this->getPlayer()->getNetworkSession());
 		$originalChunk = $this->getPlayer()->getWorld()->getChunk($chunkX, $chunkZ);
 		// no need to clone the things we might not need, mainly entities
-		$usedChunk = new Chunk($originalChunk->getSubChunks()->toArray(), null, $originalChunk->getNBTtiles() /** <- do we need this? */, new BiomeArray($originalChunk->getBiomeIdArray()));
+		$subChunks = [];
+		foreach ($originalChunk->getSubChunks()->toArray() as $subChunk) {
+			$subChunks[] = clone $subChunk;
+		}
+		$usedChunk = new Chunk($subChunks, null, $originalChunk->getNBTtiles(), new BiomeArray($originalChunk->getBiomeIdArray()));
 
 		$world = $this->getPlayer()->getLocation()->getWorld();
 		ChunkCache::getInstance($world, $this->getCompressor())->request($chunkX, $chunkZ)->onResolve(
