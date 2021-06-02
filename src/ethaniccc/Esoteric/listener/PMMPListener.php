@@ -64,15 +64,16 @@ class PMMPListener implements Listener {
 	 * @param PlayerPreLoginEvent $event
 	 * @priority LOWEST
 	 */
-	public function log(PlayerPreLoginEvent $event): void {
+	public function log(PlayerPreLoginEvent $event) : void {
 		foreach (Server::getInstance()->getNameBans()->getEntries() as $entry) {
-			if ($entry->getSource() === "Esoteric AC" && $entry->getName() === strtolower($event->getPlayer()->getName())) {
+			if ($entry->getSource() === 'Esoteric AC' && $entry->getName() === strtolower($event->getPlayer()->getName())) {
 				$event->setCancelled();
-				$event->setKickMessage($entry->getReason());
+				$event->setKickMessage(str_replace(['{prefix}', '{code}', '{expires}'], [Esoteric::getInstance()->getSettings()->getPrefix(), $entry->getReason(), $entry->getExpires() !== null ? $entry->getExpires()->format("m/d/y h:i A T") : 'Never'], Esoteric::getInstance()->getSettings()->getBanMessage()));
 				break;
 			}
 		}
 	}
+
 
 	/**
 	 * @param PlayerQuitEvent $event
@@ -111,7 +112,7 @@ class PMMPListener implements Listener {
 	public function join(PlayerJoinEvent $event): void {
 		$data = Esoteric::getInstance()->dataManager->get($event->getPlayer());
 		if ($data !== null) {
-			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new ClosureTask(function (int $currentTick) use ($data): void {
+			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new ClosureTask(function () use ($data): void {
 				$data->hasAlerts = $data->player->hasPermission("ac.alerts");
 			}));
 		}

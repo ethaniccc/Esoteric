@@ -96,9 +96,11 @@ abstract class Check {
 			}
 			$this->sendAlertWebhook($data->player->getName(), $dataString);
 		}
-		$this->warn($data, $extraData);
-		if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
-			$data->player->hasPermission("ac.bypass") ? $this->violations = 0 : $this->punish($data);
+		if($data->player->isOnline()){
+			$this->warn($data, $extraData);
+			if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
+				$data->player->hasPermission("ac.bypass") ? $this->violations = 0 : $this->punish($data);
+			}
 		}
 	}
 
@@ -179,16 +181,15 @@ abstract class Check {
 			$data->isDataClosed = true;
 			$l = $esoteric->getSettings()->getBanLength();
 			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int) $l . " day") : null;
-			$string = str_replace(["{prefix}", "{code}", "{expires}"], [$esoteric->getSettings()->getPrefix(), $this->getCodeName(), $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], $esoteric->getSettings()->getBanMessage());
-			$esoteric->getPlugin()->getScheduler()->scheduleTask(new BanTask($data->player, $string, $expiration));
+			$esoteric->getPlugin()->getScheduler()->scheduleTask(new BanTask($data->player, $this->getCodeName(), $expiration));
 			$this->sendPunishmentWebhook($data->player->getName(), "ban");
-			if (($bc = $esoteric->getSettings()->getBanBroadcast()) !== "none") {
+			if(($bc = $esoteric->getSettings()->getBanBroadcast()) !== "none") {
 				$esoteric->getServer()->broadcastMessage(str_replace(["{prefix}", "{player}", "{check_name}", "{code_name}", "{violations}", "{expires}"], [$esoteric->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->getCodeName(), $this->violations, $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], $bc));
 			}
 		} elseif ($this->option("punishment_type") === "kick") {
 			$data->isDataClosed = true;
 			$string = str_replace(["{prefix}", "{code}"], [$esoteric->getSettings()->getPrefix(), $this->getCodeName()], $esoteric->getSettings()->getKickMessage());
-			$esoteric->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, $string), 1);
+			$esoteric->getPlugin()->getScheduler()->scheduleTask(new KickTask($data->player, $string));
 			$this->sendPunishmentWebhook($data->player->getName(), "kick");
 			if (($bc = $esoteric->getSettings()->getKickBroadcast()) !== "none") {
 				$esoteric->getServer()->broadcastMessage(str_replace(["{prefix}", "{player}", "{check_name}", "{code_name}", "{violations}"], [$esoteric->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->getCodeName(), $this->violations], $bc));
