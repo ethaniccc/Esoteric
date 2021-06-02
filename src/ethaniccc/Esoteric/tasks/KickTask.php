@@ -18,7 +18,7 @@ class KickTask extends Task {
 	}
 
 	public function onRun(): void {
-		$this->player->kick($this->reason, false);
+		$this->player->kick($this->reason, $this->reason);
 	}
 
 }
