@@ -96,7 +96,7 @@ abstract class Check {
 			}
 			$this->sendAlertWebhook($data->player->getName(), $dataString);
 		}
-		if($data->player->isOnline()){
+		if ($data->player->isOnline()) {
 			$this->warn($data, $extraData);
 			if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
 				$data->player->hasPermission("ac.bypass") ? $this->violations = 0 : $this->punish($data);
@@ -183,7 +183,7 @@ abstract class Check {
 			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int) $l . " day") : null;
 			$esoteric->getPlugin()->getScheduler()->scheduleTask(new BanTask($data->player, $this->getCodeName(), $expiration));
 			$this->sendPunishmentWebhook($data->player->getName(), "ban");
-			if(($bc = $esoteric->getSettings()->getBanBroadcast()) !== "none") {
+			if (($bc = $esoteric->getSettings()->getBanBroadcast()) !== "none") {
 				$esoteric->getServer()->broadcastMessage(str_replace(["{prefix}", "{player}", "{check_name}", "{code_name}", "{violations}", "{expires}"], [$esoteric->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->getCodeName(), $this->violations, $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], $bc));
 			}
 		} elseif ($this->option("punishment_type") === "kick") {

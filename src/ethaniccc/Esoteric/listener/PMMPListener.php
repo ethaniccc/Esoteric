@@ -64,7 +64,7 @@ class PMMPListener implements Listener {
 	 * @param PlayerPreLoginEvent $event
 	 * @priority LOWEST
 	 */
-	public function log(PlayerPreLoginEvent $event) : void {
+	public function log(PlayerPreLoginEvent $event): void {
 		foreach (Server::getInstance()->getNameBans()->getEntries() as $entry) {
 			if ($entry->getSource() === 'Esoteric AC' && $entry->getName() === strtolower($event->getPlayer()->getName())) {
 				$event->setCancelled();
