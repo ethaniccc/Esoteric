@@ -387,7 +387,7 @@ final class ProcessInbound {
 					if ($data->ticksSinceJump === 0) {
 						$predictedMoveY = $data->jumpVelocity;
 					}
-					$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005;
+					$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && $data->isCollidedVertically;
 					$flag3 = abs($predictedMoveY - $actualMoveY) > 0.001;
 					$flag4 = $predictedMoveY < 0 || $data->isCollidedHorizontally;
 					$data->onGround = $flag3 && $flag4 && $data->expectedOnGround;
@@ -518,6 +518,9 @@ final class ProcessInbound {
 				$blockToReplace = $data->player->getWorld()->getBlock($newBlockPos, false, false);
 				if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks) {
 					$stack = $trData->getItemInHand()->getItemStack();
+					if ($stack->getBlockRuntimeId() === 0) {
+						return; // the item in hand is NOT a block
+					}
 					$state = RuntimeBlockMapping::getInstance()->fromRuntimeId($stack->getBlockRuntimeId());
 					$block = BlockFactory::getInstance()->get($state >> 4, $state & 0xf);
 					if ($stack->getId() < 0) {

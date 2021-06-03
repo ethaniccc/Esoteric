@@ -43,7 +43,6 @@ class VelocityA extends Check {
 					$this->buffer = 0;
 					$this->reward();
 				}
-
 				$this->yMotion = ($this->yMotion - 0.08) * MovementConstants::Y_MULTIPLICATION;
 			}
 		}
