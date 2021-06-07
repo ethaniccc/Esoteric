@@ -11,8 +11,6 @@ use function abs;
 
 class MotionD extends Check {
 
-	private $ticks = 0;
-
 	public function __construct() {
 		parent::__construct("Motion", "D", "Checks for invalid movement with elytra", true);
 	}

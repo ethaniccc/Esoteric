@@ -96,9 +96,9 @@ class PhaseA extends Check {
             NetworkStackLatencyHandler::getInstance()->send($data, NetworkStackLatencyHandler::getInstance()->next($data), function (int $timestamp) use ($data, $blockPos, $original): void {
                 $block = $data->world->getBlock($blockPos);
                 $key = "{$blockPos->x}:{$blockPos->y}:{$blockPos->z}";
-                if ((($block->isTransparent() && $block->isSolid()) || ($block instanceof Fallable && $original->isTransparent())) && $block->getId() !== BlockIds::AIR && $data->boundingBox->expandedCopy(self::EXPAND_LENIENCY, self::EXPAND_LENIENCY, self::EXPAND_LENIENCY)->isVectorInside($blockPos) && !isset($this->ignoreUpdates[$key])) {
+                if ((($block->isTransparent() && $block->isSolid()) || ($block instanceof Fallable && $original->isTransparent())) && $block->getId() !== BlockIds::AIR && $data->boundingBox->expandedCopy(self::EXPAND_LENIENCY, self::EXPAND_LENIENCY, self::EXPAND_LENIENCY)->isVectorInside($blockPos)) {
                     $this->ignoreUpdates[$key] = $block;
-                } elseif (isset($this->ignoreUpdates[$key])) {
+                } elseif (isset($this->ignoreUpdates[$key]) && $this->ignoreUpdates[$key]->getId() !== $block->getId()) {
                     unset($this->ignoreUpdates[$key]);
                 }
             });
