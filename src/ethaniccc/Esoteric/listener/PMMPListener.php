@@ -15,8 +15,10 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\BatchPacket;
+use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
@@ -128,8 +130,9 @@ class PMMPListener implements Listener {
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
 		$playerData->inboundProcessor->execute($packet, $playerData);
-		if (in_array($player->getName(), Esoteric::getInstance()->exemptList) || $playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
-			return;
+		if (($player->loggedIn && in_array($player->getName(), Esoteric::getInstance()->exemptList)) || $playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
+			echo "exempt\n";
+		    return;
 		}
 		if ($packet instanceof PlayerAuthInputPacket) {
 			$event->setCancelled();
@@ -202,12 +205,6 @@ class PMMPListener implements Listener {
 					}
 					$playerData->entityLocationMap->add($pk);
 				} elseif ($pk instanceof MovePlayerPacket && $pk->mode === MovePlayerPacket::MODE_TELEPORT && $pk->entityRuntimeId === $playerData->player->getId()) {
-
-					/**
-					 * Apparently, teleports is what was causing the crashes on Velvet. I suspect that it's probably something in Prim's server core that
-					 * is causing this, but no evidence has been found supporting my theory. This fixes the crashes, but very honestly, this is very very dumb
-					 */
-
 					$pk->mode = MovePlayerPacket::MODE_RESET;
 					$pk->encode();
 					$p = new BatchPacket();

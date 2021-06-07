@@ -37,7 +37,7 @@ class KillAuraB extends Check {
 					if ($locationData === null) {
 						continue;
 					}
-					$AABB = AABB::fromPosition($locationData->lastLocation)->expand(0.2, 0.2, 0.2);
+					$AABB = AABB::fromPosition($locationData->lastLocation)->expandedCopy(0.2, 0.2, 0.2);
 					if ($lastAABB !== null) {
 						$collides = $AABB->intersectsWith($lastAABB);
 						if ($collides) {

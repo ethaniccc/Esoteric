@@ -23,6 +23,7 @@ use ethaniccc\Esoteric\check\movement\motion\MotionA;
 use ethaniccc\Esoteric\check\movement\motion\MotionB;
 use ethaniccc\Esoteric\check\movement\motion\MotionC;
 use ethaniccc\Esoteric\check\movement\motion\MotionD;
+use ethaniccc\Esoteric\check\movement\phase\PhaseA;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
@@ -111,6 +112,8 @@ final class PlayerData {
 	public $onGroundTicks = 0, $offGroundTicks = 0;
 	/** @var AABB */
 	public $boundingBox;
+	/** @var AABB */
+	public $lastBoundingBox;
 	/** @var Vector3 */
 	public $directionVector;
 	/** @var int - Ticks since the player has taken motion. */
@@ -217,6 +220,7 @@ final class PlayerData {
 			new FlyA(), new FlyB(), new FlyC(), # Fly checks
 			new MotionA(), new MotionB(), new MotionC(), new MotionD(), # Motion checks
 			new VelocityA(), # Velocity checks
+			new PhaseA(), # Phase checks
 			new PacketsA(), new PacketsB(), new PacketsC(), # Packet checks
 			new EditionFakerA(), # EditionFaker checks
 			new NukerA(), # Nuker checks

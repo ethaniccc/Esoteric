@@ -20,6 +20,7 @@ use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
+use pocketmine\network\mcpe\protocol\UpdateBlockSyncedPacket;
 use pocketmine\timings\TimingsHandler;
 use function abs;
 
@@ -44,6 +45,7 @@ class ProcessOutbound {
 			}
 		} elseif ($packet instanceof UpdateBlockPacket) {
 			$blockVector = new Vector3($packet->x, $packet->y, $packet->z);
+			$blk = $data->player->getLevel()->getBlock($blockVector, false, false);
 			foreach ($data->inboundProcessor->placedBlocks as $key => $block) {
 				// check if the block's position sent in UpdateBlockPacket is the same as the placed block
 				// and if the block runtime ID sent in the packet equals the
@@ -52,9 +54,9 @@ class ProcessOutbound {
 					break;
 				}
 			}
-			$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $packet): void {
+			$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $blk, $packet): void {
 				$real = RuntimeBlockMapping::fromStaticRuntimeId($packet->blockRuntimeId);
-				$data->world->setBlock(new Vector3($packet->x, $packet->y, $packet->z), $real[0], 0); // ignore meta - wtf is going on??
+				$data->world->setBlock(new Vector3($packet->x, $packet->y, $packet->z), $real[0], ($blk->getId() === $real[0] ? $blk->getDamage() : 0) /** <- hack to get around meta being screwed up.... */);
 			});
 		} elseif ($packet instanceof SetActorMotionPacket && $packet->entityRuntimeId === $data->player->getId()) {
 			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $packet): void {

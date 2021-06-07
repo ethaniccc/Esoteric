@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric;
 
+use ethaniccc\Esoteric\blocks\FenceGateOverride;
 use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
@@ -15,7 +16,11 @@ use ethaniccc\Esoteric\thread\LoggerThread;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use ethaniccc\Esoteric\webhook\WebhookThread;
 use Exception;
+use pocketmine\block\Block;
+use pocketmine\block\BlockFactory;
+use pocketmine\block\FenceGate;
 use pocketmine\event\HandlerList;
+use pocketmine\math\AxisAlignedBB;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\RakLibInterface;
 use pocketmine\plugin\PluginBase;
@@ -130,6 +135,27 @@ final class Esoteric {
 		}
 		$contents = file_get_contents($this->getPlugin()->getDataFolder() . "exempt.txt");
 		$this->exemptList = explode(PHP_EOL, $contents);
+		foreach ($this->exemptList as $k => $exempt) {
+		    if ($exempt === "") {
+		        unset($this->exemptList[$k]);
+            }
+        }
+
+        /**
+         * Start correcting code for some block bounding boxes. Some bounding boxes aren't 1:1 as possible
+         * with the client (e.g Fence Gates).
+         */
+
+        BlockFactory::registerBlock(new FenceGateOverride(Block::OAK_FENCE_GATE, 0, "Oak Fence Gate"), true);
+        BlockFactory::registerBlock(new FenceGateOverride(Block::SPRUCE_FENCE_GATE, 0, "Spruce Fence Gate"), true);
+        BlockFactory::registerBlock(new FenceGateOverride(Block::BIRCH_FENCE_GATE, 0, "Birch Fence Gate"), true);
+        BlockFactory::registerBlock(new FenceGateOverride(Block::JUNGLE_FENCE_GATE, 0, "Jungle Fence Gate"), true);
+        BlockFactory::registerBlock(new FenceGateOverride(Block::DARK_OAK_FENCE_GATE, 0, "Dark Oak Fence Gate"), true);
+        BlockFactory::registerBlock(new FenceGateOverride(Block::ACACIA_FENCE_GATE, 0, "Acacia Fence Gate"), true);
+
+        /**
+         * End the ctrl+c ctrl+v madness
+         */
 
 		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
 		if ($this->settings->getWaveSettings()["enabled"]) {

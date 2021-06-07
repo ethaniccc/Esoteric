@@ -24,7 +24,7 @@ class AABB extends AxisAlignedBB {
 
 	public static function from(PlayerData $data): self {
 		$pos = $data->currentLocation;
-		return new AABB($pos->x - $data->hitboxHeight, $pos->y, $pos->z - $data->hitboxHeight, $pos->x + $data->hitboxHeight, $pos->y + $data->hitboxHeight, $pos->z + $data->hitboxHeight);
+		return new AABB($pos->x - $data->hitboxWidth, $pos->y, $pos->z - $data->hitboxWidth, $pos->x + $data->hitboxWidth, $pos->y + $data->hitboxHeight, $pos->z + $data->hitboxWidth);
 	}
 
 	public static function fromAxisAlignedBB(AxisAlignedBB $alignedBB): AABB {

@@ -145,7 +145,13 @@ final class ProcessInbound {
 					$this->pitchRotationSamples->clear();
 				}
 			}
+			if ($data->boundingBox !== null) {
+                $data->lastBoundingBox = clone $data->boundingBox;
+            }
 			$data->boundingBox = AABB::from($data);
+			if ($data->lastBoundingBox === null) {
+                $data->lastBoundingBox = clone $data->boundingBox;
+            }
 			$data->directionVector = MathUtils::directionVectorFromValues($data->currentYaw, $data->currentPitch);
 			$validMovement = $data->currentMoveDelta->lengthSquared() >= MovementConstants::MOVEMENT_THRESHOLD_SQUARED;
 			$data->movementSpeed = $data->player->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->getValue();
@@ -276,6 +282,10 @@ final class ProcessInbound {
 			}
 
 			if ($packet->itemInteractionData !== null) {
+                // the client removes the broken block on it's side, when it receives an update from the server,
+                // it will determine if the block should be placed back, or if particles show and the block is set to air
+                // if BlockBreakEvent is cancelled, OutboundProcessor should catch a block update
+                $data->world->setBlock($packet->itemInteractionData->blockPos, 0, 0);
 				// maybe if :microjang: didn't make the block breaking server-side option redundant, I wouldn't be doing this... you know who to blame !
 				// hahaha... skidding PMMP go brrrt
 				$player = $data->player;
@@ -352,9 +362,13 @@ final class ProcessInbound {
 						// snow layers are evil
 						$data->isCollidedHorizontally = $block->getId() !== BlockIds::AIR && (count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($horizontalAABB) : $block->collidesWithBB($horizontalAABB));
 					}
-					if (floor($block->y) <= floor($location->y) && (count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)) : $block->collidesWithBB($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)))) {
-						$data->expectedOnGround = true;
-						$data->blocksBelow[] = $block;
+					if ((count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)) : $block->collidesWithBB($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)))) {
+					    if (floor($block->y) <= floor($location->y)) {
+                            $data->expectedOnGround = true;
+                            $data->blocksBelow[] = $block;
+                        } else {
+					        $hasAbove = true;
+                        }
 					}
 					if ($block instanceof Liquid) {
 						$liquids++;
@@ -378,9 +392,7 @@ final class ProcessInbound {
 				$actualMoveY = $data->currentMoveDelta->y;
 				$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
 				$flag2 = $expectedMoveY < 0;
-				$AABB1 = $data->boundingBox->expandedCopy(0, 0.1, 0);
-				$AABB1->minY = $data->boundingBox->maxY - 0.4;
-				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && count($data->player->getLevel()->getCollisionBlocks($AABB1, true)) !== 0;
+				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && isset($hasAbove);
 				$data->isCollidedVertically = $flag1;
 				$predictedMoveY = $this->lastClientPrediction->y;
 				if ($data->ticksSinceMotion === 0) {
@@ -528,9 +540,10 @@ final class ProcessInbound {
 				if ($trData->getActionType() === UseItemTransactionData::ACTION_CLICK_BLOCK) {
 					$clickedBlockPos = $trData->getBlockPos();
 					$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
-					$blockToReplace = $data->player->getLevel()->getBlock($newBlockPos, false, false);
-					if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks) {
-						$block = $trData->getItemInHand()->getItemStack()->getBlock();
+					$blockToReplace = $data->world->getBlock($newBlockPos);
+                    $block = $trData->getItemInHand()->getItemStack()->getBlock();
+                    $block->position($blockToReplace->asPosition());
+					if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks && !$block->collidesWithBB($data->boundingBox)) {
 						if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
 							$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
 						}
@@ -540,8 +553,7 @@ final class ProcessInbound {
 							}
 						}
 						if (($block->canBePlaced() || $block instanceof UnknownBlock)) {
-							$block->position($blockToReplace->asPosition());
-							$data->world->setBlock($block->asVector3(), $block->getId(), $block->getDamage());
+							$data->world->setBlock($blockToReplace->asVector3(), $block->getId(), $block->getDamage());
 							$blockAABB = AABB::fromBlock($block);
 							if ((!$block instanceof UnknownBlock || $block->isSolid() && !$block->isTransparent()) /* <- so let's talk about that.... */ && $blockAABB->intersectsWith($data->boundingBox->expandedCopy(0.01, 0.01, 0.01))) {
 								return;
@@ -549,11 +561,6 @@ final class ProcessInbound {
 							$this->placedBlocks[] = clone $block;
 						}
 					}
-				} elseif ($trData->getActionType() === UseItemTransactionData::ACTION_BREAK_BLOCK) {
-					// the client removes the broken block on it's side, when it receives an update from the server,
-					// it will determine if the block should be placed back, or if particles show and the block is set to air
-					// if BlockBreakEvent is cancelled, OutboundProcessor should catch a block update
-					$data->world->setBlock($trData->getBlockPos(), 0, 0);
 				}
 			}
 			self::$inventoryTransactionTimings->stopTiming();

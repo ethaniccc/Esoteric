@@ -37,12 +37,14 @@ abstract class Check {
 	public $experimental;
 	public $violations = 0;
 	public $buffer = 0;
+	public $fallbackSetback;
 
 	public function __construct(string $name, string $subType, string $description, bool $experimental = false) {
 		$this->name = $name;
 		$this->subType = $subType;
 		$this->description = $description;
 		$this->experimental = $experimental;
+		$this->fallbackSetback = false;
 		if (!isset(self::$settings["$name:$subType"])) {
 			$settings = Esoteric::getInstance()->getSettings()->getCheckSettings($name, $subType);
 			if ($settings === null) {
@@ -228,7 +230,7 @@ abstract class Check {
 	}
 
 	protected function setback(PlayerData $data): void {
-		if (!$data->hasMovementSuppressed && $this->option("setback", false)) {
+		if (!$data->hasMovementSuppressed && $this->option("setback", $this->fallbackSetback)) {
 			$type = Esoteric::getInstance()->getSettings()->getSetbackType();
 			switch ($type) {
 				case Settings::SETBACK_SMOOTH:

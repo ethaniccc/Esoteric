@@ -41,8 +41,8 @@ setback_type: "none"
 timeout:
   # If this is disabled, hackers may be able to disable Esoteric by cancelling the sending of a certain packet
   enabled: true
-  # Amount of un-received packets to flag suspicion of a player timing out (10 seconds / 200 ticks by default - like in MC Java and RakNet)
-  total_packets: 200
+  # Amount of un-received packets to flag suspicion of a player timing out
+  total_packets: 40
   # Amount of client ticks to pass by before kicking the player for timing out (10 seconds / 200 ticks by default - like in MC Java and RakNet)
   ticks: 200
 
@@ -164,6 +164,14 @@ detections:
       punishment_type: none
       max_vl: 10
       code: Mach4
+      setback: false
+  # Phase detections
+  Phase:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 20
+      code: Ghost
       setback: false
   # Velocity detections
   Velocity:

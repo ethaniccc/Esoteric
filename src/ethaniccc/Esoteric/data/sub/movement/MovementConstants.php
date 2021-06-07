@@ -23,8 +23,8 @@ final class MovementConstants {
 
 	public const UNKNOWN_1 = 0.017453292;
 
-	public const MOVEMENT_THRESHOLD = 0.001;
-	public const MOVEMENT_THRESHOLD_SQUARED = 0.001 ** 2;
+	public const MOVEMENT_THRESHOLD = 0.00001;
+	public const MOVEMENT_THRESHOLD_SQUARED = 0.00001 ** 2;
 
 	public const FULL_KEYBOARD_ROTATION_MULTIPLIER = 2.22222222;
 
