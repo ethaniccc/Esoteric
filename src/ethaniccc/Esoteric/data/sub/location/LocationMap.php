@@ -9,7 +9,7 @@ use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\BatchPacket;
-use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
+use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\Player;
 use pocketmine\Server;
@@ -34,7 +34,7 @@ final class LocationMap {
 	}
 
 	/**
-	 * @param MovePlayerPacket|MoveActorDeltaPacket $packet
+	 * @param MovePlayerPacket|MoveActorAbsolutePacket $packet
 	 */
 	function addPacket($packet): void {
 		if (!isset($this->locations[$packet->entityRuntimeId])) {
