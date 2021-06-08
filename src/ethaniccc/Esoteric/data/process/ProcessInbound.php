@@ -556,6 +556,10 @@ final class ProcessInbound {
 					if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks && $data->boundingBox !== null && !$block->collidesWithBB($data->boundingBox)) {
 						if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
 							$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
+							$block->position($blockToReplace->asPosition());
+							if ($block->collidesWithBB($data->boundingBox)) {
+								return;
+							}
 						}
 						foreach ($this->placedBlocks as $other) {
 							if ($other->asVector3()->equals($blockToReplace->asVector3())) {
