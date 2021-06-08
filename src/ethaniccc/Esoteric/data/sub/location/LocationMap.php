@@ -11,6 +11,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\Network;
 use pocketmine\Player;
 use pocketmine\Server;
 use function count;
@@ -40,7 +41,6 @@ final class LocationMap {
 		if (!isset($this->locations[$packet->entityRuntimeId])) {
 			return;
 		}
-		$this->needSend->addPacket($packet);
 		if ($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) {
 			$packet->mode = MovePlayerPacket::MODE_RESET;
 			$data = $this->locations[$packet->entityRuntimeId] ?? null;
@@ -48,12 +48,10 @@ final class LocationMap {
 				$data->isSynced = 0;
 				$data->newPosRotationIncrements = 1;
 			}
+			$packet->encode();
 		}
-		$packet->encode();
-		$entity = Server::getInstance()->findEntity($packet->entityRuntimeId);
-		if ($entity !== null) {
-			$this->needSendArray[$packet->entityRuntimeId] = $packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position;
-		}
+		$this->needSend->addPacket($packet);
+		$this->needSendArray[$packet->entityRuntimeId] = $packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position;
 	}
 
 	function addEntity(Entity $entity, Vector3 $startPos): void {
@@ -85,7 +83,6 @@ final class LocationMap {
 		$this->needSend = new BatchPacket();
 		$this->needSendArray = [];
 		$timestamp = $pk->timestamp;
-		// $data->player->sendDataPacket($batch, false, true);
 		PacketUtils::sendPacketSilent($data, $batch, true, function (int $ackID) use ($data, $timestamp): void {
 			$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
 		});

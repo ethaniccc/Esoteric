@@ -15,6 +15,7 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\BatchPacket;
+use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
@@ -199,35 +200,23 @@ class PMMPListener implements Listener {
 				} catch (RuntimeException | LogicException $e) {
 					continue;
 				}
-				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorDeltaPacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
+				if (($pk instanceof MovePlayerPacket || $pk instanceof MoveActorAbsolutePacket) && $pk->entityRuntimeId !== $playerData->player->getId()) {
 					if ($playerData->entityLocationMap->get($pk->entityRuntimeId) !== null) {
 						if (count($gen) === 1) {
 							$event->setCancelled();
 						} else {
-							$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
+							$packet->buffer = str_replace(zlib_encode(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, ZLIB_ENCODING_RAW, $packet->getCompressionLevel()), "", $packet->buffer);
 							$packet->payload = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->payload);
 						}
-					}
-					$playerData->entityLocationMap->addPacket($pk);
-				} elseif ($pk instanceof MovePlayerPacket && $pk->mode === MovePlayerPacket::MODE_TELEPORT && $pk->entityRuntimeId === $playerData->player->getId()) {
-					$pk->mode = MovePlayerPacket::MODE_RESET;
-					$pk->encode();
-					$p = new BatchPacket();
-					$p->addPacket($pk);
-					$p->encode();
-					PacketUtils::sendPacketSilent($playerData, $p);
-					if (count($gen) === 1) {
-						$event->setCancelled();
-					} else {
-						$packet->buffer = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->buffer);
-						$packet->payload = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->payload);
+						$playerData->entityLocationMap->addPacket($pk);
 					}
 				}
 				$playerData->outboundProcessor->execute($pk, $playerData);
-				foreach ($playerData->checks as $check)
+				foreach ($playerData->checks as $check) {
 					if ($check->handleOut()) {
 						$check->outbound($pk, $playerData);
 					}
+				}
 			}
 			$this->sendTimings->stopTiming();
 		} elseif ($packet instanceof StartGamePacket) {
