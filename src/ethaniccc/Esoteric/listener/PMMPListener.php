@@ -136,7 +136,6 @@ class PMMPListener implements Listener {
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
 		$playerData->inboundProcessor->execute($packet, $playerData);
 		if (($player->loggedIn && in_array($player->getName(), Esoteric::getInstance()->exemptList)) || $playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
-			echo "exempt\n";
 		    return;
 		}
 		if ($packet instanceof PlayerAuthInputPacket) {
