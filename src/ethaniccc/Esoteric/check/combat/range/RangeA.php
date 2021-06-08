@@ -51,7 +51,6 @@ class RangeA extends Check {
 					$attackingAABB = AABB::fromPosition($data->attackPos->subtract(0, 1.62));
 					if ($intersection !== null && !$AABB->intersectsWith($attackingAABB)) {
 						$raycastDist = $intersection->getHitVector()->distance($data->attackPos);
-                        $data->player->sendMessage("dist=$raycastDist");
 						if ($raycastDist > $this->option("max_dist", 3.01) && $rawDistance >= 2.8) {
 							$flagged = true;
 							if (++$this->secondaryBuffer >= 1.5) {
