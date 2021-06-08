@@ -444,7 +444,7 @@ final class ProcessInbound {
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
 					$handler = NetworkStackLatencyHandler::getInstance();
-					$handler->send($data, $handler->next($data), function (int $timestamp) use ($hasCollision, $data, $realBlock, $handler): void {
+					$handler->send($data, $handler->next($data), static function (int $timestamp) use ($hasCollision, $data, $realBlock, $handler): void {
 						$p = new BatchPacket();
 						$pk = new UpdateBlockPacket();
 						$pk->x = $realBlock->x;

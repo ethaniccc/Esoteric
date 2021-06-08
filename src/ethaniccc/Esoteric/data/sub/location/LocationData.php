@@ -3,17 +3,17 @@
 namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\utils\EvictingList;
-use pocketmine\level\Position;
+use pocketmine\math\Vector3;
 
 final class LocationData {
 
 	/** @var int */
 	public $entityRuntimeId;
-	/** @var Position */
+	/** @var Vector3 */
 	public $currentLocation;
-	/** @var Position */
+	/** @var Vector3 */
 	public $lastLocation;
-	/** @var Position */
+	/** @var Vector3 */
 	public $receivedLocation;
 	/** @var int */
 	public $newPosRotationIncrements = 0;
@@ -25,7 +25,5 @@ final class LocationData {
 	public $hitboxWidth = 0.3, $hitboxHeight = 1.8;
 	/** @var bool */
 	public $isPlayer = false;
-	/** @var int[] */
-	public $levelHistory = [];
 
 }

@@ -15,10 +15,8 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\BatchPacket;
-use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
-use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
@@ -46,7 +44,14 @@ use const PHP_EOL;
 
 class PMMPListener implements Listener {
 
-	private const USED_OUTBOUND_PACKETS = [ProtocolInfo::MOVE_PLAYER_PACKET, ProtocolInfo::MOVE_ACTOR_DELTA_PACKET, ProtocolInfo::UPDATE_BLOCK_PACKET, ProtocolInfo::SET_ACTOR_MOTION_PACKET, ProtocolInfo::MOB_EFFECT_PACKET, ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET, ProtocolInfo::SET_ACTOR_DATA_PACKET, ProtocolInfo::NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, ProtocolInfo::ADVENTURE_SETTINGS_PACKET, ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET, ProtocolInfo::CORRECT_PLAYER_MOVE_PREDICTION_PACKET, ProtocolInfo::NETWORK_STACK_LATENCY_PACKET,];
+	private const USED_OUTBOUND_PACKETS = [
+	    ProtocolInfo::MOVE_PLAYER_PACKET, ProtocolInfo::MOVE_ACTOR_DELTA_PACKET, ProtocolInfo::UPDATE_BLOCK_PACKET,
+        ProtocolInfo::SET_ACTOR_MOTION_PACKET, ProtocolInfo::MOB_EFFECT_PACKET, ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET,
+        ProtocolInfo::SET_ACTOR_DATA_PACKET, ProtocolInfo::NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, ProtocolInfo::ADVENTURE_SETTINGS_PACKET,
+        ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET, ProtocolInfo::CORRECT_PLAYER_MOVE_PREDICTION_PACKET,
+        ProtocolInfo::NETWORK_STACK_LATENCY_PACKET, ProtocolInfo::REMOVE_ACTOR_PACKET, ProtocolInfo::ADD_ACTOR_PACKET,
+        ProtocolInfo::ADD_PLAYER_PACKET,
+    ];
 
 	/** @var TimingsHandler */
 	public $checkTimings;
@@ -203,7 +208,7 @@ class PMMPListener implements Listener {
 							$packet->payload = str_replace(Binary::writeUnsignedVarInt(strlen($pk->buffer)) . $pk->buffer, "", $packet->payload);
 						}
 					}
-					$playerData->entityLocationMap->add($pk);
+					$playerData->entityLocationMap->addPacket($pk);
 				} elseif ($pk instanceof MovePlayerPacket && $pk->mode === MovePlayerPacket::MODE_TELEPORT && $pk->entityRuntimeId === $playerData->player->getId()) {
 					$pk->mode = MovePlayerPacket::MODE_RESET;
 					$pk->encode();

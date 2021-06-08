@@ -6,14 +6,13 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\PacketUtils;
-use pocketmine\level\Position;
+use pocketmine\entity\Entity;
+use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\Player;
 use pocketmine\Server;
-use function array_shift;
-use function array_unique;
 use function count;
 
 /**
@@ -27,7 +26,7 @@ final class LocationMap {
 	public $locations = [];
 	/** @var BatchPacket - A batch packet that contains entity locations along with a NetworkStackLatencyPacket */
 	public $needSend;
-	/** @var Position[] */
+	/** @var Vector3[] */
 	public $needSendArray = [];
 
 	public function __construct() {
@@ -37,7 +36,10 @@ final class LocationMap {
 	/**
 	 * @param MovePlayerPacket|MoveActorDeltaPacket $packet
 	 */
-	function add($packet): void {
+	function addPacket($packet): void {
+	    if (!isset($this->locations[$packet->entityRuntimeId])) {
+	        return;
+        }
 		$this->needSend->addPacket($packet);
 		if ($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) {
 			$packet->mode = MovePlayerPacket::MODE_RESET;
@@ -50,9 +52,25 @@ final class LocationMap {
 		$packet->encode();
 		$entity = Server::getInstance()->findEntity($packet->entityRuntimeId);
 		if ($entity !== null) {
-			$this->needSendArray[$packet->entityRuntimeId] = Position::fromObject($packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position, $entity->getLevel());
+			$this->needSendArray[$packet->entityRuntimeId] = $packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position;
 		}
 	}
+
+	function addEntity(Entity $entity, Vector3 $startPos): void {
+        $locationData = new LocationData();
+        $locationData->entityRuntimeId = $entity->getId();
+        $locationData->newPosRotationIncrements = 0;
+        $locationData->currentLocation = clone $startPos;
+        $locationData->lastLocation = clone $startPos;
+        $locationData->receivedLocation = clone $startPos;
+        $locationData->history = new EvictingList(3);
+        $locationData->isPlayer = $entity instanceof Player;
+        $this->locations[$entity->getId()] = $locationData;
+    }
+
+	function removeEntity(int $entityRuntimeId): void {
+	    unset($this->locations[$entityRuntimeId]);
+    }
 
 	function send(PlayerData $data): void {
 		if (count($this->needSendArray) === 0 || !$data->loggedIn) {
@@ -73,20 +91,10 @@ final class LocationMap {
 		});
 		$networkStackLatencyHandler->forceHandle($data, $pk->timestamp, function (int $timestamp) use ($locations): void {
 			foreach ($locations as $entityRuntimeId => $location) {
-				if (!isset($this->locations[$entityRuntimeId])) {
-					$locationData = new LocationData();
-					$locationData->entityRuntimeId = $entityRuntimeId;
-					$locationData->newPosRotationIncrements = 3;
-					$locationData->currentLocation = clone $location;
-					$locationData->lastLocation = clone $location;
-					$locationData->receivedLocation = clone $location;
-					$locationData->history = new EvictingList(3);
-					$locationData->isPlayer = Server::getInstance()->findEntity($entityRuntimeId) instanceof Player;
-					$this->locations[$entityRuntimeId] = $locationData;
-				} else {
-					$locationData = $this->locations[$entityRuntimeId];
-					$locationData->newPosRotationIncrements = 3;
-					$locationData->receivedLocation = $location;
+				if (isset($this->locations[$entityRuntimeId])) {
+                    $locationData = $this->locations[$entityRuntimeId];
+                    $locationData->newPosRotationIncrements = 3;
+                    $locationData->receivedLocation = $location;
 				}
 			}
 		});
@@ -99,16 +107,11 @@ final class LocationMap {
 				unset($this->locations[$entityRuntimeId]);
 				unset($this->needSendArray[$entityRuntimeId]);
 			} else {
-				$locationData->levelHistory[] = ($level = $locationData->receivedLocation->level) === null ? -1 : $level->getId();
-				if (count($locationData->levelHistory) > 3) {
-					array_shift($locationData->levelHistory);
-				}
 				if ($locationData->newPosRotationIncrements > 0) {
 					$locationData->lastLocation = clone $locationData->currentLocation;
 					$locationData->currentLocation->x = ($locationData->currentLocation->x + (($locationData->receivedLocation->x - $locationData->currentLocation->x) / $locationData->newPosRotationIncrements));
 					$locationData->currentLocation->y = ($locationData->currentLocation->y + (($locationData->receivedLocation->y - $locationData->currentLocation->y) / $locationData->newPosRotationIncrements));
 					$locationData->currentLocation->z = ($locationData->currentLocation->z + (($locationData->receivedLocation->z - $locationData->currentLocation->z) / $locationData->newPosRotationIncrements));
-					$locationData->currentLocation->level = ((count($locationData->levelHistory) - count(array_unique($locationData->levelHistory)) + 1) === count($locationData->levelHistory)) ? $entity->getLevel() : $locationData->lastLocation->getLevel();
 				} elseif ($locationData->newPosRotationIncrements === 0) {
 					// don't need to clone all the time... lol
 					$locationData->lastLocation = clone $locationData->currentLocation;

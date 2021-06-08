@@ -4,10 +4,14 @@ namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
+use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use pocketmine\entity\Attribute;
+use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
+use pocketmine\network\mcpe\protocol\AddActorPacket;
+use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
@@ -15,12 +19,14 @@ use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkChunkPublisherUpdatePacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
+use pocketmine\network\mcpe\protocol\RemoveActorPacket;
 use pocketmine\network\mcpe\protocol\SetActorDataPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockSyncedPacket;
+use pocketmine\Server;
 use pocketmine\timings\TimingsHandler;
 use function abs;
 
@@ -54,7 +60,7 @@ class ProcessOutbound {
 					break;
 				}
 			}
-			$handler->send($data, $handler->next($data), function (int $timestamp) use ($data, $blk, $packet): void {
+			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $blk, $packet): void {
 				$real = RuntimeBlockMapping::fromStaticRuntimeId($packet->blockRuntimeId);
 				$data->world->setBlock(new Vector3($packet->x, $packet->y, $packet->z), $real[0], ($blk->getId() === $real[0] ? $blk->getDamage() : 0) /** <- hack to get around meta being screwed up.... */);
 			});
@@ -121,7 +127,7 @@ class ProcessOutbound {
 				}) : $data->hitboxHeight = $hitboxHeight;
 			}
 		} elseif ($packet instanceof NetworkChunkPublisherUpdatePacket) {
-			$handler->send($data, $handler->next($data), function (int $timestamp) use ($packet, $data): void {
+			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($packet, $data): void {
 				$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
 				$radius = $packet->radius >> 4;
 				$chunkX = $data->chunkSendPosition->x >> 4;
@@ -164,7 +170,19 @@ class ProcessOutbound {
 			});
 		} elseif ($packet instanceof NetworkStackLatencyPacket) {
 			$handler->forceSet($data, $packet->timestamp - fmod($packet->timestamp, 1000));
-		}
+		} elseif ($packet instanceof RemoveActorPacket) {
+		    $handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $packet): void {
+                $data->entityLocationMap->removeEntity($packet->entityUniqueId);
+            });
+        } elseif ($packet instanceof AddActorPacket || $packet instanceof AddPlayerPacket) {
+		    $handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $packet): void {
+		        $entity = Server::getInstance()->findEntity($packet->entityRuntimeId);
+		        if ($entity !== null) {
+		            // if the entity is null, the stupid client is out-of-sync (lag possibly)
+                    $data->entityLocationMap->addEntity($entity, $packet->position);
+                }
+            });
+        }
 		self::$baseTimings->stopTiming();
 	}
 
