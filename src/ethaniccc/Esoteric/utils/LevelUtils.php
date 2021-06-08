@@ -35,8 +35,9 @@ final class LevelUtils {
 		switch ($searchOption) {
 			case self::SEARCH_ALL:
 				yield $curr;
-				if ($first)
+				if ($first) {
 					return;
+				}
 				for ($x = $minX; $x < $maxX; $x += $epsilonXZ) {
 					for ($y = $minY; $y < $maxY; $y += $epsilonY) {
 						for ($z = $minZ; $z < $maxZ; $z += $epsilonXZ) {
@@ -48,8 +49,9 @@ final class LevelUtils {
 			case self::SEARCH_TRANSPARENT:
 				if ($curr->hasEntityCollision()) {
 					yield $curr;
-					if ($first)
+					if ($first) {
 						return;
+					}
 				}
 				for ($x = $minX; $x < $maxX; $x += $epsilonXZ) {
 					for ($y = $minY; $y < $maxY; $y += $epsilonY) {
@@ -57,8 +59,9 @@ final class LevelUtils {
 							$block = $world->getBlockAt($x, $y, $z);
 							if ($block->hasEntityCollision()) {
 								yield $block;
-								if ($first)
+								if ($first) {
 									return;
+								}
 							}
 						}
 					}
@@ -67,8 +70,9 @@ final class LevelUtils {
 			case self::SEARCH_SOLID:
 				if ($curr->isSolid() || $curr instanceof UnknownBlock) {
 					yield $curr;
-					if ($first)
+					if ($first) {
 						return;
+					}
 				}
 				for ($x = $minX; $x < $maxX; $x += $epsilonXZ) {
 					for ($y = $minY; $y < $maxY; $y += $epsilonY) {
@@ -76,8 +80,9 @@ final class LevelUtils {
 							$block = $world->getBlockAt($x, $y, $z);
 							if ($block->isSolid() || $block instanceof UnknownBlock) {
 								yield $block;
-								if ($first)
+								if ($first) {
 									return;
+								}
 							}
 						}
 					}

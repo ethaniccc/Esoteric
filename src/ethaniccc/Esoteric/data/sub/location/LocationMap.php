@@ -37,9 +37,9 @@ final class LocationMap {
 	 * @param MovePlayerPacket|MoveActorDeltaPacket $packet
 	 */
 	function addPacket($packet): void {
-	    if (!isset($this->locations[$packet->entityRuntimeId])) {
-	        return;
-        }
+		if (!isset($this->locations[$packet->entityRuntimeId])) {
+			return;
+		}
 		$this->needSend->addPacket($packet);
 		if ($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) {
 			$packet->mode = MovePlayerPacket::MODE_RESET;
@@ -57,20 +57,20 @@ final class LocationMap {
 	}
 
 	function addEntity(Entity $entity, Vector3 $startPos): void {
-        $locationData = new LocationData();
-        $locationData->entityRuntimeId = $entity->getId();
-        $locationData->newPosRotationIncrements = 0;
-        $locationData->currentLocation = clone $startPos;
-        $locationData->lastLocation = clone $startPos;
-        $locationData->receivedLocation = clone $startPos;
-        $locationData->history = new EvictingList(3);
-        $locationData->isPlayer = $entity instanceof Player;
-        $this->locations[$entity->getId()] = $locationData;
-    }
+		$locationData = new LocationData();
+		$locationData->entityRuntimeId = $entity->getId();
+		$locationData->newPosRotationIncrements = 0;
+		$locationData->currentLocation = clone $startPos;
+		$locationData->lastLocation = clone $startPos;
+		$locationData->receivedLocation = clone $startPos;
+		$locationData->history = new EvictingList(3);
+		$locationData->isPlayer = $entity instanceof Player;
+		$this->locations[$entity->getId()] = $locationData;
+	}
 
 	function removeEntity(int $entityRuntimeId): void {
-	    unset($this->locations[$entityRuntimeId]);
-    }
+		unset($this->locations[$entityRuntimeId]);
+	}
 
 	function send(PlayerData $data): void {
 		if (count($this->needSendArray) === 0 || !$data->loggedIn) {
@@ -92,9 +92,9 @@ final class LocationMap {
 		$networkStackLatencyHandler->forceHandle($data, $pk->timestamp, function (int $timestamp) use ($locations): void {
 			foreach ($locations as $entityRuntimeId => $location) {
 				if (isset($this->locations[$entityRuntimeId])) {
-                    $locationData = $this->locations[$entityRuntimeId];
-                    $locationData->newPosRotationIncrements = 3;
-                    $locationData->receivedLocation = $location;
+					$locationData = $this->locations[$entityRuntimeId];
+					$locationData->newPosRotationIncrements = 3;
+					$locationData->receivedLocation = $location;
 				}
 			}
 		});

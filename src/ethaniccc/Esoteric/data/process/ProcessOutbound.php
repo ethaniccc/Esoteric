@@ -4,9 +4,7 @@ namespace ethaniccc\Esoteric\data\process;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
-use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use pocketmine\entity\Attribute;
-use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
@@ -25,7 +23,6 @@ use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
-use pocketmine\network\mcpe\protocol\UpdateBlockSyncedPacket;
 use pocketmine\Server;
 use pocketmine\timings\TimingsHandler;
 use function abs;
@@ -62,7 +59,7 @@ class ProcessOutbound {
 			}
 			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $blk, $packet): void {
 				$real = RuntimeBlockMapping::fromStaticRuntimeId($packet->blockRuntimeId);
-				$data->world->setBlock(new Vector3($packet->x, $packet->y, $packet->z), $real[0], ($blk->getId() === $real[0] ? $blk->getDamage() : 0) /** <- hack to get around meta being screwed up.... */);
+				$data->world->setBlock(new Vector3($packet->x, $packet->y, $packet->z), $real[0], ($blk->getId() === $real[0] ? $blk->getDamage() : 0)/** <- hack to get around meta being screwed up.... */);
 			});
 		} elseif ($packet instanceof SetActorMotionPacket && $packet->entityRuntimeId === $data->player->getId()) {
 			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $packet): void {
@@ -82,8 +79,9 @@ class ProcessOutbound {
 					break;
 				case MobEffectPacket::EVENT_MODIFY:
 					$effectData = $data->effects[$packet->effectId] ?? null;
-					if ($effectData === null)
+					if ($effectData === null) {
 						return;
+					}
 					$handler->send($data, $handler->next($data), static function (int $timestamp) use (&$effectData, $packet): void {
 						$effectData->amplifier = $packet->amplifier + 1;
 						$effectData->ticks = $packet->duration;
@@ -171,18 +169,18 @@ class ProcessOutbound {
 		} elseif ($packet instanceof NetworkStackLatencyPacket) {
 			$handler->forceSet($data, $packet->timestamp - fmod($packet->timestamp, 1000));
 		} elseif ($packet instanceof RemoveActorPacket) {
-		    $handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $packet): void {
-                $data->entityLocationMap->removeEntity($packet->entityUniqueId);
-            });
-        } elseif ($packet instanceof AddActorPacket || $packet instanceof AddPlayerPacket) {
-		    $handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $packet): void {
-		        $entity = Server::getInstance()->findEntity($packet->entityRuntimeId);
-		        if ($entity !== null) {
-		            // if the entity is null, the stupid client is out-of-sync (lag possibly)
-                    $data->entityLocationMap->addEntity($entity, $packet->position);
-                }
-            });
-        }
+			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $packet): void {
+				$data->entityLocationMap->removeEntity($packet->entityUniqueId);
+			});
+		} elseif ($packet instanceof AddActorPacket || $packet instanceof AddPlayerPacket) {
+			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $packet): void {
+				$entity = Server::getInstance()->findEntity($packet->entityRuntimeId);
+				if ($entity !== null) {
+					// if the entity is null, the stupid client is out-of-sync (lag possibly)
+					$data->entityLocationMap->addEntity($entity, $packet->position);
+				}
+			});
+		}
 		self::$baseTimings->stopTiming();
 	}
 

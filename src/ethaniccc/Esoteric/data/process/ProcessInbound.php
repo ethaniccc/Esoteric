@@ -146,12 +146,12 @@ final class ProcessInbound {
 				}
 			}
 			if ($data->boundingBox !== null) {
-                $data->lastBoundingBox = clone $data->boundingBox;
-            }
+				$data->lastBoundingBox = clone $data->boundingBox;
+			}
 			$data->boundingBox = AABB::from($data);
 			if ($data->lastBoundingBox === null) {
-                $data->lastBoundingBox = clone $data->boundingBox;
-            }
+				$data->lastBoundingBox = clone $data->boundingBox;
+			}
 			$data->directionVector = MathUtils::directionVectorFromValues($data->currentYaw, $data->currentPitch);
 			$validMovement = $data->currentMoveDelta->lengthSquared() >= MovementConstants::MOVEMENT_THRESHOLD_SQUARED;
 			$data->movementSpeed = $data->player->getAttributeMap()->getAttribute(Attribute::MOVEMENT_SPEED)->getValue();
@@ -282,10 +282,10 @@ final class ProcessInbound {
 			}
 
 			if ($packet->itemInteractionData !== null) {
-                // the client removes the broken block on it's side, when it receives an update from the server,
-                // it will determine if the block should be placed back, or if particles show and the block is set to air
-                // if BlockBreakEvent is cancelled, OutboundProcessor should catch a block update
-                $data->world->setBlock($packet->itemInteractionData->blockPos, 0, 0);
+				// the client removes the broken block on it's side, when it receives an update from the server,
+				// it will determine if the block should be placed back, or if particles show and the block is set to air
+				// if BlockBreakEvent is cancelled, OutboundProcessor should catch a block update
+				$data->world->setBlock($packet->itemInteractionData->blockPos, 0, 0);
 				// maybe if :microjang: didn't make the block breaking server-side option redundant, I wouldn't be doing this... you know who to blame !
 				// hahaha... skidding PMMP go brrrt
 				$player = $data->player;
@@ -363,12 +363,12 @@ final class ProcessInbound {
 						$data->isCollidedHorizontally = $block->getId() !== BlockIds::AIR && (count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($horizontalAABB) : $block->collidesWithBB($horizontalAABB));
 					}
 					if ((count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)) : $block->collidesWithBB($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)))) {
-					    if (floor($block->y) <= floor($location->y)) {
-                            $data->expectedOnGround = true;
-                            $data->blocksBelow[] = $block;
-                        } else {
-					        $hasAbove = true;
-                        }
+						if (floor($block->y) <= floor($location->y)) {
+							$data->expectedOnGround = true;
+							$data->blocksBelow[] = $block;
+						} else {
+							$hasAbove = true;
+						}
 					}
 					if ($block instanceof Liquid) {
 						$liquids++;
@@ -379,14 +379,23 @@ final class ProcessInbound {
 					}
 				}
 				$data->isCollidedVertically = count($data->blocksBelow) > 0;
-				if ($liquids > 0)
-					$data->ticksSinceInLiquid = 0; else ++$data->ticksSinceInLiquid;
+				if ($liquids > 0) {
+					$data->ticksSinceInLiquid = 0;
+				} else {
+					++$data->ticksSinceInLiquid;
+				}
 
-				if ($cobweb > 0)
-					$data->ticksSinceInCobweb = 0; else ++$data->ticksSinceInCobweb;
+				if ($cobweb > 0) {
+					$data->ticksSinceInCobweb = 0;
+				} else {
+					++$data->ticksSinceInCobweb;
+				}
 
-				if ($climbable > 0)
-					$data->ticksSinceInClimbable = 0; else ++$data->ticksSinceInClimbable;
+				if ($climbable > 0) {
+					$data->ticksSinceInClimbable = 0;
+				} else {
+					++$data->ticksSinceInClimbable;
+				}
 				self::$collisionTimings->stopTiming();
 				$expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::NORMAL_GRAVITY) * MovementConstants::GRAVITY_MULTIPLICATION;
 				$actualMoveY = $data->currentMoveDelta->y;
@@ -541,8 +550,8 @@ final class ProcessInbound {
 					$clickedBlockPos = $trData->getBlockPos();
 					$newBlockPos = $clickedBlockPos->getSide($trData->getFace());
 					$blockToReplace = $data->world->getBlock($newBlockPos);
-                    $block = $trData->getItemInHand()->getItemStack()->getBlock();
-                    $block->position($blockToReplace->asPosition());
+					$block = $trData->getItemInHand()->getItemStack()->getBlock();
+					$block->position($blockToReplace->asPosition());
 					if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks && !$block->collidesWithBB($data->boundingBox)) {
 						if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
 							$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);

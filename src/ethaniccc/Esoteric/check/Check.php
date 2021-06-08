@@ -112,8 +112,9 @@ abstract class Check {
 		$i = 1;
 		foreach ($data as $name => $value) {
 			$dataString .= "$name=$value";
-			if ($i !== $n)
+			if ($i !== $n) {
 				$dataString .= " ";
+			}
 			$i++;
 		}
 		return $dataString;
@@ -159,8 +160,9 @@ abstract class Check {
 		$i = 1;
 		foreach ($extraData as $name => $value) {
 			$dataString .= "$name=$value";
-			if ($i !== $n)
+			if ($i !== $n) {
 				$dataString .= " ";
+			}
 			$i++;
 		}
 		$string = str_replace(["{prefix}", "{player}", "{check_name}", "{check_subtype}", "{violations}", "{data}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->subType, var_export(round($this->violations, 2), true), $dataString], Esoteric::getInstance()->getSettings()->getAlertMessage());

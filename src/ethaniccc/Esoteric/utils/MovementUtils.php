@@ -60,69 +60,69 @@ final class MovementUtils {
 		return $estimated;
 	}
 
-    /**
-     * @param PlayerData $data
-     * @return Vector3 - An estimated position of where the player should be next.
-     */
+	/**
+	 * @param PlayerData $data
+	 * @return Vector3 - An estimated position of where the player should be next.
+	 */
 	public static function doCollisions(PlayerData $data): Vector3 {
-        $delta = $data->currentMoveDelta;
-        $dx = $delta->x;
-        $dy = $delta->y;
-        $dz = $delta->z;
-        $movX = $dx;
-        $movY = $dy;
-        $movZ = $dz;
-        /** @var Block[] $blockList */
-        $blockList = array_filter(iterator_to_array(LevelUtils::checkBlocksInAABB($data->lastBoundingBox, $data->world, LevelUtils::SEARCH_ALL)), function (Block $block) use ($data): bool {
-            return $block->collidesWithBB($data->lastBoundingBox);
-        });
-        $list = [];
-        foreach ($blockList as $block) {
-            foreach ($block->getCollisionBoxes() as $box) {
-                $list[] = $box;
-            }
-        }
-        foreach ($list as $bb) {
-            $dx = $bb->calculateXOffset($data->lastBoundingBox, $dx);
-            $dy = $bb->calculateXOffset($data->lastBoundingBox, $dy);
-            $dz = $bb->calculateXOffset($data->lastBoundingBox, $dz);
-        }
-        $fallingFlag = $data->onGround || ($dy != $movY && $movY < 0);
-        $horizontalFlag = $dz != $movZ || $dx != $movX;
-        if ($fallingFlag || $horizontalFlag) {
-            $cx = $dx;
-            $cy = $dy;
-            $cz = $dz;
-            $dx = $movX;
-            $dy = MovementConstants::STEP_HEIGHT;
-            $dz = $movZ;
-            /** @var Block[] $blockList */
-            $blockList = array_filter(iterator_to_array(LevelUtils::checkBlocksInAABB($data->lastBoundingBox->expandedCopy(0, 0, 0)->addCoord($dx, $dy, $dz), $data->world, LevelUtils::SEARCH_ALL)), function (Block $block) use ($data): bool {
-                return $block->collidesWithBB($data->lastBoundingBox);
-            });
-            $list = [];
-            foreach ($blockList as $block) {
-                foreach ($block->getCollisionBoxes() as $box) {
-                    $list[] = $box;
-                }
-            }
-            foreach ($list as $bb) {
-                $dx = $bb->calculateXOffset($data->lastBoundingBox, $dx);
-                $dy = $bb->calculateXOffset($data->lastBoundingBox, $dy);
-                $dz = $bb->calculateXOffset($data->lastBoundingBox, $dz);
-            }
-            $reverseDY = -$dy;
-            foreach($list as $bb){
-                $reverseDY = $bb->calculateYOffset($data->lastBoundingBox, $reverseDY);
-            }
-            $dy += $reverseDY;
-            if (($cx ** 2 + $cz ** 2) >= ($dx ** 2 + $dz ** 2)) {
-                $dx = $cx;
-                $dy = $cy;
-                $dz = $cz;
-            }
-        }
-        return $data->lastLocation->add($dx, $dy, $dz);
-    }
+		$delta = $data->currentMoveDelta;
+		$dx = $delta->x;
+		$dy = $delta->y;
+		$dz = $delta->z;
+		$movX = $dx;
+		$movY = $dy;
+		$movZ = $dz;
+		/** @var Block[] $blockList */
+		$blockList = array_filter(iterator_to_array(LevelUtils::checkBlocksInAABB($data->lastBoundingBox, $data->world, LevelUtils::SEARCH_ALL)), function (Block $block) use ($data): bool {
+			return $block->collidesWithBB($data->lastBoundingBox);
+		});
+		$list = [];
+		foreach ($blockList as $block) {
+			foreach ($block->getCollisionBoxes() as $box) {
+				$list[] = $box;
+			}
+		}
+		foreach ($list as $bb) {
+			$dx = $bb->calculateXOffset($data->lastBoundingBox, $dx);
+			$dy = $bb->calculateXOffset($data->lastBoundingBox, $dy);
+			$dz = $bb->calculateXOffset($data->lastBoundingBox, $dz);
+		}
+		$fallingFlag = $data->onGround || ($dy != $movY && $movY < 0);
+		$horizontalFlag = $dz != $movZ || $dx != $movX;
+		if ($fallingFlag || $horizontalFlag) {
+			$cx = $dx;
+			$cy = $dy;
+			$cz = $dz;
+			$dx = $movX;
+			$dy = MovementConstants::STEP_HEIGHT;
+			$dz = $movZ;
+			/** @var Block[] $blockList */
+			$blockList = array_filter(iterator_to_array(LevelUtils::checkBlocksInAABB($data->lastBoundingBox->expandedCopy(0, 0, 0)->addCoord($dx, $dy, $dz), $data->world, LevelUtils::SEARCH_ALL)), function (Block $block) use ($data): bool {
+				return $block->collidesWithBB($data->lastBoundingBox);
+			});
+			$list = [];
+			foreach ($blockList as $block) {
+				foreach ($block->getCollisionBoxes() as $box) {
+					$list[] = $box;
+				}
+			}
+			foreach ($list as $bb) {
+				$dx = $bb->calculateXOffset($data->lastBoundingBox, $dx);
+				$dy = $bb->calculateXOffset($data->lastBoundingBox, $dy);
+				$dz = $bb->calculateXOffset($data->lastBoundingBox, $dz);
+			}
+			$reverseDY = -$dy;
+			foreach ($list as $bb) {
+				$reverseDY = $bb->calculateYOffset($data->lastBoundingBox, $reverseDY);
+			}
+			$dy += $reverseDY;
+			if (($cx ** 2 + $cz ** 2) >= ($dx ** 2 + $dz ** 2)) {
+				$dx = $cx;
+				$dy = $cy;
+				$dz = $cz;
+			}
+		}
+		return $data->lastLocation->add($dx, $dy, $dz);
+	}
 
 }
