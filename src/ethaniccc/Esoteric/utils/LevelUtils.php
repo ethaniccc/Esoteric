@@ -28,7 +28,7 @@ final class LevelUtils {
 		$minX = floor($AABB->minX);
 		$maxX = ceil($AABB->maxX);
 		$minY = floor($AABB->minY);
-		$maxY = ceil($AABB->minY);
+		$maxY = ceil($AABB->maxY);
 		$minZ = floor($AABB->minZ);
 		$maxZ = ceil($AABB->maxZ);
 		$curr = $world->getBlockAt($minX, $minY, $minZ);

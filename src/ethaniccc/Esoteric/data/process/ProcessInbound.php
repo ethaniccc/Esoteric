@@ -344,8 +344,7 @@ final class ProcessInbound {
 				self::$collisionTimings->startTiming();
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
-				$checkAABB = $data->boundingBox->expandedCopy(0.25, 0, 0.25);
-				$checkAABB->minY -= MovementConstants::GROUND_MODULO * 2;
+				$checkAABB = $data->boundingBox->expandedCopy(0.25, MovementConstants::GROUND_MODULO * 2, 0.25);
 				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL);
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
@@ -358,16 +357,16 @@ final class ProcessInbound {
 				foreach ($blocks as $block) {
 					/** @var Block $block */
 					$horizontalAABB = $data->boundingBox->expandedCopy(0.25, 0, 0.25);
+					$verticalAABB = $data->boundingBox->expandedCopy(0.25, MovementConstants::GROUND_MODULO * 2, 0.25);
 					if (!$data->isCollidedHorizontally) {
 						// snow layers are evil
 						$data->isCollidedHorizontally = $block->getId() !== BlockIds::AIR && (count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($horizontalAABB) : $block->collidesWithBB($horizontalAABB));
 					}
-					if ((count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)) : $block->collidesWithBB($data->boundingBox->expandedCopy(0.25, 0.25, 0.25)))) {
+					if ($block->getId() !== BlockIds::AIR && count($block->getCollisionBoxes()) === 0 ? AABB::fromBlock($block)->intersectsWith($verticalAABB) : $block->collidesWithBB($verticalAABB)) {
+						$data->isCollidedVertically = true;
 						if (floor($block->y) <= floor($location->y)) {
 							$data->expectedOnGround = true;
 							$data->blocksBelow[] = $block;
-						} else {
-							$hasAbove = true;
 						}
 					}
 					if ($block instanceof Liquid) {
@@ -401,8 +400,7 @@ final class ProcessInbound {
 				$actualMoveY = $data->currentMoveDelta->y;
 				$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
 				$flag2 = $expectedMoveY < 0;
-				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && isset($hasAbove);
-				$data->isCollidedVertically = $flag1;
+				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && $data->isCollidedVertically;
 				$predictedMoveY = $this->lastClientPrediction->y;
 				if ($data->ticksSinceMotion === 0) {
 					$predictedMoveY = $data->motion->y;
