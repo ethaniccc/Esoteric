@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric\utils;
 
+use DivisionByZeroError;
 use ErrorException;
 use pocketmine\math\Vector3;
 use function abs;
@@ -45,7 +46,7 @@ final class MathUtils {
 		try {
 			$dot = min(max($a->dot($b) / ($a->length() * $b->length()), -1), 1);
 			return acos($dot);
-		} catch (ErrorException $e) {
+		} catch (ErrorException|DivisionByZeroError $e) {
 			return -1;
 		}
 	}
@@ -82,7 +83,7 @@ final class MathUtils {
 			}
 
 			return $efficiencyFirst * ($varianceSquared / pow($variance / $sum, 2)) - $efficiencySecond;
-		} catch (ErrorException $e) {
+		} catch (ErrorException|DivisionByZeroError $e) {
 			return 0.0;
 		}
 	}
