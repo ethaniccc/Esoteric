@@ -139,6 +139,8 @@ final class PlayerData {
 	public $ticksSinceFlight = 0;
 	/** @var bool - Boolean value for if the player is flying. */
 	public $isFlying = false;
+	/** @var bool */
+	public $isClipping = false;
 	/** @var int - Movements that have passed since the user has jumped. */
 	public $ticksSinceJump = 0;
 	/** @var bool */

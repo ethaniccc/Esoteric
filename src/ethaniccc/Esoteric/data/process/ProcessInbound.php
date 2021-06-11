@@ -585,6 +585,7 @@ final class ProcessInbound {
 			$data->gamemode = $data->player->getGamemode();
 		} elseif ($packet instanceof AdventureSettingsPacket) {
 			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
+			$data->isClipping = $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 			/* if ($packet->getFlag(AdventureSettingsPacket::BUILD) && !$data->canPlaceBlocks) {
 				SUS
 			} */

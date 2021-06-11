@@ -64,7 +64,7 @@ class PhaseA extends Check {
 				}
 				$blocks = array_unique($blocks);
 				if (($count = count($blocks)) > 0) {
-					if (!$data->teleported) {
+					if (!$data->teleported && !$data->isClipping) {
 						foreach ($blocks as $block) {
 							foreach (self::EXEMPT_LIST as $exemptName) {
 								if (strpos($block, $exemptName) !== false) { // TODO: Find out the reason why the player clips through blocks while stepping, and make a GOOD way to compensate for it.
@@ -77,8 +77,8 @@ class PhaseA extends Check {
 							"count" => $count,
 							"blocks" => implode(",", $blocks)
 						]);
+						$this->setback($data);
 					}
-					$this->setback($data);
 				} else {
 					$this->safeLocations[] = Position::fromObject($data->currentLocation, $data->player->getLevel());
 					if (count($this->safeLocations) > 10) {

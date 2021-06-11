@@ -139,6 +139,7 @@ class ProcessOutbound {
 		} elseif ($packet instanceof AdventureSettingsPacket) {
 			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($packet, $data): void {
 				$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
+				$data->isClipping = $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 			});
 		} elseif ($packet instanceof ActorEventPacket && $packet->entityRuntimeId === $data->player->getId()) {
 			switch ($packet->event) {
