@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric\data\process;
 
+use DivisionByZeroError;
 use ErrorException;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
@@ -623,7 +624,7 @@ final class ProcessInbound {
 		if (count($data->clickSamples) === 20) {
 			try {
 				$data->cps = 20 / MathUtils::getAverage(...$data->clickSamples);
-			} catch (ErrorException $e) {
+			} catch (ErrorException|DivisionByZeroError $e) {
 				$data->cps = INF;
 			}
 
