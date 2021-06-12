@@ -97,7 +97,7 @@ class ProcessOutbound {
 					break;
 			}
 		} elseif ($packet instanceof SetPlayerGameTypePacket) {
-			$mode = $packet->gamemode;
+			$mode = $data->player->getGamemode(); // why is spectator sent as creative?
 			$handler->send($data, $handler->next($data), static function (int $timestamp) use ($data, $mode): void {
 				$data->gamemode = $mode;
 			});

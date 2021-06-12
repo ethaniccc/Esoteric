@@ -9,6 +9,7 @@ use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerBlockAction;
 use ethaniccc\Esoteric\Esoteric;
+use ethaniccc\Esoteric\tasks\KickTask;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\LevelUtils;
@@ -377,7 +378,6 @@ final class ProcessInbound {
 						$climbable++;
 					}
 				}
-				$data->isCollidedVertically = count($data->blocksBelow) > 0;
 				if ($liquids > 0) {
 					$data->ticksSinceInLiquid = 0;
 				} else {
@@ -398,9 +398,6 @@ final class ProcessInbound {
 				self::$collisionTimings->stopTiming();
 				$expectedMoveY = ($data->lastMoveDelta->y - MovementConstants::NORMAL_GRAVITY) * MovementConstants::GRAVITY_MULTIPLICATION;
 				$actualMoveY = $data->currentMoveDelta->y;
-				$flag1 = abs($expectedMoveY - $actualMoveY) > 0.001;
-				$flag2 = $expectedMoveY < 0;
-				$data->hasBlockAbove = $flag1 && $expectedMoveY > 0 && abs($expectedMoveY) > 0.005 && $data->isCollidedVertically;
 				$predictedMoveY = $this->lastClientPrediction->y;
 				if ($data->ticksSinceMotion === 0) {
 					$predictedMoveY = $data->motion->y;
@@ -410,6 +407,7 @@ final class ProcessInbound {
 				}
 				$flag3 = abs($predictedMoveY - $actualMoveY) > 0.001;
 				$flag4 = $predictedMoveY < 0 || $data->isCollidedHorizontally;
+				$data->hasBlockAbove = $flag3 && $predictedMoveY > 0 && abs($predictedMoveY) > 0.005 && $data->isCollidedVertically;
 				$data->onGround = $flag3 && $flag4 && $data->expectedOnGround;
 
 				if ($data->ticksSinceTeleport <= 1) {
@@ -425,7 +423,7 @@ final class ProcessInbound {
 				}
 			}
 
-			if ($data->teleported) {
+			if ($data->teleported || !$data->inLoadedChunk) {
 				$data->expectedOnGround = true;
 				$data->onGround = true;
 			}
@@ -477,7 +475,10 @@ final class ProcessInbound {
 						PacketUtils::sendPacketSilent($data, $p);
 						if ($hasCollision && floor($data->currentLocation->y) > $realBlock->y) {
 							// prevent the player from possibly false flagging when removing ghost blocks fail
-							$data->player->teleport($realBlock->asPosition()->add(0.5, 0, 0.5));
+							$teleportPos = $realBlock->asVector3();
+							$teleportPos->x = $data->currentLocation->x;
+							$teleportPos->z = $data->currentLocation->z;
+							$data->player->teleport($teleportPos);
 						}
 						$handler->forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
 							$data->world->setBlock($realBlock->asVector3(), $realBlock->getId(), $realBlock->getDamage());
@@ -584,8 +585,14 @@ final class ProcessInbound {
 			$data->loggedIn = true;
 			$data->gamemode = $data->player->getGamemode();
 		} elseif ($packet instanceof AdventureSettingsPacket) {
-			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 			$data->isClipping = $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
+			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $data->isClipping;
+			if ($data->isClipping && $data->gamemode !== GameMode::SURVIVAL_VIEWER && $data->gamemode !== GameMode::CREATIVE_VIEWER) {
+				Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new KickTask(
+					$data->player,
+					"Invalid clip status (g={$data->gamemode} l={$data->latency})\nContact staff if this issue persists"
+				));
+			}
 			/* if ($packet->getFlag(AdventureSettingsPacket::BUILD) && !$data->canPlaceBlocks) {
 				SUS
 			} */
