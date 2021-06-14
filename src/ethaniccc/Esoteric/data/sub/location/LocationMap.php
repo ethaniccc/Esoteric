@@ -11,7 +11,6 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
-use pocketmine\network\Network;
 use pocketmine\Player;
 use pocketmine\Server;
 use function count;

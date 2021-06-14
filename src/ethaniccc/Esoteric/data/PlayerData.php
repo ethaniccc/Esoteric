@@ -36,7 +36,6 @@ use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\world\VirtualWorld;
 use pocketmine\block\Block;
 use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\Player;

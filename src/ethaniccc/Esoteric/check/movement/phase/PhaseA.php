@@ -22,9 +22,7 @@ use function array_unique;
 class PhaseA extends Check {
 
 	private const EXPAND_LENIENCY = 2;
-	private const EXEMPT_LIST = [
-		"Stair", "Slab", "Carpet"
-	];
+	private const EXEMPT_LIST = ["Stair", "Slab", "Carpet"];
 
 	/** @var Block[] */
 	private $ignoreUpdates = [];
@@ -73,10 +71,7 @@ class PhaseA extends Check {
 							}
 						}
 						//$diff = $data->currentLocation->distanceSquared(MovementUtils::doCollisions($data));
-						$this->flag($data, [
-							"count" => $count,
-							"blocks" => implode(",", $blocks)
-						]);
+						$this->flag($data, ["count" => $count, "blocks" => implode(",", $blocks)]);
 						$this->setback($data);
 					}
 				} else {

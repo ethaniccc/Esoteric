@@ -184,7 +184,7 @@ abstract class Check {
 		if ($this->option("punishment_type") === "ban") {
 			$data->isDataClosed = true;
 			$l = $esoteric->getSettings()->getBanLength();
-			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int) $l . " day") : null;
+			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int)$l . " day") : null;
 			$esoteric->getPlugin()->getScheduler()->scheduleTask(new BanTask($data->player, $this->getCodeName(), $expiration));
 			$this->sendPunishmentWebhook($data->player->getName(), "ban");
 			if (($bc = $esoteric->getSettings()->getBanBroadcast()) !== "none") {

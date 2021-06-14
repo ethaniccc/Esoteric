@@ -26,7 +26,6 @@ use pocketmine\block\Vine;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\Effect;
 use pocketmine\level\Location;
-use pocketmine\level\particle\FlameParticle;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
@@ -357,8 +356,8 @@ final class ProcessInbound {
 				$liquids = 0;
 				$climbable = 0;
 				$cobweb = 0;
-                $horizontalAABB = $data->boundingBox->expandedCopy(0.03, 0, 0.03);
-                $verticalAABB = $data->boundingBox->expandedCopy(0.25, MovementConstants::GROUND_MODULO * 2, 0.25);
+				$horizontalAABB = $data->boundingBox->expandedCopy(0.03, 0, 0.03);
+				$verticalAABB = $data->boundingBox->expandedCopy(0.25, MovementConstants::GROUND_MODULO * 2, 0.25);
 				foreach ($blocks as $block) {
 					if (!$data->isCollidedHorizontally) {
 						// snow layers are evil
@@ -589,10 +588,7 @@ final class ProcessInbound {
 			$data->isClipping = $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $data->isClipping;
 			if ($data->isClipping && $data->gamemode !== GameMode::SURVIVAL_VIEWER && $data->gamemode !== GameMode::CREATIVE_VIEWER) {
-				Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new KickTask(
-					$data->player,
-					"Invalid clip status (g={$data->gamemode} l={$data->latency})\nContact staff if this issue persists"
-				));
+				Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new KickTask($data->player, "Invalid clip status (g={$data->gamemode} l={$data->latency})\nContact staff if this issue persists"));
 			}
 			/* if ($packet->getFlag(AdventureSettingsPacket::BUILD) && !$data->canPlaceBlocks) {
 				SUS
@@ -624,7 +620,7 @@ final class ProcessInbound {
 		if (count($data->clickSamples) === 20) {
 			try {
 				$data->cps = 20 / MathUtils::getAverage(...$data->clickSamples);
-			} catch (ErrorException|DivisionByZeroError $e) {
+			} catch (ErrorException | DivisionByZeroError $e) {
 				$data->cps = INF;
 			}
 

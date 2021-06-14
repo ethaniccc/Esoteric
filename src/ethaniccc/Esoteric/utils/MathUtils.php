@@ -46,7 +46,7 @@ final class MathUtils {
 		try {
 			$dot = min(max($a->dot($b) / ($a->length() * $b->length()), -1), 1);
 			return acos($dot);
-		} catch (ErrorException|DivisionByZeroError $e) {
+		} catch (ErrorException | DivisionByZeroError $e) {
 			return -1;
 		}
 	}
@@ -83,7 +83,7 @@ final class MathUtils {
 			}
 
 			return $efficiencyFirst * ($varianceSquared / pow($variance / $sum, 2)) - $efficiencySecond;
-		} catch (ErrorException|DivisionByZeroError $e) {
+		} catch (ErrorException | DivisionByZeroError $e) {
 			return 0.0;
 		}
 	}
@@ -123,8 +123,8 @@ final class MathUtils {
 
 	public static function getOutliers(float ...$collection): float {
 		$count = count($collection);
-		$q1 = self::getMedian(...array_splice($collection, 0, (int) ceil($count * 0.5)));
-		$q3 = self::getMedian(...array_splice($collection, (int) ceil($count * 0.5), $count));
+		$q1 = self::getMedian(...array_splice($collection, 0, (int)ceil($count * 0.5)));
+		$q3 = self::getMedian(...array_splice($collection, (int)ceil($count * 0.5), $count));
 
 		$iqr = abs($q1 - $q3);
 		$lowThreshold = $q1 - 1.5 * $iqr;

@@ -83,7 +83,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 			case "delay":
 				if ($sender instanceof Player) {
 					if ($sender->hasPermission("ac.command.delay")) {
-						$delay = (int) ($args[1] ?? Esoteric::getInstance()->getSettings()->getAlertCooldown());
+						$delay = (int)($args[1] ?? Esoteric::getInstance()->getSettings()->getAlertCooldown());
 						$playerData = Esoteric::getInstance()->dataManager->get($sender);
 						$playerData->alertCooldown = $delay;
 						$sender->sendMessage(TextFormat::GREEN . "Your alert cooldown was set to $delay seconds");
@@ -142,7 +142,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 									$sender->sendMessage(TextFormat::RED . "You need to specify a ban wave to undo");
 									return;
 								}
-								$selected = (int) $selected;
+								$selected = (int)$selected;
 								if (!in_array($selected, range(1, Esoteric::getInstance()->getBanwave()->getId()))) {
 									$sender->sendMessage(TextFormat::RED . "Invalid ban wave. Current ban wave ID is " . Esoteric::getInstance()->getBanwave()->getId());
 									return;
@@ -193,7 +193,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				break;
 			case "timings":
 				if ($sender->hasPermission("ac.command.timings")) {
-					$time = (int) ($args[1] ?? 60);
+					$time = (int)($args[1] ?? 60);
 					Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings on");
 					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new ClosureTask(static function (int $currentTick): void {
 						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings paste");

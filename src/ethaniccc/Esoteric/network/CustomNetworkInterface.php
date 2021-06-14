@@ -14,7 +14,6 @@ use pocketmine\network\Network;
 use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\snooze\SleeperNotifier;
-use pocketmine\utils\BinaryStream;
 use raklib\protocol\EncapsulatedPacket;
 use raklib\protocol\PacketReliability;
 use raklib\RakLib;
@@ -56,42 +55,36 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 	/** @var SleeperNotifier */
 	private $sleeper;
 
-	public function __construct(Server $server){
+	public function __construct(Server $server) {
 		$this->server = $server;
 
 		$this->sleeper = new SleeperNotifier();
-		$this->rakLib = new RakLibServer(
-			$this->server->getLogger(),
-			\pocketmine\COMPOSER_AUTOLOADER_PATH,
-			new InternetAddress($this->server->getIp(), $this->server->getPort(), 4),
-			(int) $this->server->getProperty("network.max-mtu-size", 1492),
-			self::MCPE_RAKNET_PROTOCOL_VERSION,
-			$this->sleeper
-		);
+		$this->rakLib = new RakLibServer($this->server->getLogger(), COMPOSER_AUTOLOADER_PATH, new InternetAddress($this->server->getIp(), $this->server->getPort(), 4), (int)$this->server->getProperty("network.max-mtu-size", 1492), self::MCPE_RAKNET_PROTOCOL_VERSION, $this->sleeper);
 		$this->interface = new ServerHandler($this->rakLib, $this);
 	}
 
-	public function start(){
-		$this->server->getTickSleeper()->addNotifier($this->sleeper, function() : void{
+	public function start() {
+		$this->server->getTickSleeper()->addNotifier($this->sleeper, function (): void {
 			$this->process();
 		});
 		$this->rakLib->start(PTHREADS_INHERIT_CONSTANTS); //HACK: MainLogger needs constants for exception logging
 	}
 
-	public function setNetwork(Network $network){
-		$this->network = $network;
-	}
+	public function process(): void {
+		while ($this->interface->handlePacket()) {
+		}
 
-	public function process() : void{
-		while($this->interface->handlePacket()){}
-
-		if(!$this->rakLib->isRunning() and !$this->rakLib->isShutdown()){
-			throw new \Exception("RakLib Thread crashed");
+		if (!$this->rakLib->isRunning() and !$this->rakLib->isShutdown()) {
+			throw new Exception("RakLib Thread crashed");
 		}
 	}
 
-	public function closeSession(string $identifier, string $reason) : void{
-		if(isset($this->players[$identifier])){
+	public function setNetwork(Network $network) {
+		$this->network = $network;
+	}
+
+	public function closeSession(string $identifier, string $reason): void {
+		if (isset($this->players[$identifier])) {
 			$player = $this->players[$identifier];
 			unset($this->identifiers[spl_object_hash($player)]);
 			unset($this->players[$identifier]);
@@ -100,8 +93,8 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 		}
 	}
 
-	public function close(Player $player, string $reason = "unknown reason"){
-		if(isset($this->identifiers[$h = spl_object_hash($player)])){
+	public function close(Player $player, string $reason = "unknown reason") {
+		if (isset($this->identifiers[$h = spl_object_hash($player)])) {
 			unset($this->players[$this->identifiers[$h]]);
 			unset($this->identifiersACK[$this->identifiers[$h]]);
 			$this->interface->closeSession($this->identifiers[$h], $reason);
@@ -109,17 +102,17 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 		}
 	}
 
-	public function shutdown(){
+	public function shutdown() {
 		$this->server->getTickSleeper()->removeNotifier($this->sleeper);
 		$this->interface->shutdown();
 	}
 
-	public function emergencyShutdown(){
+	public function emergencyShutdown() {
 		$this->server->getTickSleeper()->removeNotifier($this->sleeper);
 		$this->interface->emergencyShutdown();
 	}
 
-	public function openSession(string $identifier, string $address, int $port, int $clientID) : void{
+	public function openSession(string $identifier, string $address, int $port, int $clientID): void {
 		$ev = new PlayerCreationEvent($this, Player::class, Player::class, $address, $port);
 		$ev->call();
 		$class = $ev->getPlayerClass();
@@ -135,17 +128,17 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 		$this->server->addPlayer($player);
 	}
 
-	public function handleEncapsulated(string $identifier, EncapsulatedPacket $packet, int $flags) : void{
-		if(isset($this->players[$identifier])){
+	public function handleEncapsulated(string $identifier, EncapsulatedPacket $packet, int $flags): void {
+		if (isset($this->players[$identifier])) {
 			//get this now for blocking in case the player was closed before the exception was raised
 			$player = $this->players[$identifier];
 			$address = $player->getAddress();
-			try{
-				if($packet->buffer !== ""){
+			try {
+				if ($packet->buffer !== "") {
 					$pk = new BatchPacket($packet->buffer);
 					$player->handleDataPacket($pk);
 				}
-			}catch(\Throwable $e){
+			} catch (Throwable $e) {
 				$logger = $this->server->getLogger();
 				$logger->debug("Packet " . (isset($pk) ? get_class($pk) : "unknown") . ": " . base64_encode($packet->buffer));
 				$logger->logException($e);
@@ -156,19 +149,19 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 		}
 	}
 
-	public function blockAddress(string $address, int $timeout = 300){
+	public function blockAddress(string $address, int $timeout = 300) {
 		$this->interface->blockAddress($address, $timeout);
 	}
 
-	public function unblockAddress(string $address){
+	public function unblockAddress(string $address) {
 		$this->interface->unblockAddress($address);
 	}
 
-	public function handleRaw(string $address, int $port, string $payload) : void{
+	public function handleRaw(string $address, int $port, string $payload): void {
 		$this->server->handlePacket($this, $address, $port, $payload);
 	}
 
-	public function sendRawPacket(string $address, int $port, string $payload){
+	public function sendRawPacket(string $address, int $port, string $payload) {
 		$this->interface->sendRaw($address, $port, $payload);
 	}
 
@@ -179,22 +172,10 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 		}
 	}
 
-	public function setName(string $name){
+	public function setName(string $name) {
 		$info = $this->server->getQueryInformation();
 
-		$this->interface->sendOption("name", implode(";",
-				[
-					"MCPE",
-					rtrim(addcslashes($name, ";"), '\\'),
-					ProtocolInfo::CURRENT_PROTOCOL,
-					ProtocolInfo::MINECRAFT_VERSION_NETWORK,
-					$info->getPlayerCount(),
-					$info->getMaxPlayerCount(),
-					$this->rakLib->getServerId(),
-					$this->server->getName(),
-					Server::getGamemodeName(Player::getClientFriendlyGamemode($this->server->getGamemode()))
-				]) . ";"
-		);
+		$this->interface->sendOption("name", implode(";", ["MCPE", rtrim(addcslashes($name, ";"), '\\'), ProtocolInfo::CURRENT_PROTOCOL, ProtocolInfo::MINECRAFT_VERSION_NETWORK, $info->getPlayerCount(), $info->getMaxPlayerCount(), $this->rakLib->getServerId(), $this->server->getName(), Server::getGamemodeName(Player::getClientFriendlyGamemode($this->server->getGamemode()))]) . ";");
 	}
 
 	/**
@@ -202,37 +183,37 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 	 *
 	 * @return void
 	 */
-	public function setPortCheck($name){
+	public function setPortCheck($name) {
 		$this->interface->sendOption("portChecking", $name);
 	}
 
-	public function setPacketLimit(int $limit) : void{
+	public function setPacketLimit(int $limit): void {
 		$this->interface->sendOption("packetLimit", $limit);
 	}
 
-	public function handleOption(string $option, string $value) : void{
-		if($option === "bandwidth"){
+	public function handleOption(string $option, string $value): void {
+		if ($option === "bandwidth") {
 			$v = unserialize($value);
 			$this->network->addStatistics($v["up"], $v["down"]);
 		}
 	}
 
-	public function putPacket(Player $player, DataPacket $packet, bool $needACK = false, bool $immediate = true){
-		if(isset($this->identifiers[$h = spl_object_hash($player)])){
+	public function putPacket(Player $player, DataPacket $packet, bool $needACK = false, bool $immediate = true) {
+		if (isset($this->identifiers[$h = spl_object_hash($player)])) {
 			$identifier = $this->identifiers[$h];
-			if(!$packet->isEncoded){
+			if (!$packet->isEncoded) {
 				$packet->encode();
 			}
 
-			if($packet instanceof BatchPacket){
-				if($needACK){
+			if ($packet instanceof BatchPacket) {
+				if ($needACK) {
 					$pk = new EncapsulatedPacket();
 					$pk->identifierACK = $this->identifiersACK[$identifier]++;
 					$pk->buffer = $packet->buffer;
 					$pk->reliability = PacketReliability::RELIABLE_ORDERED;
 					$pk->orderChannel = 0;
-				}else{
-					if(!isset($packet->__encapsulatedPacket)){
+				} else {
+					if (!isset($packet->__encapsulatedPacket)) {
 						$packet->__encapsulatedPacket = new CachedEncapsulatedPacket;
 						$packet->__encapsulatedPacket->identifierACK = null;
 						$packet->__encapsulatedPacket->buffer = $packet->buffer;
@@ -244,7 +225,7 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 
 				$this->interface->sendEncapsulated($identifier, $pk, ($needACK ? RakLib::FLAG_NEED_ACK : 0) | ($immediate ? RakLib::PRIORITY_IMMEDIATE : RakLib::PRIORITY_NORMAL));
 				return $pk->identifierACK;
-			}else{
+			} else {
 				$this->server->batchPackets([$player], [$packet], true, $immediate);
 				return null;
 			}
@@ -253,8 +234,8 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 		return null;
 	}
 
-	public function updatePing(string $identifier, int $pingMS) : void{
-		if(isset($this->players[$identifier])){
+	public function updatePing(string $identifier, int $pingMS): void {
+		if (isset($this->players[$identifier])) {
 			$this->players[$identifier]->updatePing($pingMS);
 		}
 	}
