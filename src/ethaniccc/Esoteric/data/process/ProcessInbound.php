@@ -552,7 +552,7 @@ final class ProcessInbound {
 					$block = $trData->getItemInHand()->getItemStack()->getBlock();
 					$block->position($blockToReplace->asPosition());
 					// placement before ticking?
-					if ($blockToReplace->canBeReplaced() && $data->canPlaceBlocks && $data->boundingBox !== null && !$block->collidesWithBB($data->boundingBox)) {
+					if ($blockToReplace->canBeReplaced() && ($block instanceof UnknownBlock || $block->canBePlaced()) && $data->canPlaceBlocks && $data->boundingBox !== null && !$block->collidesWithBB($data->boundingBox)) {
 						if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
 							$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), 0);
 							$block->position($blockToReplace->asPosition());

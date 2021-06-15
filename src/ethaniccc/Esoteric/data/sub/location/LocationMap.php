@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
+use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\entity\Entity;
@@ -31,26 +32,26 @@ final class LocationMap {
 
 	public function __construct() {
 		$this->needSend = new BatchPacket();
+		$this->needSend->setCompressionLevel(0);
 	}
 
 	/**
 	 * @param MovePlayerPacket|MoveActorAbsolutePacket $packet
 	 */
 	function addPacket($packet): void {
-		if (!isset($this->locations[$packet->entityRuntimeId])) {
+		$locationData = $this->locations[$packet->entityRuntimeId] ?? null;
+		if ($locationData === null) {
 			return;
 		}
-		if ($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) {
-			$packet->mode = MovePlayerPacket::MODE_RESET;
+		if (($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) || ($packet instanceof MoveActorAbsolutePacket && $packet->flags >= 2)) {
 			$data = $this->locations[$packet->entityRuntimeId] ?? null;
 			if ($data !== null) {
 				$data->isSynced = 0;
 				$data->newPosRotationIncrements = 1;
 			}
-			$packet->encode();
 		}
 		$this->needSend->addPacket($packet);
-		$this->needSendArray[$packet->entityRuntimeId] = $packet instanceof MovePlayerPacket ? $packet->position->subtract(0, 1.62, 0) : $packet->position;
+		$this->needSendArray[$packet->entityRuntimeId] = $packet->position->subtract(0, $locationData->locationOffset);
 	}
 
 	function addEntity(Entity $entity, Vector3 $startPos): void {
@@ -62,6 +63,7 @@ final class LocationMap {
 		$locationData->receivedLocation = clone $startPos;
 		$locationData->history = new EvictingList(3);
 		$locationData->isPlayer = $entity instanceof Player;
+		$locationData->locationOffset = $entity->getOffsetPosition($entity)->y - $entity->y;
 		$this->locations[$entity->getId()] = $locationData;
 	}
 
@@ -80,6 +82,7 @@ final class LocationMap {
 		$batch->encode();
 		$locations = $this->needSendArray;
 		$this->needSend = new BatchPacket();
+		$this->needSend->setCompressionLevel(0); // TODO: Compression when buffer size goes above or reaches limit (512).
 		$this->needSendArray = [];
 		$timestamp = $pk->timestamp;
 		PacketUtils::sendPacketSilent($data, $batch, true, function (int $ackID) use ($data, $timestamp): void {

@@ -47,6 +47,9 @@ These are a list of the current detections Esoteric has, along with descriptions
   - C: Checks if the player is following Minecraft's friction rules while on the ground. This check is surprisingly very effective
     and can detect a variety of speeds on the ground. The idea behind this check is that your current speed multiplied by your friction
     cannot be greater than your previous speed.
+  - D: Checks if the player's movement is valid while gliding.
+- **Phase**
+  - A: Checks if the player makes an invalid move inside a block.
 - **Velocity**
   - A: Checks if the player takes less vertical knockback than normal.
   - B: Checks if the player takes less horizontal knockback than normal. This check is currently unusable.
@@ -58,6 +61,8 @@ These are a list of the current detections Esoteric has, along with descriptions
   - C: Checks if the player is jumping without holding their specified jump button. This also checks if their jump delay is invalid.
 - **Nuker**
   - A: Checks if the player is breaking blocks too quickly.
+- **Timer**
+  - A: Checks if the player sends movement packets faster than usual over a period of time.
   
 ## Permission List
 ```
