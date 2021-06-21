@@ -3,6 +3,7 @@
 namespace ethaniccc\Esoteric\thread;
 
 use ethaniccc\Esoteric\utils\PacketUtils;
+use ethaniccc\Esoteric\utils\Pair;
 use ethaniccc\Esoteric\utils\world\NetworkChunkDeserializer;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\LevelChunkPacket;
@@ -22,7 +23,6 @@ class DecompressLevelChunkThread extends Thread {
 
 	private const TPS = 40;
 	private static $callables = [];
-	private $currentID = 0;
 	private $queue;
 	private $results;
 
@@ -51,7 +51,7 @@ class DecompressLevelChunkThread extends Thread {
 					$packet = PacketPool::getPacket($buffer);
 					if ($packet instanceof LevelChunkPacket) {
 						$packet->decode();
-						$chunks[] = NetworkChunkDeserializer::chunkNetworkDeserialize($packet->getExtraPayload(), $packet->getChunkX(), $packet->getChunkZ(), $packet->getSubChunkCount());
+						$chunks[] = "{$packet->getChunkX()}:::::::::::{$packet->getChunkZ()}:::::::::::{$packet->getSubChunkCount()}:::::::::::{$packet->getExtraPayload()}";
 					}
 				}
 				$this->results[] = $chunks;
@@ -64,11 +64,16 @@ class DecompressLevelChunkThread extends Thread {
 	}
 
 	public function executeResults(): void {
+		$keys = [];
 		foreach ($this->results as $key => $chunks) {
 			$callable = self::$callables[$key] ?? null;
 			if ($callable !== null) {
 				$callable($chunks);
 			}
+			$keys[] = $key;
+		}
+		unset($callable);
+		foreach ($keys as $key) {
 			unset($this->results[$key]);
 			unset(self::$callables[$key]);
 		}

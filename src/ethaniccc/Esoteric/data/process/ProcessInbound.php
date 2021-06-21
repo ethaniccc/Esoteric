@@ -357,7 +357,7 @@ final class ProcessInbound {
 				$climbable = 0;
 				$cobweb = 0;
 				$horizontalAABB = $data->boundingBox->expandedCopy(0.03, 0, 0.03);
-				$verticalAABB = $data->boundingBox->expandedCopy(0.25, MovementConstants::GROUND_MODULO * 2, 0.25);
+				$verticalAABB = $data->boundingBox->expandedCopy(0.03, 0.03, 0.03);
 				foreach ($blocks as $block) {
 					if (!$data->isCollidedHorizontally) {
 						// snow layers are evil

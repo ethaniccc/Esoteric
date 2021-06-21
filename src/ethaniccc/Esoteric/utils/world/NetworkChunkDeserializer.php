@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\utils\world;
 
 use pocketmine\level\format\Chunk;
 use pocketmine\level\format\SubChunk;
+use pocketmine\timings\TimingsHandler;
 use UnexpectedValueException;
 use function base64_encode;
 use function count;
@@ -13,7 +14,13 @@ use function substr;
 
 final class NetworkChunkDeserializer {
 
+	private static $timings;
+
 	public static function chunkNetworkDeserialize(string $data, int $chunkX, int $chunkZ, int $subChunkCount): ?Chunk {
+		if (self::$timings === null) {
+			self::$timings = new TimingsHandler("Esoteric chunk deserializing");
+		}
+		self::$timings->startTiming();
 		$nextPos = 0;
 		$subChunks = [];
 		$tiles = [];
@@ -36,6 +43,7 @@ final class NetworkChunkDeserializer {
 		if (strlen($data) !== 0) {
 			// TODO: Tiles, however - we probably don't need Tiles for our use case right now
 		}
+		self::$timings->stopTiming();
 		return new Chunk($chunkX, $chunkZ, $subChunks, [], $tiles, $biomeIds, []);
 	}
 

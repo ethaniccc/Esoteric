@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\PacketUtils;
+use ethaniccc\Esoteric\utils\world\NetworkChunkDeserializer;
 use LogicException;
 use pocketmine\event\entity\EntityLevelChangeEvent;
 use pocketmine\event\Listener;
@@ -14,6 +15,7 @@ use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\level\format\Chunk;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -163,7 +165,11 @@ class PMMPListener implements Listener {
 				$id = spl_object_id($packet);
 				if (!isset($this->levelChunkReceivers[$id])) {
 					Esoteric::getInstance()->chunkThread->queue($packet, function ($chunks) use ($id) {
-						foreach ($chunks as $chunk) {
+						foreach ($chunks as $chunkData) {
+							$dataArr = explode(":::::::::::", $chunkData);
+							// it's either this or we have pthreads fuck us over with it just serializing everything (the chunks in this case)
+							// either way, serialization with threads is inevitable :pensive:
+							$chunk = NetworkChunkDeserializer::chunkNetworkDeserialize($dataArr[3], (int) $dataArr[0], (int) $dataArr[1], $dataArr[2]);
 							foreach ($this->levelChunkReceivers[$id] as $data) {
 								if ($data->loggedIn) {
 									NetworkStackLatencyHandler::getInstance()->send($data, NetworkStackLatencyHandler::getInstance()->next($data), function (int $timestamp) use ($data, $chunk): void {

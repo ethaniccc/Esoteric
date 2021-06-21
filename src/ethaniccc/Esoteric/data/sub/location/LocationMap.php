@@ -32,7 +32,7 @@ final class LocationMap {
 
 	public function __construct() {
 		$this->needSend = new BatchPacket();
-		$this->needSend->setCompressionLevel(0);
+		$this->needSend->setCompressionLevel(6);
 	}
 
 	/**
@@ -82,7 +82,7 @@ final class LocationMap {
 		$batch->encode();
 		$locations = $this->needSendArray;
 		$this->needSend = new BatchPacket();
-		$this->needSend->setCompressionLevel(0); // TODO: Compression when buffer size goes above or reaches limit (512).
+		$this->needSend->setCompressionLevel(6);
 		$this->needSendArray = [];
 		$timestamp = $pk->timestamp;
 		PacketUtils::sendPacketSilent($data, $batch, true, function (int $ackID) use ($data, $timestamp): void {

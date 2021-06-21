@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\data\process;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use pocketmine\entity\Attribute;
+use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
@@ -130,10 +131,15 @@ class ProcessOutbound {
 				$radius = $packet->radius >> 4;
 				$chunkX = $data->chunkSendPosition->x >> 4;
 				$chunkZ = $data->chunkSendPosition->z >> 4;
+				$toRemove = [];
 				foreach ($data->world->getAllChunks() as $chunk) {
 					if (abs($chunk->getX() - $chunkX) > $radius || abs($chunk->getZ() - $chunkZ) > $radius) {
-						$data->world->removeChunk($chunk->getX(), $chunk->getZ());
+						$toRemove[] = Level::chunkHash($chunk->getX(), $chunk->getZ());
 					}
+				}
+				// remove chunks after there are no more references to them
+				foreach ($toRemove as $chunkHash) {
+					$data->world->removeChunkByHash($chunkHash);
 				}
 			});
 		} elseif ($packet instanceof AdventureSettingsPacket) {
