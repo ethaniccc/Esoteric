@@ -5,6 +5,7 @@ namespace ethaniccc\Esoteric\data\process;
 use DivisionByZeroError;
 use ErrorException;
 use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\data\sub\effect\ExtraEffectIds;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
@@ -323,7 +324,7 @@ final class ProcessInbound {
 			}
 
 			$data->jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
-
+			$data->gravity = MovementConstants::NORMAL_GRAVITY;
 			$data->canPlaceBlocks = $data->gamemode === GameMode::SURVIVAL || $data->gamemode === GameMode::CREATIVE;
 
 			foreach ($data->effects as $effectData) {
@@ -337,6 +338,9 @@ final class ProcessInbound {
 							break;
 						case Effect::LEVITATION:
 							$data->ticksSinceFlight = 0;
+							break;
+						case ExtraEffectIds::SLOW_FALLING:
+							$data->gravity = MovementConstants::SLOW_FALLING_GRAVITY;
 							break;
 					}
 				}

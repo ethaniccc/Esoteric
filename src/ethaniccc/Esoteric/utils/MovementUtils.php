@@ -42,7 +42,7 @@ final class MovementUtils {
 		$d4 = $directionVector->length();
 		$f3 = cos($yRotRadians);
 		$f3 = $f3 * $f3 * min(1, $d4 / 0.4);
-		$estimated = $estimated->add(new Vector3(0, MovementConstants::NORMAL_GRAVITY * (-1 + $f3 * 0.75), 0));
+		$estimated = $estimated->add(new Vector3(0, $data->gravity * (-1 + $f3 * 0.75), 0));
 		if ($estimated->y < 0 && $d2 > 0) {
 			$d5 = $estimated->y * -0.1 * $f3;
 			$estimated = $estimated->add(new Vector3($directionVector->x * $d5 / $d2, $d5, $directionVector->z * $d5 / $d2));

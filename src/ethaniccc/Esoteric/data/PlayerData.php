@@ -132,6 +132,8 @@ final class PlayerData {
 	public $ticksSinceGlide = 0;
 	/** @var bool - Boolean value for if the player is in the void. */
 	public $isInVoid = false;
+	/** @var float */
+	public $gravity = MovementConstants::NORMAL_GRAVITY;
 	/** @var bool */
 	public $teleported = false;
 	/** @var int - The amount of movements that have passed since the player has disabled flight. */
