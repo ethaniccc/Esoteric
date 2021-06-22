@@ -8,6 +8,7 @@ use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\entity\Entity;
+use pocketmine\entity\Human;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
@@ -62,7 +63,7 @@ final class LocationMap {
 		$locationData->lastLocation = clone $startPos;
 		$locationData->receivedLocation = clone $startPos;
 		$locationData->history = new EvictingList(3);
-		$locationData->isPlayer = $entity instanceof Player;
+		$locationData->isHuman = $entity instanceof Human;
 		$locationData->locationOffset = $entity->getOffsetPosition($entity)->y - $entity->y;
 		$this->locations[$entity->getId()] = $locationData;
 	}

@@ -346,7 +346,7 @@ final class ProcessInbound {
 				self::$collisionTimings->startTiming();
 				// LevelUtils::checkBlocksInAABB() is basically a duplicate of getCollisionBlocks, but in here, it will get all blocks
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
-				$checkAABB = $data->boundingBox->expandedCopy(0.25, 0.25, 0.25);
+				$checkAABB = $data->boundingBox->expandedCopy(0.5, 0.5, 0.5);
 				$blocks = LevelUtils::checkBlocksInAABB($checkAABB, $data->world, LevelUtils::SEARCH_ALL);
 				$data->expectedOnGround = false;
 				$data->lastBlocksBelow = $data->blocksBelow;
@@ -356,8 +356,9 @@ final class ProcessInbound {
 				$liquids = 0;
 				$climbable = 0;
 				$cobweb = 0;
-				$horizontalAABB = $data->boundingBox->expandedCopy(0.03, 0, 0.03);
-				$verticalAABB = $data->boundingBox->expandedCopy(0.03, 0.03, 0.03);
+				// TODO: Improve vertical and horizontal collisions to work with checks (pReDicTioN bRo)
+				$horizontalAABB = $data->boundingBox->expandedCopy(0.25, 0, 0.25);
+				$verticalAABB = $data->boundingBox->expandedCopy(0.25, MovementConstants::GROUND_MODULO * 2, 0.25);
 				foreach ($blocks as $block) {
 					if (!$data->isCollidedHorizontally) {
 						// snow layers are evil

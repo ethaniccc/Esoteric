@@ -26,6 +26,6 @@ final class LocationData {
 	/** @var float */
 	public $hitboxWidth = 0.3, $hitboxHeight = 1.8;
 	/** @var bool */
-	public $isPlayer = false;
+	public $isHuman = false;
 
 }
