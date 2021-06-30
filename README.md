@@ -1,19 +1,77 @@
-<p align="center">
-  <img width="300" height="300" src="https://media.discordapp.net/attachments/727159224320131133/826094659000205322/Esoteric_11A13E3.gif?width=300&height=300">
-</p>
+# BDSX 2.0 : BDS + node.js
+![logo](bdsx/icon/icon.png)  
+Minecraft Bedrock Dedicated Server that supports [node.js](https://nodejs.org/).  
 
-<p align="center"><b><font size="+16">Esoteric</font></b></p>
+* OS: Windows & Linux(with Wine)
+* Basic Minecraft features as usual.
+* node.js features [(?)](https://github.com/bdsx/bdsx/wiki/Available-NPM-Modules)
+* [Debug with Visual Studio Code (You can debug addons too)](https://github.com/bdsx/bdsx/wiki/Debug-with-VSCode)
+* Hijack network packet + Get IP Address & XUID
+```ts
+import { events } from "bdsx/events";
+import { MinecraftPacketIds } from 'bdsx/bds/packetids';
+events.packetAfter(MinecraftPacketIds.Login).on((ptr, networkIdentifier, packetId)=>{
+    const ip = networkIdentifier.getAddress();
+    const cert = ptr.connreq.cert;
+    const xuid = cert.getXuid();
+    const username = cert.getId();
+    console.log(`Connection: ${username}> IP=${ip}, XUID=${xuid}`);
+});
+```
+* [Command hooking](https://github.com/bdsx/bdsx/wiki/Command-Hooking)
+* [DLL Call](https://github.com/bdsx/bdsx/wiki/Call-DLL-Directly)
 
-Esoteric is another anti-cheat made for MC:BE. Compared to Mockingbird, this has more checks
-I'm deciding to not disclose to the public.
+## How to use it?
+* Requirement  
+[node.js](https://nodejs.org/)  
+Wine(for Linux)  
+git clone https://github.com/bdsx/bdsx.git or download it
+* Recommended  
+[VSCode](https://code.visualstudio.com/)  
+GIT
 
-**NOTICE: Esoteric is now currently in an experimental state - performance may degrade.
-Until this notice is removed, please refrain from using future Esoteric versions on big production servers.**
- 
-## BDSX
-BDSX is a software that utilizes the Bedrock Dedicated Server and allows for packet handling and whatnot.
+### Starting with VSCode
+```sh
+1. Open the project with VSCode
+2. Open a terminal(Ctrl+Shift+｀)
+3. run `npm i` # install npm packages and BDS
+4. Press `F5` # build & run
+```
 
-This branch of Esoteric will utilize BDSX and it's features.
+### Starting with the executable
+run `./bdsx.bat` (on Windows)  
+run `./bdsx.sh` (on Linux)
 
-## Detections
-As of now, there are no current detections on this branch. Detections on this page will be updated accordingly.
+### Starting with Docker
+```sh
+docker run -ti karikera/bdsx
+```
+
+## File Structure
+```sh
+[bdsx project]
+├ [bdsx] # Core Library
+├ [example_and_test]
+├ [bedrock_server] # Installed BDS
+├ launcher.ts # Script before launching BDS.
+├ index.ts # Main entry point.
+├ bdsx.sh # Executable for Linux
+└ bdsx.bat # Executable for Windows
+# ./launcher.ts imports ./index.ts after launching BDS
+# Please start your own code from ./index.ts
+```
+
+## BDSX Discussions
+https://github.com/bdsx/bdsx/discussions
+
+## BDSX Wiki (Include JS API Reference)
+https://github.com/bdsx/bdsx/wiki
+
+## Bug Report and Q&A
+https://github.com/bdsx/bdsx/issues
+
+## Discord for Q&A
+https://discord.gg/pC9XdkC
+
+## BDSX Core
+https://github.com/bdsx/bdsx-core
