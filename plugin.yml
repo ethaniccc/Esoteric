@@ -1,0 +1,40 @@
+---
+name: Esoteric-Lightweight
+author: ethaniccc
+description: A lightweight version of the Esoteric anti-cheat
+version: 1.0.0
+main: ethaniccc\Loader\Loader
+api: 3.19.0
+permissions:
+  ac:
+    description: Gives all anticheat permissions
+    default: op
+    children:
+      ac.alerts:
+        description: Gives access to anticheat alerts
+        default: op
+      ac.bypass:
+        description: Allows to bypass anticheat punishments
+        default: op
+      ac.command:
+        description: Allows for all usages of the anticheat command
+        default: op
+        children:
+          ac.command.help:
+            description: Access to the anticheat's help command
+            default: op
+          ac.command.logs:
+            description: Access to get the anticheat logs of a player
+            default: op
+          ac.command.delay:
+            description: Access to change the alert delay
+            default: op
+          ac.command.banwave:
+            description: Handle Esoteric ban waves
+            default: op
+          ac.command.timings:
+            description: Enable timings for a certain period of time to see server performance with Esoteric
+            default: op
+          ac.command.exempt:
+            description: Get access to exempt sub commands in Esoteric
+            default: op
