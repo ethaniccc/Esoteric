@@ -50,6 +50,7 @@ class MotionC extends Check {
 				}
 				// $data->player->sendMessage("diff=$diff movementSpeed={$data->movementSpeed}");
 			}
+			$this->debug($data, "diff=$diff f=$friction mS={$data->movementSpeed}");
 		}
 	}
 

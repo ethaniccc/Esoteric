@@ -7,10 +7,14 @@
 # A private anti-cheat for PocketMine-MP made by @ethaniccc
 # GitHub: https://www.github.com/ethaniccc
 
-#  Copyright (C) Ethaniccc - All Rights Reserved
+#  Copyright (C) ethaniccc - All Rights Reserved
 #  Unauthorized copying of this file, via any medium is strictly prohibited
 #  Proprietary and confidential
 #  Written by Benjamin <schooldocumentsandstuff@gmail.com>, March, 2021
+
+# Enable this if you are going to be using Blackfire debugging to identify performance issues in Esoteric. If you plan to use Esoteric
+# a production server, disable this option.
+debugging: true
 
 # Prefix for the anti-cheat when sending warnings.
 prefix: "§l§6Eso§fteric§7>§r"

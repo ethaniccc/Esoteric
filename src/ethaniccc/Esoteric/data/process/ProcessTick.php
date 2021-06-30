@@ -20,13 +20,11 @@ class ProcessTick {
 	public function execute(PlayerData $data): void {
 		if ($data->loggedIn && $data->playerOS !== DeviceOS::PLAYSTATION) {
 			$data->entityLocationMap->send($data);
-			if ($data->currentTick % 20 === 0) {
-				$currentTime = microtime(true);
-				$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
-				$networkStackLatencyHandler->send($data, $networkStackLatencyHandler->next($data), function (int $timestamp) use ($data, $currentTime): void {
-					$data->latency = floor((microtime(true) - $currentTime) * 1000);
-				});
-			}
+			$currentTime = microtime(true);
+			$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
+			$networkStackLatencyHandler->send($data, function (int $timestamp) use ($data, $currentTime): void {
+				$data->gameLatency = floor((microtime(true) - $currentTime) * 1000);
+			});
 			foreach ($this->invalid as $key) {
 				if (isset($this->waiting[$key])) {
 					// packet order 9000, no?
@@ -40,7 +38,7 @@ class ProcessTick {
 				if ($total >= $timeoutSettings["total_packets"]) {
 					$maxTickDiff = max($this->waiting) - min($this->waiting);
 					if ($maxTickDiff >= $timeoutSettings["ticks"]) {
-						Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, "NetworkStackLatency timeout (tD=$maxTickDiff tACK=$total lMS={$data->latency})\nContact a staff member (send a screenshot of this) if this issue persists"), 1);
+						Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, "NetworkStackLatency timeout (tD=$maxTickDiff tACK=$total lMS={$data->gameLatency})\nContact a staff member (send a screenshot of this) if this issue persists"), 1);
 					}
 				}
 			} else {

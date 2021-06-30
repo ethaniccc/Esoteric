@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
+use pocketmine\utils\BinaryStream;
 use function mt_rand;
 
 final class NetworkStackLatencyHandler {
@@ -21,7 +22,7 @@ final class NetworkStackLatencyHandler {
 		return self::$instance;
 	}
 
-	public function next(PlayerData $data): NetworkStackLatencyPacket {
+	private function next(PlayerData $data): NetworkStackLatencyPacket {
 		if (!isset($this->currentTimestamp[$data->hash])) {
 			$this->currentTimestamp[$data->hash] = 0;
 		}
@@ -32,20 +33,21 @@ final class NetworkStackLatencyHandler {
 		return $pk;
 	}
 
-	public function send(PlayerData $data, NetworkStackLatencyPacket $packet, callable $onResponse) {
-		if ($packet->needResponse) {
-			$timestamp = $packet->timestamp;
-			$pk = new BatchPacket();
-			$pk->addPacket($packet);
-			$pk->encode();
-			PacketUtils::sendPacketSilent($data, $pk, true, static function (int $ackID) use ($data, $timestamp): void {
-				$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
-			});
-			if (!isset($this->list[$data->hash])) {
-				$this->list[$data->hash] = [];
-			}
-			$this->list[$data->hash][$timestamp] = $onResponse;
+	public function send(PlayerData $data, callable $onResponse) {
+		$packet = $this->next($data);
+		$timestamp = $packet->timestamp;
+		$pk = new BatchPacket();
+		$pk->addPacket($packet);
+		$pk->encode();
+		$current = microtime(true) * 1000;
+		PacketUtils::sendPacketSilent($data, $pk, true, static function (int $ackID) use ($data, $timestamp, $current): void {
+			$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
+			$data->networkLatency = ceil((microtime(true) * 1000) - $current);
+		});
+		if (!isset($this->list[$data->hash])) {
+			$this->list[$data->hash] = [];
 		}
+		$this->list[$data->hash][$timestamp] = $onResponse;
 	}
 
 	public function forceHandle(PlayerData $data, int $timestamp, callable $onResponse): void {
@@ -53,10 +55,6 @@ final class NetworkStackLatencyHandler {
 			$this->list[$data->hash] = [];
 		}
 		$this->list[$data->hash][$timestamp] = $onResponse;
-	}
-
-	public function forceSet(PlayerData $data, int $timestamp): void {
-		$this->currentTimestamp[$data->hash] = $timestamp;
 	}
 
 	public function execute(PlayerData $data, int $timestamp): void {

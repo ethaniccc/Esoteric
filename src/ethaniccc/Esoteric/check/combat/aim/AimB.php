@@ -27,6 +27,7 @@ class AimB extends Check {
 				$this->reward();
 				$this->buffer = max($this->buffer - 0.05, 0);
 			}
+			$this->debug($data, "diff=$roundedDiff buff={$this->buffer}");
 		}
 	}
 

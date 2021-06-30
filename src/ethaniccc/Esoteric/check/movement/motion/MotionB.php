@@ -35,6 +35,7 @@ class MotionB extends Check {
 			} else {
 				$this->buffer = max($this->buffer - 0.25, 0);
 			}
+			$this->debug($data, "diff=$diff prd=$prediction buff={$this->buffer}");
 		}
 	}
 

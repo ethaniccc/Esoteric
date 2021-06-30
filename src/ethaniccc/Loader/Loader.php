@@ -10,7 +10,7 @@ final class Loader extends PluginBase {
 
 	public function onEnable() {
 		try {
-			Esoteric::init($this, $this->getConfig(), true);
+			Esoteric::init($this, $this->getConfig(), $this->getFile() . "vendor/autoload.php", true);
 		} catch (Exception $e) {
 			$this->getLogger()->error("Unable to start Esoteric [{$e->getMessage()}]");
 		}

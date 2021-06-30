@@ -27,6 +27,7 @@ class AutoClickerB extends Check {
 				$this->flag($data, ["duplicates" => $duplicates, "cps" => round($data->cps, 2)]);
 				$this->samples->clear();
 			}
+			$this->debug($data, "cps={$data->cps} dup=$duplicates count={$this->samples->size()}");
 		}
 	}
 

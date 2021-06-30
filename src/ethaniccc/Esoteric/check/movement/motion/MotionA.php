@@ -29,6 +29,7 @@ class MotionA extends Check {
 				} else {
 					$this->reward(0.02);
 				}
+				$this->debug($data, "curr=$currentYMovement last=$lastYMovement pLast={$this->lastPreviousYMovement}");
 			}
 
 			$this->lastPreviousYMovement = $data->lastMoveDelta->y;

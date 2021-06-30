@@ -22,6 +22,7 @@ class MotionD extends Check {
 				if ((abs($diffVec->x) >= 0.01 && abs($diffVec->z) >= 0.01) || abs($diffVec->y) >= 0.08) {
 					$this->flag($data, ["x" => round(abs($diffVec->x), 3), "y" => round(abs($diffVec->y), 3), "z" => round(abs($diffVec->z), 3)]);
 				}
+				$this->debug($data, "diff=$diffVec");
 			}
 		}
 	}

@@ -42,6 +42,7 @@ class AimA extends Check {
 				$this->buffer = max($this->buffer - 0.025, 0);
 				$this->reward();
 			}
+			$this->debug($data, "expected=$expectedHeadYaw d=$diff rD=$roundedDiff buff={$this->buffer}");
 		}
 	}
 

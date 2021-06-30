@@ -30,9 +30,12 @@ use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use ethaniccc\Esoteric\data\sub\location\LocationMap;
+use ethaniccc\Esoteric\data\sub\movement\MovementCapture;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
+use ethaniccc\Esoteric\utils\EvictingList;
+use ethaniccc\Esoteric\utils\handler\DebugHandler;
 use ethaniccc\Esoteric\utils\world\VirtualWorld;
 use pocketmine\block\Block;
 use pocketmine\math\Vector3;
@@ -54,6 +57,10 @@ final class PlayerData {
 	public $player;
 	/** @var string - The spl_object_hash identifier of the player. */
 	public $hash;
+	/** @var DebugHandler[] */
+	public $debugHandlers = [];
+	/** @var EvictingList */
+	public $movements;
 	/** @var string - Identifier used in network interface */
 	public $networkIdentifier;
 	/** @var int - The current protocol of the player. */
@@ -79,7 +86,9 @@ final class PlayerData {
 	/** @var bool */
 	public $isMobile = false;
 	/** @var int */
-	public $latency = 0;
+	public $gameLatency = 0;
+	/** @var int */
+	public $networkLatency = 0;
 	/** @var int - ID of the current target entity */
 	public $target = -1;
 	/** @var int - ID of the last target entity */
@@ -91,7 +100,7 @@ final class PlayerData {
 	/** @var EffectData[] */
 	public $effects = [];
 	/** @var int */
-	public $currentTick = 0;
+	public $currentTick;
 	/** @var Vector3[] */
 	public $packetDeltas = [];
 	/** @var int */
@@ -197,6 +206,7 @@ final class PlayerData {
 		if (self::$ZERO_VECTOR === null) {
 			self::$ZERO_VECTOR = new Vector3(0, 0, 0);
 		}
+		$this->currentTick = $player->getServer()->getTick();
 		$this->player = $player;
 		$this->hash = spl_object_hash($player);
 		$this->networkIdentifier = "{$player->getAddress()} {$player->getPort()}";
@@ -216,8 +226,10 @@ final class PlayerData {
 		$this->lastAlertTime = microtime(true);
 
 		$this->world = new VirtualWorld();
+		$this->movements = new EvictingList(20);
 
-		$this->checks = [new AimA(), new AimB(), # Aim checks
+		$this->checks = [
+			new AimA(), new AimB(), # Aim checks
 			new AutoClickerA(), new AutoClickerB(), # Autoclicker checks
 			new KillAuraA(), new KillAuraB(), # Killaura checks
 			new RangeA(), # Range checks
@@ -228,8 +240,20 @@ final class PlayerData {
 			new PacketsA(), new PacketsB(), new PacketsC(), # Packet checks
 			new EditionFakerA(), # EditionFaker checks
 			new NukerA(), # Nuker checks
-			new TimerA(), # Timer checks
+			new TimerA(),  # Timer checks
 		];
+
+		$baseDebugHandlers = [
+			new DebugHandler("movement-delta"),
+			new DebugHandler("movement-yaw"),
+			new DebugHandler("movement-pitch"),
+			new DebugHandler("click-stats"),
+		];
+
+		foreach ($this->checks as $check) {
+			$handler = new DebugHandler($check->name . " ({$check->subType})");
+			$this->debugHandlers[$handler->getName()] = $handler;
+		}
 	}
 
 	public function tick(): void {

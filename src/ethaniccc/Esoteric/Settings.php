@@ -9,8 +9,10 @@ final class Settings {
 
 	public const SETBACK_INSTANT = "instant";
 	public const SETBACK_SMOOTH = "smooth";
+
 	private $data;
 	private $setbackType;
+	private $debugging;
 
 	public function __construct(array $configData) {
 		$this->data = $configData;
@@ -75,6 +77,13 @@ final class Settings {
 
 	public function getTimeoutSettings(): array {
 		return $this->data["timeout"] ?? ["enabled" => true, "total_packets" => 10, "ticks" => 10];
+	}
+
+	public function isDebugging(): bool {
+		if ($this->debugging === null) {
+			$this->debugging = $this->data["debugging"] ?? false;
+		}
+		return $this->debugging;
 	}
 
 	public function editSetting(string $key, $newVal): void {

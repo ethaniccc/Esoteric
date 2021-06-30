@@ -9,6 +9,7 @@ use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\Settings;
 use ethaniccc\Esoteric\tasks\BanTask;
 use ethaniccc\Esoteric\tasks\KickTask;
+use ethaniccc\Esoteric\utils\handler\DebugHandler;
 use ethaniccc\Esoteric\webhook\Embed;
 use ethaniccc\Esoteric\webhook\Message;
 use ethaniccc\Esoteric\webhook\Webhook;
@@ -59,6 +60,17 @@ abstract class Check {
 
 	public function getData(): array {
 		return ["violations" => $this->violations, "description" => $this->description, "full_name" => $this->name . " ({$this->subType})", "name" => $this->name, "subType" => $this->subType];
+	}
+
+	public function debug(PlayerData $data, string $msg): void {
+		$handler = $this->getDebugHandler($data);
+		if ($handler !== null) {
+			$handler->broadcast($msg);
+		}
+	}
+
+	public function getDebugHandler(PlayerData $data): ?DebugHandler {
+		return $data->debugHandlers[$this->name . " ({$this->subType})"] ?? null;
 	}
 
 	public function getTimings(): TimingsHandler {

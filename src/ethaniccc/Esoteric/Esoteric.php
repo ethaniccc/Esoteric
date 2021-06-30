@@ -69,17 +69,27 @@ final class Esoteric {
 	public $loggerThread;
 	/** @var DecompressLevelChunkThread */
 	public $chunkThread;
+	/** @var bool */
+	public $hasComposerDeps;
+	/** @var string */
+	public $autoloadPath;
 
 	/**
 	 * Esoteric constructor.
 	 * @param PluginBase $plugin
 	 * @param Config|null $config
 	 */
-	private function __construct(PluginBase $plugin, ?Config $config) {
+	private function __construct(PluginBase $plugin, ?Config $config, string $autoloadPath = null) {
 		$this->plugin = $plugin;
 		$this->settings = new Settings($config === null ? $this->getPlugin()->getConfig()->getAll() : $config->getAll());
 		$this->dataManager = new PlayerDataManager();
 		$this->tickingTask = new TickingTask();
+		$this->autoloadPath = $autoloadPath;
+		if (!file_exists($this->autoloadPath)) {
+			$plugin->getLogger()->warning("Autoload file does not exist - ignore if none of the dependencies are needed]");
+			$this->autoloadPath = null;
+		}
+		$this->hasComposerDeps = $this->autoloadPath !== null;
 	}
 
 	public function getPlugin(): PluginBase {
@@ -92,11 +102,11 @@ final class Esoteric {
 	 * @param bool $start
 	 * @throws Exception
 	 */
-	public static function init(PluginBase $plugin, ?Config $config, bool $start = false) {
+	public static function init(PluginBase $plugin, ?Config $config, string $autoloadPath = null, bool $start = false) {
 		if (self::$instance !== null) {
 			throw new Exception("Esoteric is already started");
 		}
-		self::$instance = new self($plugin, $config);
+		self::$instance = new self($plugin, $config, $autoloadPath);
 		if ($start) {
 			self::$instance->start();
 		}
@@ -108,6 +118,12 @@ final class Esoteric {
 	public function start(): void {
 		if (self::$instance === null) {
 			throw new Exception("Esoteric has not been initialized");
+		}
+		if ($this->hasComposerDeps) {
+			require $this->autoloadPath;
+		}
+		if ($this->settings->isDebugging() && !function_exists('ray')) {
+			throw new Exception("Debugging enabled, but spatie/ray was not found.");
 		}
 		$this->listener = new PMMPListener();
 		foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {

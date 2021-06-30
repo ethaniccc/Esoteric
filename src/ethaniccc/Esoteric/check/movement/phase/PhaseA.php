@@ -105,7 +105,7 @@ class PhaseA extends Check {
 		if ($packet instanceof UpdateBlockPacket) {
 			$blockPos = new Vector3($packet->x, $packet->y, $packet->z);
 			$original = $data->world->getBlock($blockPos);
-			NetworkStackLatencyHandler::getInstance()->send($data, NetworkStackLatencyHandler::getInstance()->next($data), function (int $timestamp) use ($data, $blockPos, $original): void {
+			NetworkStackLatencyHandler::getInstance()->send($data, function (int $timestamp) use ($data, $blockPos, $original): void {
 				if ($data->boundingBox === null) {
 					return;
 				}

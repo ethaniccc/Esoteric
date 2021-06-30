@@ -22,6 +22,7 @@ class FlyB extends Check {
 				$this->flag($data);
 				$this->setback($data);
 			}
+			$this->debug($data, "diff=$difference");
 		}
 	}
 

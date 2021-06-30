@@ -27,6 +27,7 @@ class KillAuraA extends Check {
 			if ($tickDiff > 4) {
 				$this->flag($data, ["diff" => $tickDiff]);
 			}
+			$this->debug($data, "diff=$tickDiff last={$this->lastTick}");
 		}
 	}
 

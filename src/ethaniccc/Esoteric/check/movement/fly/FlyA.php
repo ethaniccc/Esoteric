@@ -34,6 +34,7 @@ class FlyA extends Check {
 				$this->reward();
 				$this->buffer = max($this->buffer - 0.25, 0);
 			}
+			$this->debug($data, "pr=$predictedYMovement diff=$difference buff={$this->buffer}");
 			$this->lastBlockAbove = $data->hasBlockAbove;
 		}
 	}

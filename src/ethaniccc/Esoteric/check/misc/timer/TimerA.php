@@ -41,6 +41,7 @@ class TimerA extends Check {
 				$this->flag($data);
 				$this->balance = 0;
 			}
+			$this->debug($data, "bal={$this->balance}");
 			$this->lastTime = $currentTime;
 		}
 	}

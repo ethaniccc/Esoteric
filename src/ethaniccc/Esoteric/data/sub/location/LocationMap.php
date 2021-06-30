@@ -13,6 +13,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
+use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\Player;
 use pocketmine\Server;
 use function count;
@@ -77,7 +78,9 @@ final class LocationMap {
 			return;
 		}
 		$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
-		$pk = $networkStackLatencyHandler->next($data);
+		$pk = new NetworkStackLatencyPacket();
+		$pk->timestamp = mt_rand(1, 100000000) * 1000;
+		$pk->needResponse = true;
 		$batch = clone $this->needSend;
 		$batch->addPacket($pk);
 		$batch->encode();

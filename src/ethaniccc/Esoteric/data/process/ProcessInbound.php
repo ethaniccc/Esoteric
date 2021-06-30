@@ -6,6 +6,7 @@ use DivisionByZeroError;
 use ErrorException;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\ExtraEffectIds;
+use ethaniccc\Esoteric\data\sub\movement\MovementCapture;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
@@ -454,7 +455,7 @@ final class ProcessInbound {
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
 					$handler = NetworkStackLatencyHandler::getInstance();
-					$handler->send($data, $handler->next($data), function (int $timestamp) use ($hasCollision, $data, $realBlock, $handler): void {
+					$handler->send($data, function (int $timestamp) use ($hasCollision, $data, $realBlock, $handler): void {
 						$p = new BatchPacket();
 						$pk = new UpdateBlockPacket();
 						$pk->x = $realBlock->x;
@@ -474,7 +475,9 @@ final class ProcessInbound {
 						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 						$p->addPacket($pk);
-						$n = $handler->next($data);
+						$n = new NetworkStackLatencyPacket();
+						$n->timestamp = mt_rand(1, 1000000) * 1000;
+						$n->needResponse = true;
 						$p->addPacket($n);
 						$p->encode();
 						PacketUtils::sendPacketSilent($data, $p);
@@ -540,6 +543,7 @@ final class ProcessInbound {
 
 			$this->lastClientPrediction = $packet->getDelta();
 			$data->tick();
+			$data->movements->add(new MovementCapture($location), $data->currentTick);
 		} elseif ($packet instanceof InventoryTransactionPacket) {
 			self::$inventoryTransactionTimings->startTiming();
 			$trData = $packet->trData;
@@ -593,7 +597,7 @@ final class ProcessInbound {
 			$data->isClipping = $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $data->isClipping;
 			if ($data->isClipping && $data->gamemode !== GameMode::SURVIVAL_VIEWER && $data->gamemode !== GameMode::CREATIVE_VIEWER) {
-				Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new KickTask($data->player, "Invalid clip status (g={$data->gamemode} l={$data->latency})\nContact staff if this issue persists"));
+				Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new KickTask($data->player, "Invalid clip status (g={$data->gamemode} l={$data->gameLatency})\nContact staff if this issue persists"));
 			}
 			/* if ($packet->getFlag(AdventureSettingsPacket::BUILD) && !$data->canPlaceBlocks) {
 				SUS

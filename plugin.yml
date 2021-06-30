@@ -39,3 +39,6 @@ permissions:
           ac.command.exempt:
             description: Get access to exempt sub commands in Esoteric
             default: op
+          ac.command.debug:
+            description: Get access to debugging commands in Esoteric
+            default: op

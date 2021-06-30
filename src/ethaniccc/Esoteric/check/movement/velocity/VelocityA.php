@@ -42,6 +42,8 @@ class VelocityA extends Check {
 					$this->reward();
 				}
 
+				$this->debug($data, "pct=$percentage% buff={$this->buffer}");
+
 				$this->yMotion = ($this->yMotion - 0.08) * MovementConstants::GRAVITY_MULTIPLICATION;
 			}
 		}
