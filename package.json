@@ -1,0 +1,20 @@
+{
+  "name": "@bdsx/esoteric",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bdsxPlugin": true,
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "prepare": "tsc"
+  },
+  "devDependencies": {
+    "bdsx": "file:../bdsx",
+    "@types/node": "^12.20.5",
+    "typescript": "^4.2.3"
+  }
+}
