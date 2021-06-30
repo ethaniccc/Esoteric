@@ -1,9 +1,6 @@
-import { MinecraftPacketIds } from "bdsx/bds/packetids";
-import { PacketIdToType } from "bdsx/bds/packets";
 import { events } from "bdsx/event";
-import { DataStorage } from "./data/DataStorage";
-import { PacketListener } from "./PacketListener";
-import { InventoryTransactionWrapper } from "./wrappers/Wrappers";
+import { DataStorage } from "./src/data/DataStorage";
+import { PacketListener } from "./src/listener/PacketListener";
 
 events.serverOpen.on(()=>{
     PacketListener.init();
