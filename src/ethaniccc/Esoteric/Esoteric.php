@@ -28,6 +28,7 @@ use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
 use function implode;
+use function is_null;
 use function max;
 use function mkdir;
 use function scandir;
@@ -36,32 +37,23 @@ use const PHP_EOL;
 
 final class Esoteric {
 
-	/** @var Esoteric|null */
-	private static $instance;
-	/** @var PluginBase */
-	public $plugin;
-	/** @var Settings */
-	public $settings;
-	/** @var PlayerDataManager */
-	public $dataManager;
+	private static ?Esoteric $instance = null;
+	public PluginBase $plugin;
+	public Settings $settings;
+	public PlayerDataManager $dataManager;
+
 	/** @var PlayerData[] */
-	public $hasAlerts = [];
+	public array $hasAlerts = [];
 	/** @var string[] */
-	public $logCache = [];
-	/** @var array */
-	public $exemptList = [];
-	/** @var Banwave|null */
-	public $banwave;
-	/** @var TickingTask */
-	public $tickingTask;
-	/** @var EsotericCommand */
-	public $command;
-	/** @var PMMPListener */
-	public $listener;
-	/** @var CustomNetworkInterface */
-	public $networkInterface;
-	/** @var LoggerThread */
-	public $loggerThread;
+	public array $logCache = [];
+
+	public array $exemptList = [];
+	public ?Banwave $banwave;
+	public TickingTask $tickingTask;
+	public EsotericCommand $command;
+	public PMMPListener $listener;
+	public CustomNetworkInterface $networkInterface;
+	public LoggerThread $loggerThread;
 
 	/**
 	 * Esoteric constructor.
@@ -86,19 +78,16 @@ final class Esoteric {
 	 * @throws Exception
 	 */
 	public static function init(PluginBase $plugin, ?Config $config, bool $start = false) {
-		if (self::$instance !== null)
-			throw new Exception("Esoteric is already started");
+		if (self::$instance !== null) throw new Exception("Esoteric is already started");
 		self::$instance = new self($plugin, $config);
-		if ($start)
-			self::$instance->start();
+		if ($start) self::$instance->start();
 	}
 
 	/**
 	 * @throws Exception
 	 */
 	public function start(): void {
-		if (self::$instance === null)
-			throw new Exception("Esoteric has not been initialized");
+		if (is_null(self::$instance)) throw new Exception("Esoteric has not been initialized");
 		$this->listener = new PMMPListener();
 		foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {
 			if ($interface instanceof RakLibInterface) {
