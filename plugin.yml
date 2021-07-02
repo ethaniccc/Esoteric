@@ -1,0 +1,25 @@
+name: Esoteric-PvP
+author: ethaniccc
+description: A lightweight version of the Esoteric anti-cheat
+version: 1.0.0
+main: ethaniccc\Esoteric\Esoteric
+mcpe-protocol: [437, 440, 441]
+api: 4.0.0
+extensions:
+  Core: ">=8.0"
+permissions:
+  ac.alerts:
+    description: Get access to anti-cheat alerts
+    default: op
+  ac.bypass:
+    description: Bypass Esoteric punishments
+    default: op
+  ac.logs:
+    description: Get access to Esoteric logs
+    default: op
+  ac.banwave:
+    description: Execute Esoteric banwaves
+    default: op
+  ac.timings:
+    description: Execute Timings for Esoteric
+    default: op
