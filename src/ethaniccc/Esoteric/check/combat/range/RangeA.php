@@ -19,7 +19,7 @@ use function round;
 class RangeA extends Check {
 
 	private bool $waiting = false;
-	private int $secondaryBuffer = 0;
+	private float $secondaryBuffer = 0;
 
 	public function __construct() {
 		parent::__construct("Range", "A", "Checking if the player's attack range exceeds a certain limit", false);
@@ -61,7 +61,6 @@ class RangeA extends Check {
 							$this->secondaryBuffer = max($this->secondaryBuffer - 0.01, 0);
 						}
 					}
-					unset($ray);
 				}
 				if (!isset($flagged)) {
 					$this->reward(0.004);

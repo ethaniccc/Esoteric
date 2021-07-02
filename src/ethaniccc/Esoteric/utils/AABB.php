@@ -14,7 +14,8 @@ class AABB extends AxisAlignedBB {
 
 	public $minX, $minY, $minZ;
 	public $maxX, $maxY, $maxZ;
-	public $minVector, $maxVector;
+	public Vector3 $maxVector;
+	public Vector3 $minVector;
 
 	public function __construct(float $minX, $minY, float $minZ, float $maxX, float $maxY, float $maxZ) {
 		parent::__construct($minX, $minY ?? 0.0, $minZ, $maxX, $maxY, $maxZ);
@@ -56,7 +57,7 @@ class AABB extends AxisAlignedBB {
 		return new AABB($this->minX - $x, $this->minY - $y, $this->minZ - $z, $this->maxX + $x, $this->maxY, $this->maxZ);
 	}
 
-	public function stretch(float $x, float $y, float $z): AABB {
+	public function stretch(float $x): AABB {
 		return new AABB($this->minX, $this->minY, $this->minZ, $this->maxX + $x, $this->maxY, $this->maxZ);
 	}
 

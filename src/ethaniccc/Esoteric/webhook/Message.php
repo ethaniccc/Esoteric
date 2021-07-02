@@ -32,8 +32,8 @@ namespace ethaniccc\Esoteric\webhook;
 use JsonSerializable;
 
 class Message implements JsonSerializable {
-	/** @var array */
-	protected $data = [];
+
+	protected array $data = [];
 
 	public function setContent(string $content): void {
 		$this->data["content"] = $content;

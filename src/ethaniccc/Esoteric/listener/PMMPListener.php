@@ -86,13 +86,13 @@ class PMMPListener implements Listener {
 		foreach ($data->checks as $check) {
 			$checkData = $check->getData();
 			if ($checkData['violations'] >= 1) {
-				if ($message === null) {
+				if (is_null($message)) {
 					$message = '';
 				}
 				$message .= TextFormat::YELLOW . $checkData["full_name"] . TextFormat::WHITE . " - " . $checkData["description"] . TextFormat::GRAY . " (" . TextFormat::RED . "x" . var_export(round($checkData["violations"], 3), true) . TextFormat::GRAY . ")" . PHP_EOL;
 			}
 		}
-		Esoteric::getInstance()->logCache[strtolower($event->getPlayer()->getName())] = $message === null ? TextFormat::GREEN . "This player has no logs" : $message;
+		Esoteric::getInstance()->logCache[strtolower($event->getPlayer()->getName())] = is_null($message) ? TextFormat::GREEN . "This player has no logs" : $message;
 		Esoteric::getInstance()->dataManager->remove($event->getPlayer());
 	}
 

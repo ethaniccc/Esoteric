@@ -2,6 +2,8 @@
 
 namespace ethaniccc\Esoteric\data\process;
 
+use function is_null;
+
 class ACKHandler {
 
 	private array $list = [];
@@ -9,7 +11,7 @@ class ACKHandler {
 	private static ?ACKHandler $instance = null;
 
 	public static function getInstance(): self{
-		if(self::$instance === null){
+		if(is_null(self::$instance)){
 			self::$instance = new self;
 		}
 		return self::$instance;

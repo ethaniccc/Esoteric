@@ -14,7 +14,7 @@ class WebhookThread extends Thread {
 
 	/** @var Threaded */
 	private $queue, $errors;
-	private $running = false;
+	private bool $running = false;
 	/** @var AttachableLogger */
 	private $logger;
 

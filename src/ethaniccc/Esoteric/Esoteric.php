@@ -48,7 +48,7 @@ final class Esoteric {
 	public array $logCache = [];
 
 	public array $exemptList = [];
-	public ?Banwave $banwave;
+	public ?Banwave $banwave = null;
 	public TickingTask $tickingTask;
 	public EsotericCommand $command;
 	public PMMPListener $listener;
@@ -62,7 +62,7 @@ final class Esoteric {
 	 */
 	private function __construct(PluginBase $plugin, ?Config $config) {
 		$this->plugin = $plugin;
-		$this->settings = new Settings($config === null ? $this->getPlugin()->getConfig()->getAll() : $config->getAll());
+		$this->settings = new Settings(is_null($config) ? $this->getPlugin()->getConfig()->getAll() : $config->getAll());
 		$this->dataManager = new PlayerDataManager();
 		$this->tickingTask = new TickingTask();
 	}
@@ -141,7 +141,7 @@ final class Esoteric {
 	 * @throws Exception
 	 */
 	public function stop(): void {
-		if (self::$instance === null)
+		if (is_null(self::$instance))
 			throw new Exception("Esoteric has not been initialized");
 		$this->plugin->getScheduler()->cancelTask($this->tickingTask->getTaskId());
 		Server::getInstance()->getCommandMap()->unregister($this->command);

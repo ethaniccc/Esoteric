@@ -35,8 +35,8 @@ abstract class Check {
 	public string $subType;
 	public string $description;
 	public bool $experimental;
-	public int $violations = 0;
-	public int $buffer = 0;
+	public float $violations = 0;
+	public float $buffer = 0;
 
 	public function __construct(string $name, string $subType, string $description, bool $experimental = false) {
 		$this->name = $name;
@@ -45,7 +45,7 @@ abstract class Check {
 		$this->experimental = $experimental;
 		if (!isset(self::$settings["$name:$subType"])) {
 			$settings = Esoteric::getInstance()->getSettings()->getCheckSettings($name, $subType);
-			if ($settings === null) {
+			if (is_numeric($settings)) {
 				$settings = ["enabled" => true, "punishment_type" => "none", "max_vl" => 20];
 			}
 			self::$settings["$name:$subType"] = $settings;

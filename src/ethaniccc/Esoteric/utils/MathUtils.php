@@ -2,10 +2,8 @@
 
 namespace ethaniccc\Esoteric\utils;
 
-use ErrorException;
 use pocketmine\math\Vector3;
 use function abs;
-use function acos;
 use function array_splice;
 use function array_sum;
 use function ceil;
@@ -143,7 +141,7 @@ final class MathUtils {
 	 * @param Vector3 $pos - Target position to check possible interaction
 	 * @param Vector3 $dV - Direction vector of the entity
 	 * @param float $maxDistance - Distance to check interaction
-	 * @param float|int $maxDiff
+	 * @param float $maxDiff
 	 * @return bool - If the entity can interact with the position
 	 */
 	public static function canInteract(Vector3 $eyePos, Vector3 $pos, Vector3 $dV, float $maxDistance, float $maxDiff = M_SQRT3 * 0.5): bool {

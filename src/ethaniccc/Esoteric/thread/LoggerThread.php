@@ -11,9 +11,9 @@ use const PHP_EOL;
 
 class LoggerThread extends Thread {
 
-	private $log;
-	private $queue;
-	private $running = false;
+	private string $log;
+	private Threaded $queue;
+	private bool $running = false;
 
 	public function __construct(string $log) {
 		$this->log = $log;

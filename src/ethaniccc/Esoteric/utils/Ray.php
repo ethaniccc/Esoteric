@@ -8,7 +8,8 @@ use pocketmine\math\Vector3;
 final class Ray {
 
 	/** @var Vector3 */
-	public $origin, $direction;
+	public Vector3 $direction;
+	public Vector3 $origin;
 
 	public function __construct(Vector3 $origin, Vector3 $direction) {
 		$this->origin = $origin;
@@ -16,7 +17,7 @@ final class Ray {
 	}
 
 	public static function from(PlayerData $data): Ray {
-		return new Ray($data->currentLocation->add(0, 1.62, 0), $data->directionVector);
+		return new Ray($data->currentLocation->add(0, 1.62), $data->directionVector);
 	}
 
 	public function origin(int $i): float {

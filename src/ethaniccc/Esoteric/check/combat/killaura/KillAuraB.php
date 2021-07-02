@@ -11,6 +11,7 @@ use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use function count;
 use function in_array;
+use function is_null;
 
 class KillAuraB extends Check {
 
@@ -34,7 +35,7 @@ class KillAuraB extends Check {
 				$collides = false;
 				foreach ($this->entities as $entityID) {
 					$locationData = $data->entityLocationMap->get($entityID);
-					if ($locationData === null) {
+					if (is_null($locationData)) {
 						continue;
 					}
 					$AABB = AABB::fromPosition($locationData->lastLocation)->expandedCopy(0.2, 0.2, 0.2);

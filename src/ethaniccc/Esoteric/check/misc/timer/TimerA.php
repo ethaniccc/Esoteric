@@ -9,12 +9,11 @@ use pocketmine\network\mcpe\protocol\DataPacket;
 use function is_null;
 use function microtime;
 use function round;
-use function var_dump;
 
 class TimerA extends Check {
 
 	private $lastTime;
-	private int $balance = 0;
+	private float $balance = 0;
 
 	public function __construct() {
 		parent::__construct("Timer", "A", "Uses a 'balance' to determine if a player is using timer", false);

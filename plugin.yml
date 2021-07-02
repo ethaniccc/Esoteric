@@ -1,10 +1,12 @@
----
 name: Esoteric-Lightweight
 author: ethaniccc
 description: A lightweight version of the Esoteric anti-cheat
 version: 1.0.0
 main: ethaniccc\Loader\Loader
+mcpe-protocol: [437, 440, 441]
 api: 3.19.0
+extensions:
+  Core: ">=8.0"
 permissions:
   ac:
     description: Gives all anticheat permissions

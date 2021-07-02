@@ -7,10 +7,8 @@ use pocketmine\scheduler\Task;
 
 class KickTask extends Task {
 
-	/** @var Player */
-	private $player;
-	/** @var string */
-	private $reason;
+	private Player $player;
+	private string $reason;
 
 	public function __construct(Player $player, string $reason) {
 		$this->player = $player;

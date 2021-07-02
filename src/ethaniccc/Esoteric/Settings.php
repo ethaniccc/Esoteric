@@ -4,13 +4,14 @@ namespace ethaniccc\Esoteric;
 
 use pocketmine\utils\TextFormat;
 use function in_array;
+use function is_null;
 
 final class Settings {
 
 	public const SETBACK_INSTANT = "instant";
 	public const SETBACK_SMOOTH = "smooth";
-	private $data;
-	private $setbackType;
+	private array $data;
+	private ?string $setbackType = null;
 
 	public function __construct(array $configData) {
 		$this->data = $configData;
@@ -41,7 +42,7 @@ final class Settings {
 	}
 
 	public function getSetbackType(): string {
-		if ($this->setbackType === null) {
+		if (is_null($this->setbackType)) {
 			$this->setbackType = isset($this->data["setback_type"]) ? (in_array($this->data["setback_type"], [self::SETBACK_INSTANT, self::SETBACK_SMOOTH]) ? $this->data["setback_type"] : "none") : self::SETBACK_SMOOTH;
 		}
 		return $this->setbackType;

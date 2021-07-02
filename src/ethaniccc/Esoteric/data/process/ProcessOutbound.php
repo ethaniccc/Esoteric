@@ -73,7 +73,7 @@ class ProcessOutbound {
 					break;
 				case MobEffectPacket::EVENT_MODIFY:
 					$effectData = $data->effects[$packet->effectId] ?? null;
-					if ($effectData === null)
+					if (is_null($effectData))
 						return;
 					$handler->send($data, $handler->next($data), static function () use (&$effectData, $packet): void {
 						$effectData->amplifier = $packet->amplifier + 1;

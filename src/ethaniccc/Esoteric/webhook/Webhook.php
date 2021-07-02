@@ -30,10 +30,8 @@ namespace ethaniccc\Esoteric\webhook;
 
 class Webhook {
 
-	/** @var string */
-	protected $url;
-	/** @var Message */
-	protected $message;
+	protected string $url;
+	protected Message $message;
 
 	public function __construct(string $url, Message $message) {
 		$this->url = $url;

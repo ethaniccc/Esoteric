@@ -19,6 +19,7 @@ use pocketmine\utils\TextFormat;
 use function count;
 use function implode;
 use function in_array;
+use function is_null;
 use function mt_rand;
 use function range;
 use function round;
@@ -38,7 +39,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 
 	public function execute(CommandSender $sender, string $commandLabel, array $args) {
 		$subCommand = $args[0] ?? null;
-		if ($subCommand === null) {
+		if (is_null($subCommand)) {
 			$sender->sendMessage(TextFormat::GOLD . "Esoteric anti-cheat, created by ethaniccc.");
 			return;
 		}
@@ -54,26 +55,26 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 			case "logs":
 				if ($sender->hasPermission("ac.command.logs")) {
 					$selectedUser = $args[1] ?? null;
-					if ($selectedUser === null) {
+					if (is_null($selectedUser)) {
 						$sender->sendMessage(TextFormat::RED . "You need to specify a player.");
 					} else {
 						$data = Esoteric::getInstance()->dataManager->getFromName($selectedUser);
-						if ($data === null) {
+						if (is_null($data)) {
 							// try the log cache
 							$cached = Esoteric::getInstance()->logCache[strtolower($selectedUser)] ?? null;
-							$sender->sendMessage($cached === null ? TextFormat::RED . "The specified player was not found." : $cached);
+							$sender->sendMessage(is_null($cached) ? TextFormat::RED . "The specified player was not found." : $cached);
 						} else {
 							$message = null;
 							foreach ($data->checks as $check) {
 								$checkData = $check->getData();
 								if ($checkData["violations"] >= 1) {
-									if ($message === null) {
+									if (is_null($message)) {
 										$message = "";
 									}
 									$message .= TextFormat::YELLOW . $checkData["full_name"] . TextFormat::WHITE . " - " . $checkData["description"] . TextFormat::GRAY . " (" . TextFormat::RED . "x" . var_export(round($checkData["violations"], 3), true) . TextFormat::GRAY . ")" . PHP_EOL;
 								}
 							}
-							$sender->sendMessage($message === null ? TextFormat::GREEN . "{$data->player->getName()} has no logs" : TextFormat::RED . TextFormat::BOLD . $data->player->getName() . "'s logs:\n" . TextFormat::RESET . $message);
+							$sender->sendMessage(is_null($message) ? TextFormat::GREEN . "{$data->player->getName()} has no logs" : TextFormat::RED . TextFormat::BOLD . $data->player->getName() . "'s logs:\n" . TextFormat::RESET . $message);
 						}
 					}
 				} else {
@@ -97,21 +98,11 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 					if ($sender->hasPermission("ac.alerts")) {
 						$playerData = Esoteric::getInstance()->dataManager->get($sender);
 						if (isset($args[1])) {
-							switch ($args[1]) {
-								case "on":
-								case "true":
-								case "enable":
-									$alerts = true;
-									break;
-								case "off":
-								case "false":
-								case "disable":
-									$alerts = false;
-									break;
-								default:
-									$alerts = !$playerData->hasAlerts;
-									break;
-							}
+							$alerts = match ($args[1]) {
+								"on", "true", "enable" => true,
+								"off", "false", "disable" => false,
+								default => !$playerData->hasAlerts,
+							};
 						} else {
 							$alerts = !$playerData->hasAlerts;
 						}
@@ -124,12 +115,12 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				break;
 			case "banwave":
 				if ($sender->hasPermission("ac.command.banwave")) {
-					if (Esoteric::getInstance()->getBanwave() === null) {
+					if (is_null(Esoteric::getInstance()->getBanwave())) {
 						$sender->sendMessage(TextFormat::RED . "Banwaves are disabled");
 						return;
 					}
 					$sub = $args[1] ?? null;
-					if ($sub === null) {
+					if (is_null($sub)) {
 						$sender->sendMessage(TextFormat::RED . "Available sub commands: execute, undo, add, remove");
 					} else {
 						switch ($sub) {
@@ -138,7 +129,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 								break;
 							case "undo":
 								$selected = $args[2] ?? null;
-								if ($selected === null) {
+								if (is_null($selected)) {
 									$sender->sendMessage(TextFormat::RED . "You need to specify a ban wave to undo");
 									return;
 								}
@@ -169,7 +160,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 								break;
 							case "remove":
 								$selected = $args[2] ?? null;
-								if ($selected === null) {
+								if (is_null($selected)) {
 									$sender->sendMessage(TextFormat::RED . "You need to specify a player to remove from the ban wave");
 									return;
 								}
@@ -178,7 +169,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 								break;
 							case "add":
 								$selected = $args[2] ?? null;
-								if ($selected === null) {
+								if (is_null($selected)) {
 									$sender->sendMessage(TextFormat::RED . "You need to specify a player to add to the ban wave");
 									return;
 								}
@@ -195,7 +186,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				if ($sender->hasPermission("ac.command.timings")) {
 					$time = (int) ($args[1] ?? 60);
 					Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings on");
-					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new ClosureTask(static function (int $currentTick): void {
+					Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new ClosureTask(static function (): void {
 						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings paste");
 						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings off");
 					}), $time * 20);
@@ -206,7 +197,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 			case "exempt":
 				if ($sender->hasPermission("ac.command.exempt")) {
 					$sub = $args[1] ?? null;
-					if ($sub === null) {
+					if (is_null($sub)) {
 						$sender->sendMessage(TextFormat::RED . "Available sub commands: all, get, add");
 						return;
 					}
@@ -216,7 +207,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 							break;
 						case "get":
 							$selected = $args[2] ?? null;
-							if ($selected === null) {
+							if (is_null($selected)) {
 								$sender->sendMessage(TextFormat::RED . "You need to specify a player to get the exempt status of");
 								return;
 							}
@@ -227,7 +218,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 							break;
 						case "add":
 							$selected = $args[2] ?? null;
-							if ($selected === null) {
+							if (is_null($selected)) {
 								$sender->sendMessage(TextFormat::RED . "You need to specify a player to exempt");
 								return;
 							}
@@ -239,7 +230,7 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 							break;
 						case "remove":
 							$selected = $args[2] ?? null;
-							if ($selected === null) {
+							if (is_null($selected)) {
 								$sender->sendMessage(TextFormat::RED . "You need to specify a player to un-exempt");
 								return;
 							}
@@ -262,8 +253,6 @@ class EsotericCommand extends Command implements PluginIdentifiableCommand {
 				}
 				break;
 			case "test":
-				if ($sender->isOp() && $sender instanceof Player) {
-				}
 				break;
 		}
 	}

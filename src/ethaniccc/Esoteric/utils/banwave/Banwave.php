@@ -32,9 +32,9 @@ final class Banwave {
 	/** @var bool */
 	private $completed = false;
 	/** @var string */
-	private $path = "";
+	private string $path = "";
 	/** @var int */
-	private $id;
+	private int $id;
 
 	public function __construct(string $jsonData, string $path, int $id) {
 		$data = json_decode($jsonData, true);
@@ -111,7 +111,7 @@ final class Banwave {
 			$settings = Esoteric::getInstance()->getSettings()->getWaveSettings();
 			$data = $this->getAllPlayers();
 			$usernames = array_keys($data);
-			$task = new ClosureTask(function (int $currentTick) use (&$task, &$runs, &$data, &$usernames, $settings, $maxRuns): void {
+			$task = new ClosureTask(function () use (&$task, &$runs, &$data, &$usernames, $settings, $maxRuns): void {
 				if ($runs === 0) {
 					Server::getInstance()->broadcastMessage($settings["start_message"]);
 				} elseif ($runs > $maxRuns) {

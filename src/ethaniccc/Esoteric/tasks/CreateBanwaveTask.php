@@ -9,7 +9,7 @@ use function file_exists;
 
 class CreateBanwaveTask extends AsyncTask {
 
-	private $path;
+	private string $path;
 	private $banwave;
 
 	public function __construct(string $path, callable $onCompete = null) {

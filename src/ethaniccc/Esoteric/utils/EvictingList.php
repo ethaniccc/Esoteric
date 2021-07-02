@@ -6,6 +6,7 @@ use function array_reverse;
 use function array_shift;
 use function array_unique;
 use function count;
+use function is_null;
 use function max;
 use function min;
 
@@ -23,7 +24,7 @@ class EvictingList {
 	}
 
 	public function add($val, $key = null): EvictingList {
-		$key === null ? $this->array[] = $val : $this->array[$key] = $val;
+		is_null($key) ? $this->array[] = $val : $this->array[$key] = $val;
 		if (count($this->array) > $this->maxSize) {
 			array_shift($this->array);
 		}
