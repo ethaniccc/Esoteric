@@ -69,6 +69,21 @@ webhook:
   punishments: false
 
 detections:
+  # Autoclicker detections
+  Autoclicker:
+    A:
+      enabled: true
+      punishment_type: none
+      max_vl: 5
+      code: Noah
+      max_cps: 21
+    B:
+      enabled: true
+      punishment_type: none
+      max_vl: 3
+      code: Crocodile
+      samples: 10
+      max_duplicates: 6
   # Aim detections
   Aim:
     A:

@@ -13,10 +13,10 @@ use pocketmine\network\mcpe\protocol\types\PlayMode;
 
 class PlayerAuthInputPacket extends \pocketmine\network\mcpe\protocol\PlayerAuthInputPacket {
 
-	public ?UseItemInteractionData $itemInteractionData;
-	public ?ItemStackRequest $stackRequest;
+	public ?UseItemInteractionData $itemInteractionData = null;
+	public ?ItemStackRequest $stackRequest = null;
 	/** @var PlayerBlockAction[]|null */
-	public ?array $blockActions;
+	public ?array $blockActions = [];
 	private Vector3 $position;
 	private float $pitch;
 	private float $yaw;

@@ -176,12 +176,12 @@ class ProcessOutbound {
 				if($packet->entityRuntimeId === $data->player->getId()){
 					foreach ($packet->entries as $attribute) {
 						if ($attribute->getId() === Attribute::HEALTH) {
-							if ($attribute->getValue() <= 0) {
-								$data->networkStackLatencyHandler->queue($data, static function () use ($data) : void {
+							if ($attribute->getCurrent() <= 0) {
+								$data->networkStackLatencyHandler->queue($data, static function (int $timestamp) use ($data): void {
 									$data->isAlive = false;
 								});
-							} elseif ($attribute->getValue() > 0 && !$data->isAlive) {
-								$data->networkStackLatencyHandler->queue($data, static function () use ($data) : void {
+							} elseif ($attribute->getCurrent() > 0 && !$data->isAlive) {
+								$data->networkStackLatencyHandler->queue($data, static function (int $timestamp) use ($data): void {
 									$data->isAlive = true;
 								});
 							}
@@ -205,7 +205,7 @@ class ProcessOutbound {
 			case AddActorPacket::class:
 			case AddPlayerPacket::class:
 				/** @var AddPlayerPacket $packet */
-				$data->networkStackLatencyHandler->queue($data, static function () use ($data, $packet) : void {
+				$data->networkStackLatencyHandler->queue($data, function () use ($data, $packet) : void {
 					$entity = $this->worldManager->findEntity($packet->entityRuntimeId);
 					if ($entity !== null) {
 						// if the entity is null, the stupid client is out-of-sync (lag possibly)

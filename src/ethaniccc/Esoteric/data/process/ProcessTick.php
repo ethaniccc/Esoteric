@@ -17,7 +17,8 @@ use function mt_rand;
 class ProcessTick {
 
 	public array $waiting = [];
-	public int $currentTimestamp, $nextTimestamp;
+	public ?int $currentTimestamp = null;
+	public int $nextTimestamp;
 	public bool $timeoutEnabled;
 	public int $totalTimeoutPackets;
 	public int $timeoutTicks;

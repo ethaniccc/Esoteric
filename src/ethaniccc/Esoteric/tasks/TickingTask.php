@@ -14,7 +14,7 @@ class TickingTask extends Task {
 	public function onRun() : void {
 		if ($this->currentTick % 40 === 0) {
 			Esoteric::getInstance()->hasAlerts = array_filter(Esoteric::getInstance()->dataManager->getAll(), static function (PlayerData $data): bool {
-				return !$data->player->isClosed() && $data->hasAlerts && $data->player->hasPermission("ac.alerts");
+				return $data->player !== null && !$data->player->isClosed() && $data->hasAlerts && $data->player->hasPermission("ac.alerts");
 			});
 		}
 		foreach (Esoteric::getInstance()->dataManager->getAll() as $playerData) {

@@ -85,7 +85,7 @@ abstract class Check {
 		return false;
 	}
 
-	public function enabled(): bool {
+	public function enabled(): ?bool {
 		return $this->option("enabled");
 	}
 
