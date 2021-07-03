@@ -1,11 +1,9 @@
 <?php
 
-namespace ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
+namespace ethaniccc\Esoteric\data\sub\protocol\v428;
 
 use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
 use ethaniccc\Esoteric\data\sub\protocol\LegacyItemSlot;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerBlockAction;
-use ethaniccc\Esoteric\data\sub\protocol\v428\UseItemInteractionData;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;

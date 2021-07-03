@@ -3,9 +3,7 @@
 namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\utils\EvictingList;
-use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\math\Vector3;
@@ -13,6 +11,7 @@ use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\Server;
 use pocketmine\world\Position;
+use pocketmine\world\WorldManager;
 use function count;
 use function is_null;
 
@@ -25,20 +24,19 @@ final class LocationMap {
 
 	/** @var LocationData[] - Estimated client-sided locations */
 	public array $locations = [];
-	/** @var BatchPacket - A batch packet that contains entity locations along with a NetworkStackLatencyPacket */
-	public BatchPacket $needSend;
+	/** @var Position[] */
+	public array $pendingLocations = [];
 	/** @var Position[] */
 	public array $needSendArray = [];
+	public WorldManager $worldManager;
 
 	public function __construct() {
-		$this->compressor->compress(PacketBatch::fromPackets(LevelChunkPacket::withoutCache($this->chunkX, $this->chunkZ, $subCount, $payload))->getBuffer())
-		$this->needSend = new BatchPacket();
-		$this->needSend->setCompressionLevel(0);
+		$this->worldManager = Server::getInstance()->getWorldManager();
 	}
 
-	/**
-	 * @param MoveActorAbsolutePacket|MovePlayerPacket $packet
-	 */
+	/*/
+	  @param MoveActorAbsolutePacket|MovePlayerPacket $packet
+	 /
 	function addPacket(MovePlayerPacket|MoveActorAbsolutePacket $packet): void {
 		$locationData = $this->locations[$packet->entityRuntimeId] ?? null;
 		if (is_null($locationData)) return;
@@ -50,8 +48,8 @@ final class LocationMap {
 			}
 		}
 		$this->needSend->addPacket($packet);
-		$this->needSendArray[$packet->entityRuntimeId] = $packet->position->subtract(0, $locationData->locationOffset);
-	}
+		$this->needSendArray[$packet->entityRuntimeId] = $packet->position->subtract(0, $locationData->locationOffset, 0);
+	}*/
 
 	function addEntity(Entity $entity, Vector3 $startPos): void {
 		$locationData = new LocationData();
@@ -71,23 +69,10 @@ final class LocationMap {
 	}
 
 	function send(PlayerData $data): void {
-		if (count($this->needSendArray) === 0 || !$data->loggedIn) {
-			return;
-		}
-		$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
-		$pk = $networkStackLatencyHandler->next($data);
-		$batch = clone $this->needSend;
-		$batch->addPacket($pk);
-		$batch->encode();
+		if (count($this->needSendArray) === 0 || !$data->loggedIn) return;
 		$locations = $this->needSendArray;
-		$this->needSend = new BatchPacket();
-		$this->needSend->setCompressionLevel(0);
 		$this->needSendArray = [];
-		$timestamp = $pk->timestamp;
-		PacketUtils::sendPacketSilent($data, $batch, true, function () use ($data, $timestamp): void {
-			$data->tickProcessor->waiting[$timestamp] = $data->currentTick;
-		});
-		$networkStackLatencyHandler->forceHandle($data, $pk->timestamp, function () use ($locations): void {
+		$data->networkStackLatencyHandler->queue($data, function () use ($locations): void {
 			foreach ($locations as $entityRuntimeId => $location) {
 				if (isset($this->locations[$entityRuntimeId])) {
 					$locationData = $this->locations[$entityRuntimeId];
@@ -100,7 +85,7 @@ final class LocationMap {
 
 	function executeTick(): void {
 		foreach ($this->locations as $entityRuntimeId => $locationData) {
-			if (($entity = Server::getInstance()->findEntity($entityRuntimeId)) === null) {
+			if (($entity = $this->worldManager->findEntity($entityRuntimeId)) === null) {
 				// entity go brrt !
 				unset($this->locations[$entityRuntimeId]);
 				unset($this->needSendArray[$entityRuntimeId]);

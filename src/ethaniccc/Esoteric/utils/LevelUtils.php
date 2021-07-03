@@ -3,17 +3,26 @@
 namespace ethaniccc\Esoteric\utils;
 
 use Generator;
+use pocketmine\block\BlockBreakInfo;
 use pocketmine\block\UnknownBlock;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\world\World;
 use function ceil;
 use function floor;
+use function is_null;
 
 final class LevelUtils {
 
 	public const SEARCH_ALL = 0;
 	public const SEARCH_TRANSPARENT = 1;
 	public const SEARCH_SOLID = 2;
+
+	public static ?BlockBreakInfo $ZERO_BREAK_INFO = null;
+
+	public static function zeroBreakInfo() : ?BlockBreakInfo {
+		if(is_null(self::$ZERO_BREAK_INFO)) self::$ZERO_BREAK_INFO = new BlockBreakInfo(0);
+		return self::$ZERO_BREAK_INFO;
+	}
 
 	public static function checkBlocksInAABB(AxisAlignedBB $AABB, World $level, int $searchOption, bool $first = false) : Generator {
 		$minX = floor($AABB->minX - 1);

@@ -9,10 +9,9 @@ use ethaniccc\Esoteric\utils\Ray;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\InputMode;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
-use function in_array;
+use pocketmine\player\GameMode;
 use function max;
 use function min;
 use function round;
@@ -27,7 +26,7 @@ class RangeA extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK && in_array($data->gamemode, [GameMode::SURVIVAL, GameMode::ADVENTURE])) {
+		if ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK && ($data->gamemode->equals(GameMode::SURVIVAL()) || $data->gamemode->equals(GameMode::ADVENTURE()))) {
 			$this->waiting = true;
 		} elseif ($packet instanceof PlayerAuthInputPacket && $this->waiting) {
 			$locationData = $data->entityLocationMap->get($data->target);

@@ -94,7 +94,7 @@ abstract class Check {
 	}
 
 	protected function flag(PlayerData $data, array $extraData = []): void {
-		$extraData["ping"] = $data->player->getPing();
+		$extraData["ping"] = $data->player->getNetworkSession()->getPing();
 		$dataString = self::getDataString($extraData);
 		if (!$this->experimental) {
 			++$this->violations;
@@ -183,13 +183,10 @@ abstract class Check {
 		$embed->setTitle('Anti-cheat alert');
 		$embed->setColor(0xFFC300);
 		$embed->setFooter((new DateTime('now'))->format("m/d/y @ h:m:s A"));
-		$embed->setDescription("
-		Player: **`$player`**
-		Violations: **`$this->violations`**
-		Codename: **`{$this->getCodeName()}`**
-		Detection name: **`$this->name ($this->subType)`**
-		Debug data: **`$debug`**
-		");
+		$embed->setDescription(
+			"Player: **`$player`\n**Violations: **`$this->violations`\n**Codename: **`{$this->getCodeName()}\n" .
+			"`**Detection name: **`$this->name ($this->subType)\n`**Debug data: **`$debug`**"
+		);
 
 		$message->addEmbed($embed);
 
@@ -213,12 +210,7 @@ abstract class Check {
 		$embed->setTitle("Anti-cheat punishment");
 		$embed->setColor(0xFF0000);
 		$embed->setFooter((new DateTime('now'))->format("m/d/y @ h:m:s A"));
-		$embed->setDescription("
-		Player: **`$player`**
-		Type: **`$type`**
-		Codename: **`{$this->getCodeName()}`**
-		Detection name: **`$this->name ($this->subType)`**
-		");
+		$embed->setDescription("Player: **`$player`**\nType: **`$type`**\nCodename: **`{$this->getCodeName()}`**\nDetection name: **`$this->name ($this->subType)`**");
 		$message->addEmbed($embed);
 
 		$webhook = new Webhook($webhookLink, $message);
@@ -231,8 +223,8 @@ abstract class Check {
 			switch ($type) {
 				case Settings::SETBACK_SMOOTH:
 					$delta = ($data->packetDeltas[0] ?? new Vector3(0, -0.08 * 0.98, 0));
-					$packet = CorrectPlayerMovePredictionPacket::create(($data->onGround ? $data->lastLocation : $data->lastOnGroundLocation)->add(0, 1.62), $delta, $data->onGround, array_keys($data->packetDeltas)[0] ?? 0);
-					$data->player->dataPacket($packet);
+					$packet = CorrectPlayerMovePredictionPacket::create(($data->onGround ? $data->lastLocation : $data->lastOnGroundLocation)->add(0, 1.62, 0), $delta, $data->onGround, array_keys($data->packetDeltas)[0] ?? 0);
+					$data->player->getNetworkSession()->sendDataPacket($packet);
 					break;
 				case Settings::SETBACK_INSTANT:
 					$position = $data->onGround ? $data->lastLocation : $data->lastOnGroundLocation;

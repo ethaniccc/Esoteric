@@ -2,6 +2,8 @@
 
 namespace ethaniccc\Esoteric\utils;
 
+use DivisionByZeroError;
+use ErrorException;
 use pocketmine\math\Vector3;
 use function abs;
 use function array_splice;
@@ -47,8 +49,49 @@ final class MathUtils {
 		return new Vector3($var3 * $var4, $var5, $var2 * $var4);
 	}
 
+	public static function getKurtosis(float ...$data): float {
+		try {
+			$sum = array_sum($data);
+			$count = count($data);
+
+			if ($sum === 0.0 or $count <= 2) {
+				return 0.0;
+			}
+
+			$efficiencyFirst = $count * ($count + 1) / (($count - 1) * ($count - 2) * ($count - 3));
+			$efficiencySecond = 3 * pow($count - 1, 2) / (($count - 2) * ($count - 3));
+			$average = self::getAverage(...$data);
+
+			$variance = 0.0;
+			$varianceSquared = 0.0;
+
+			foreach ($data as $number) {
+				$variance += pow($average - $number, 2);
+				$varianceSquared += pow($average - $number, 4);
+			}
+
+			return $efficiencyFirst * ($varianceSquared / pow($variance / $sum, 2)) - $efficiencySecond;
+		} catch (ErrorException|DivisionByZeroError) {
+			return 0.0;
+		}
+	}
+
 	public static function getAverage(float ...$nums): float {
 		return array_sum($nums) / count($nums);
+	}
+
+	public static function getSkewness(float ...$data): float {
+		$sum = array_sum($data);
+		$count = count($data);
+
+		$numbers = $data;
+		sort($numbers);
+
+		$mean = $sum / $count;
+		$median = ($count % 2 !== 0) ? $numbers[$count * 0.5] : ($numbers[($count - 1) * 0.5] + $numbers[$count * 0.5]) * 0.5;
+		$variance = self::getVariance(...$data);
+
+		return $variance > 0 ? 3 * ($mean - $median) / $variance : 0;
 	}
 
 	public static function getVariance(float ...$data): float {

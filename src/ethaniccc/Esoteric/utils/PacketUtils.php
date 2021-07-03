@@ -2,6 +2,9 @@
 
 namespace ethaniccc\Esoteric\utils;
 
+use ethaniccc\Esoteric\data\PlayerData;
+use ethaniccc\Esoteric\data\process\ACKHandler;
+use ethaniccc\Esoteric\Esoteric;
 use JsonMapper;
 use JsonMapper_Exception;
 use pocketmine\network\mcpe\JwtException;
@@ -10,6 +13,9 @@ use pocketmine\network\mcpe\protocol\types\login\AuthenticationData;
 use pocketmine\network\mcpe\protocol\types\login\ClientData;
 use pocketmine\network\mcpe\protocol\types\login\JwtChain;
 use pocketmine\network\PacketHandlingException;
+use raklib\protocol\EncapsulatedPacket;
+use raklib\protocol\PacketReliability;
+use raklib\RakLib;
 
 class PacketUtils {
 
@@ -66,21 +72,6 @@ class PacketUtils {
 			throw new PacketHandlingException("'extraData' not found in chain data");
 		}
 		return $extraData;
-	}
-
-	public static function getAllInBatch(BatchPacket $packet): array {
-		$stream = new NetworkBinaryStream($packet->payload);
-		$arr = [];
-		while (!$stream->feof()) {
-			$arr[] = $stream->getString();
-		}
-		return $arr;
-	}
-
-	public static function getFirst(BatchPacket $packet): Pair {
-		$stream = new NetworkBinaryStream($packet->payload);
-		$buff = $stream->feof() ? "" : $stream->getString();
-		return new Pair($buff, $stream->feof());
 	}
 
 	/**

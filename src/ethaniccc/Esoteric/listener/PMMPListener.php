@@ -3,6 +3,7 @@
 namespace ethaniccc\Esoteric\listener;
 
 use ethaniccc\Esoteric\Esoteric;
+use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
@@ -15,6 +16,7 @@ use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementType;
+use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\TextFormat;
@@ -104,13 +106,22 @@ class PMMPListener implements Listener {
 	public function send(DataPacketSendEvent $event): void {
 		foreach ($event->getTargets() as $target) {
 			$playerData = Esoteric::getInstance()->dataManager->get($target);
-			if ($playerData === null)
-				continue;
+			if (is_null($playerData)) continue;
 			foreach ($event->getPackets() as $packet) {
 				if ($packet instanceof StartGamePacket) {
 					$packet->playerMovementSettings = new PlayerMovementSettings(PlayerMovementType::SERVER_AUTHORITATIVE_V2_REWIND, 20, false);
 				}
 				$playerData->outboundProcessor->execute($packet, $playerData);
+			}
+		}
+	}
+
+	public function teleport(EntityTeleportEvent $event) : void {
+		if($event->getFrom()->getWorld()->getFolderName() !== $event->getTo()->getWorld()->getFolderName()){
+			$entity = $event->getEntity();
+			if ($entity instanceof Player) {
+				$data = Esoteric::getInstance()->dataManager->get($entity->getNetworkSession());
+				if ($data !== null) $data->inLoadedChunk = false;
 			}
 		}
 	}

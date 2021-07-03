@@ -5,7 +5,7 @@ namespace ethaniccc\Esoteric;
 use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
-use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket\PlayerAuthInputPacket;
+use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\listener\PMMPListener;
 use ethaniccc\Esoteric\network\CustomNetworkInterface;
 use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
@@ -45,7 +45,7 @@ final class Esoteric extends PluginBase {
 	public array $logCache = [];
 
 	public array $exemptList = [];
-	public Banwave $banwave;
+	public ?Banwave $banwave = null;
 	public CustomNetworkInterface $networkInterface;
 	public LoggerThread $loggerThread;
 
@@ -91,10 +91,10 @@ final class Esoteric extends PluginBase {
 					$this->banwave = $banwave;
 				}));
 			} else {
-				$filtered = array_filter(scandir($this->getDataFolder() . "banwaves"), static function (string $file): bool {
-					return strtolower(($array = explode(".", $file))[count($array) - 1]) === "json";
+				$filtered = array_filter(scandir($this->getDataFolder() . 'banwaves'), static function (string $file): bool {
+					return strtolower(($array = explode(".", $file))[count($array) - 1]) === 'json';
 				});
-				Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask($this->getDataFolder() . "banwaves/" . $filtered[max(array_keys($filtered))], function (Banwave $banwave): void {
+				Server::getInstance()->getAsyncPool()->submitTask(new CreateBanwaveTask($this->getDataFolder() . 'banwaves/' . $filtered[max(array_keys($filtered))], function (Banwave $banwave): void {
 					$this->banwave = $banwave;
 				}));
 			}
@@ -104,9 +104,7 @@ final class Esoteric extends PluginBase {
 	public function onDisable() : void {
 		if ($this->getBanwave() !== null) $this->getBanwave()->update();
 		file_put_contents($this->getDataFolder() . 'exempt.txt', implode(PHP_EOL, $this->exemptList));
-		if (!Server::getInstance()->isRunning() && WebhookThread::valid()) {
-			WebhookThread::getInstance()->stop();
-		}
+		if (WebhookThread::valid()) WebhookThread::getInstance()->stop();
 	}
 
 	public static function getInstance(): self {

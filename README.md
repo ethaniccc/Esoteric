@@ -27,6 +27,9 @@ The versions this anti-cheat currently supports are 1.16.220.
 
 These are a list of the current detections Esoteric PvP-Optimized has, along with descriptions of those checks.
 
+- **AutoClicker**
+  - A: Checks if the player's CPS exceeds a certain threshold.
+  - B: Checks if the player has duplicated click statistics.
 - **Aim**
   - A: Checks if the player's headYaw does not correlate with the player's yaw.
   - B: Checks if the player's yaw movement is rounded.

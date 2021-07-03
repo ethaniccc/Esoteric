@@ -9,7 +9,7 @@ use ethaniccc\Esoteric\tasks\KickTask;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\command\ConsoleCommandSender;
+use pocketmine\console\ConsoleCommandSender;
 use pocketmine\player\Player;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
@@ -83,7 +83,7 @@ class EsotericCommand extends Command {
 				if ($sender instanceof Player) {
 					if ($sender->hasPermission("ac.command.delay")) {
 						$delay = (int) ($args[1] ?? Esoteric::getInstance()->getSettings()->getAlertCooldown());
-						$playerData = Esoteric::getInstance()->dataManager->get($sender);
+						$playerData = Esoteric::getInstance()->dataManager->get($sender->getNetworkSession());
 						$playerData->alertCooldown = $delay;
 						$sender->sendMessage(TextFormat::GREEN . "Your alert cooldown was set to $delay seconds");
 					} else {
@@ -94,7 +94,7 @@ class EsotericCommand extends Command {
 			case "alerts":
 				if ($sender instanceof Player) {
 					if ($sender->hasPermission("ac.alerts")) {
-						$playerData = Esoteric::getInstance()->dataManager->get($sender);
+						$playerData = Esoteric::getInstance()->dataManager->get($sender->getNetworkSession());
 						if (isset($args[1])) {
 							$alerts = match ($args[1]) {
 								"on", "true", "enable" => true,
@@ -183,10 +183,10 @@ class EsotericCommand extends Command {
 			case "timings":
 				if ($sender->hasPermission("ac.command.timings")) {
 					$time = (int) ($args[1] ?? 60);
-					Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings on");
+					Server::getInstance()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), "timings on");
 					Esoteric::getInstance()->getScheduler()->scheduleDelayedTask(new ClosureTask(static function (): void {
-						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings paste");
-						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), "timings off");
+						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), "timings paste");
+						Server::getInstance()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), "timings off");
 					}), $time * 20);
 				} else {
 					$sender->sendMessage($this->getPermissionMessage());
@@ -209,7 +209,7 @@ class EsotericCommand extends Command {
 								$sender->sendMessage(TextFormat::RED . "You need to specify a player to get the exempt status of");
 								return;
 							}
-							if (($player = Server::getInstance()->getPlayer($selected)) !== null) {
+							if (($player = Server::getInstance()->getPlayerByPrefix($selected)) !== null) {
 								$selected = $player->getName();
 							}
 							$sender->sendMessage(in_array($selected, Esoteric::getInstance()->exemptList) ? TextFormat::GREEN . "$selected is exempt from Esoteric" : TextFormat::RED . "$selected is not exempt from Esoteric");
@@ -220,7 +220,7 @@ class EsotericCommand extends Command {
 								$sender->sendMessage(TextFormat::RED . "You need to specify a player to exempt");
 								return;
 							}
-							if (($player = Server::getInstance()->getPlayer($selected)) !== null) {
+							if (($player = Server::getInstance()->getPlayerByPrefix($selected)) !== null) {
 								$selected = $player->getName();
 							}
 							Esoteric::getInstance()->exemptList[] = $selected;
@@ -232,7 +232,7 @@ class EsotericCommand extends Command {
 								$sender->sendMessage(TextFormat::RED . "You need to specify a player to un-exempt");
 								return;
 							}
-							if (($player = Server::getInstance()->getPlayer($selected)) !== null) {
+							if (($player = Server::getInstance()->getPlayerByPrefix($selected)) !== null) {
 								$selected = $player->getName();
 								$rand = mt_rand(1, 50);
 								Esoteric::getInstance()->getScheduler()->scheduleTask(new KickTask($player, "Error processing packet (0x$rand) - rejoin the server"));

@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\data;
 
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use pocketmine\network\mcpe\NetworkSession;
+use function is_null;
 use function spl_object_hash;
 use function stripos;
 use function strlen;
@@ -23,17 +24,14 @@ class PlayerDataManager {
 		$name = strtolower($username);
 		$delta = PHP_INT_MAX;
 		foreach ($this->data as $data) {
-			if ($data->player === null)
-				continue;
+			if (is_null($data->player)) continue;
 			if (stripos($data->player->getName(), $name) === 0) {
 				$curDelta = strlen($data->player->getName()) - strlen($name);
 				if ($curDelta < $delta) {
 					$found = $data;
 					$delta = $curDelta;
 				}
-				if ($curDelta === 0) {
-					break;
-				}
+				if ($curDelta === 0) break;
 			}
 		}
 		return $found;

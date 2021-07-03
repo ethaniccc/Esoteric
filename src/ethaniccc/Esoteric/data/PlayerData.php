@@ -5,12 +5,15 @@ namespace ethaniccc\Esoteric\data;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\check\combat\aim\AimA;
 use ethaniccc\Esoteric\check\combat\aim\AimB;
+use ethaniccc\Esoteric\check\combat\aim\AutoClickerA;
+use ethaniccc\Esoteric\check\combat\aim\AutoClickerB;
 use ethaniccc\Esoteric\check\combat\killaura\KillAuraA;
 use ethaniccc\Esoteric\check\combat\killaura\KillAuraB;
 use ethaniccc\Esoteric\check\combat\range\RangeA;
 use ethaniccc\Esoteric\check\misc\editionfaker\EditionFakerA;
 use ethaniccc\Esoteric\check\misc\timer\TimerA;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
+use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
@@ -24,6 +27,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
+use pocketmine\player\GameMode;
 use pocketmine\player\Player;
 use function array_filter;
 use function count;
@@ -35,7 +39,7 @@ final class PlayerData {
 	/** @var ?Vector3 - A zero vector, duh. */
 	public static ?Vector3 $ZERO_VECTOR = null;
 
-	public Player $player;
+	public ?Player $player = null;
 	/** @var string - The spl_object_hash identifier of the player. */
 	public string $hash;
 	/** @var string - Identifier used in network interface */
@@ -59,6 +63,7 @@ final class PlayerData {
 	/** @var ProcessTick - A class to execute every tick. Mainly will be used for NetworkStackLatency timeouts, and */
 	public ProcessTick $tickProcessor;
 	public LocationMap $entityLocationMap;
+	public NetworkStackLatencyHandler $networkStackLatencyHandler;
 	public bool $isMobile = false;
 	public int $latency = 0;
 	/** @var int - ID of the current target entity */
@@ -138,9 +143,14 @@ final class PlayerData {
 	public bool $isAlive = true;
 	/** @var int - Device OS of the player */
 	public int $playerOS = DeviceOS::UNKNOWN;
-	/** @var int - Current gamemode of the player. */
-	public int $gamemode = 0;
+	public GameMode $gamemode;
 	public float $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
+	/** @var int[] */
+	public array $clickSamples = [];
+	public bool $runClickChecks = false;
+	public float $cps = 0.0, $kurtosis = 0.0, $skewness = 0.0, $deviation = 0.0, $outliers = 0.0, $variance = 0.0;
+	/** @var int - Last tick the client clicked. */
+	public int $lastClickTick = 0;
 	public bool $isDataClosed = false;
 	public bool $isFullKeyboardGameplay = true;
 	/** @var int[] */
@@ -148,8 +158,10 @@ final class PlayerData {
 
 	public function __construct(NetworkSession $session) {
 		self::$ZERO_VECTOR = new Vector3(0, 0, 0);
+		$this->gamemode = GameMode::SURVIVAL();
 		$this->hash = spl_object_hash($session);
 		$this->networkIdentifier = "{$session->getPort()} {$session->getIp()}";
+		$this->networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
 		$zeroVec = clone self::$ZERO_VECTOR;
 
 		// AIDS START
@@ -166,12 +178,13 @@ final class PlayerData {
 		$this->lastAlertTime = microtime(true);
 
 		$this->checks = [
-			new AimA(), new AimB(), # Aim checks
-			new KillAuraA(), new KillAuraB(), # Killaura checks
-			new RangeA(), # Range checks
-			new VelocityA(), # Velocity checks
-			new EditionFakerA(), # EditionFaker checks
-			new TimerA(), # Timer checks
+			new AutoClickerA, new AutoClickerB, # AutoClicker checks
+			new AimA, new AimB, # Aim Checks
+			new KillAuraA, new KillAuraB, # Killaura checks
+			new RangeA, # Range checks
+			new VelocityA, # Velocity checks
+			new EditionFakerA, # EditionFaker checks
+			new TimerA, # Timer checks
 		];
 	}
 
