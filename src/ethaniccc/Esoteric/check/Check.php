@@ -13,8 +13,9 @@ use ethaniccc\Esoteric\webhook\Embed;
 use ethaniccc\Esoteric\webhook\Message;
 use ethaniccc\Esoteric\webhook\Webhook;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\timings\TimingsHandler;
 use function array_keys;
 use function count;
@@ -76,9 +77,9 @@ abstract class Check {
 		return self::$timings["$this->name:$this->subType"];
 	}
 
-	public abstract function inbound(DataPacket $packet, PlayerData $data): void;
+	public abstract function inbound(ServerboundPacket $packet, PlayerData $data): void;
 
-	public function outbound(DataPacket $packet, PlayerData $data): void {
+	public function outbound(ClientboundPacket $packet, PlayerData $data): void {
 	}
 
 	public function handleOut(): bool {

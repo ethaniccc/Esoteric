@@ -6,9 +6,9 @@ use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\Ray;
-use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\network\mcpe\protocol\types\InputMode;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\player\GameMode;
@@ -25,7 +25,7 @@ class RangeA extends Check {
 		parent::__construct("Range", "A", "Checking if the player's attack range exceeds a certain limit", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof InventoryTransactionPacket && $packet->trData->getTypeId() === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY && $packet->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK && ($data->gamemode->equals(GameMode::SURVIVAL()) || $data->gamemode->equals(GameMode::ADVENTURE()))) {
 			$this->waiting = true;
 		} elseif ($packet instanceof PlayerAuthInputPacket && $this->waiting) {

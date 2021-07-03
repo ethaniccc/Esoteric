@@ -29,7 +29,6 @@ use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
@@ -37,6 +36,7 @@ use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
 use pocketmine\network\mcpe\protocol\PacketViolationWarningPacket;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\network\mcpe\protocol\SetLocalPlayerAsInitializedPacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
@@ -80,7 +80,7 @@ final class ProcessInbound {
 		$this->lastClientPrediction = new Vector3(0, -0.08 * 0.98, 0);
 	}
 
-	public function execute(DataPacket $packet, PlayerData $data): void {
+	public function execute(ServerboundPacket $packet, PlayerData $data): void {
 		self::$timings->startTiming();
 		if ($packet instanceof PlayerAuthInputPacket && $data->loggedIn) {
 			$data->packetDeltas[$packet->getTick()] = $packet->getDelta();

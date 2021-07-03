@@ -5,7 +5,7 @@ namespace ethaniccc\Esoteric\check\misc\timer;
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use function is_null;
 use function microtime;
 use function round;
@@ -19,7 +19,7 @@ class TimerA extends Check {
 		parent::__construct("Timer", "A", "Uses a 'balance' to determine if a player is using timer", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket) {
 			if (!$data->isAlive) {
 				$this->lastTime = null;

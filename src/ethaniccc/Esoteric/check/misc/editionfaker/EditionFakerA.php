@@ -6,8 +6,8 @@ use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\PacketUtils;
-use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
+use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\utils\TextFormat;
 use function is_null;
@@ -18,7 +18,7 @@ class EditionFakerA extends Check {
 		parent::__construct("EditionFaker", "A", "Checks if the player is spoofing their device information", false);
 	}
 
-	public function inbound(DataPacket $packet, PlayerData $data): void {
+	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof LoginPacket) {
 			$authData = PacketUtils::fetchAuthData($packet->chainDataJwt);
 			$titleID = $authData->titleId;

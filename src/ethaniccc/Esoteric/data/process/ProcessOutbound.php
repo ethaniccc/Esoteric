@@ -11,8 +11,8 @@ use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\AddActorPacket;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
+use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
-use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkChunkPublisherUpdatePacket;
@@ -39,7 +39,7 @@ class ProcessOutbound {
 		$this->worldManager = Server::getInstance()->getWorldManager();
 	}
 
-	public function execute(DataPacket $packet, PlayerData $data): void {
+	public function execute(ClientboundPacket $packet, PlayerData $data): void {
 		self::$baseTimings->startTiming();
 		switch($packet::class){
 			case MovePlayerPacket::class:
