@@ -5,7 +5,7 @@ export class DataStorage {
 
     public static INSTANCE: DataStorage;
 
-    public dataList: WeakMap<NetworkIdentifier, PlayerData> = new WeakMap();
+    public dataList: Map<NetworkIdentifier, PlayerData> = new Map();
 
     public static init() {
         this.INSTANCE = new DataStorage();
@@ -23,6 +23,10 @@ export class DataStorage {
 
     public get(identifier: NetworkIdentifier): PlayerData|null {
         return this.dataList.get(identifier) ?? null;
+    }
+
+    public getAll(): Map<NetworkIdentifier, PlayerData> {
+        return this.dataList;
     }
 
 }

@@ -1,7 +1,9 @@
 import { Packet } from "bdsx/bds/packet";
-import { MinecraftPacketIds } from "bdsx/bds/packetids";
-import { NativePointer } from "bdsx/core";
+import { ChangeDimensionPacket } from "bdsx/bds/packets";
 import { PlayerData } from "../data/PlayerData";
+import { LevelUtils } from "../utils/level/LevelUtils";
+import { Vector3 } from "../utils/math/Vector3";
+import { LevelChunkWrapper, SetActorMotionWrapper } from "../wrappers/Wrappers";
 
 export class OutboundExecutor {
 
@@ -9,25 +11,25 @@ export class OutboundExecutor {
         public data: PlayerData
     ) {}
 
-    public async execute(ptr: Packet) {
-    }
-
-    public async executeRaw(buffer: NativePointer) {
-        var pid = buffer.readVarUint() & 0x3ff;
-        if (pid === MinecraftPacketIds.LevelChunk) {
-            var chunkX = buffer.readVarInt();
-            var chunkZ = buffer.readVarInt();
-            var subChunkCount = buffer.readVarUint();
-            var cacheEnabled = buffer.readBoolean();
-            if (cacheEnabled) {
-                var count = buffer.readVarInt();
-                var hashes = [];
-                for (var i = 0; i < count; i++) {
-                    hashes.push(buffer.readUint64AsFloat());
-                }
+    public execute(ptr: Packet) {
+        if (ptr instanceof SetActorMotionWrapper) {
+            if (ptr.entityRuntimeId === this.data.entityRuntimeId) {
+                this.data.networkStackLatencyHandler.sandwich(this.data.lastSentPacket, () => {
+                    this.data.currentMotion = new Vector3(
+                        ptr.motion.x,
+                        ptr.motion.y,
+                        ptr.motion.z
+                    );
+                    this.data.ticksSinceMotion = 0;
+                });
             }
-            //var extraPayload = buffer.readString().toString();
-            //log("Chunk is being sent (x=" + chunkX + " z=" + chunkZ + " subChunks=" + subChunkCount + " cache=" + cacheEnabled + ")");
+        } else if (ptr instanceof LevelChunkWrapper) {
+            this.data.networkStackLatencyHandler.sandwich(this.data.lastSentPacket, () => {
+                var hash = LevelUtils.chunkHash(ptr.chunkX, ptr.chunkZ);
+                this.data.knownChunks[hash] = hash;
+            });
+        } else if (ptr instanceof ChangeDimensionPacket) {
+            this.data.knownChunks = [];
         }
     }
 
