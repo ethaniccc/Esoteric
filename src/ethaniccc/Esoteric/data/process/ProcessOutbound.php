@@ -39,7 +39,7 @@ class ProcessOutbound {
 		$this->worldManager = Server::getInstance()->getWorldManager();
 	}
 
-	public function execute(ClientboundPacket $packet, PlayerData $data): void {
+	public function execute(ClientboundPacket $packet, PlayerData $data): void { // todo make sure player is not null
 		self::$baseTimings->startTiming();
 		switch($packet::class){
 			case MovePlayerPacket::class:

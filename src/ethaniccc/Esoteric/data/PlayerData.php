@@ -22,6 +22,7 @@ use ethaniccc\Esoteric\data\sub\location\LocationMap;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
+use ethaniccc\Esoteric\utils\MathUtils;
 use pocketmine\block\Block;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
@@ -35,9 +36,6 @@ use function microtime;
 use function spl_object_hash;
 
 final class PlayerData {
-
-	/** @var ?Vector3 - A zero vector, duh. */
-	public static ?Vector3 $ZERO_VECTOR = null;
 
 	public ?Player $player = null;
 	/** @var string - The spl_object_hash identifier of the player. */
@@ -157,12 +155,11 @@ final class PlayerData {
 	private array $ticks = [];
 
 	public function __construct(NetworkSession $session) {
-		self::$ZERO_VECTOR = new Vector3(0, 0, 0);
 		$this->gamemode = GameMode::SURVIVAL();
 		$this->hash = spl_object_hash($session);
 		$this->networkIdentifier = "{$session->getPort()} {$session->getIp()}";
 		$this->networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
-		$zeroVec = clone self::$ZERO_VECTOR;
+		$zeroVec = clone MathUtils::$ZERO_VECTOR;
 
 		// AIDS START
 		$this->currentLocation = $this->lastLocation = $this->currentMoveDelta = $this->lastMoveDelta = $this->lastOnGroundLocation = $this->directionVector = $this->motion = $zeroVec;

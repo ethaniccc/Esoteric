@@ -11,22 +11,14 @@ use function array_sum;
 use function ceil;
 use function cos;
 use function count;
-use function floor;
-use function fmod;
-use function max;
-use function min;
-use function pack;
 use function pow;
 use function sin;
 use function sort;
 use function sqrt;
-use function unpack;
 
 final class MathUtils {
 
-	public static function hypot(float $p1, float $p2): float {
-		return sqrt($p1 * $p1 + $p2 * $p2);
-	}
+	public static Vector3 $ZERO_VECTOR;
 
 	public static function getDeviation(float ...$nums): float {
 		$count = count($nums);
@@ -143,41 +135,6 @@ final class MathUtils {
 		return ($count % 2 === 0) ? ($data[$count * 0.5] + $data[$count * 0.5 - 1]) * 0.5 : $data[$count * 0.5];
 	}
 
-	public static function gcdLong(float $a, float $b): float {
-		return ($b <= 16384) ? $a : self::gcdLong($b, fmod($a, $b));
-	}
-
-	public static function getArrayGCD(float ...$nums): float {
-		$count = count($nums);
-		if ($count <= 1) {
-			return 0.0;
-		}
-		$result = $nums[0];
-		for ($i = 1; $i < $count; $i++) {
-			$result = self::getGCD($nums[$i], $result);
-		}
-		return $result;
-	}
-
-	public static function getGCD(float $a, float $b): float {
-		if ($a < $b) {
-			return self::getGCD($b, $a);
-		} elseif (abs($b) < 0.0001) {
-			return $a;
-		} else {
-			return self::getGCD($b, $a - floor($a / $b) * $b);
-		}
-	}
-
-	public static function wrap180(float $par0): float {
-		$par0 = fmod($par0, 360);
-		return $par0 + ($par0 >= 180.0 ? -360.0 : 360.0);
-	}
-
-	public static function getLiteralFloat(float $float): float {
-		return unpack("G", pack("G", $float))[1];
-	}
-
 	/**
 	 * @param Vector3 $eyePos - Eye pos of the entity
 	 * @param Vector3 $pos - Target position to check possible interaction
@@ -194,10 +151,6 @@ final class MathUtils {
 		$eyeDot = $dV->dot($eyePos);
 		$targetDot = $dV->dot($pos);
 		return ($targetDot - $eyeDot) >= -$maxDiff;
-	}
-
-	public static function clamp(float $val, float $min, float $max): float {
-		return max($min, min($max, $val));
 	}
 
 }

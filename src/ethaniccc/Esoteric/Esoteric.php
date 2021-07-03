@@ -12,7 +12,11 @@ use ethaniccc\Esoteric\tasks\CreateBanwaveTask;
 use ethaniccc\Esoteric\tasks\TickingTask;
 use ethaniccc\Esoteric\thread\LoggerThread;
 use ethaniccc\Esoteric\utils\banwave\Banwave;
+use ethaniccc\Esoteric\utils\LevelUtils;
+use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\webhook\WebhookThread;
+use pocketmine\block\BlockBreakInfo;
+use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\plugin\PluginBase;
@@ -51,6 +55,8 @@ final class Esoteric extends PluginBase {
 
 	public function onEnable() : void {
 		self::$instance = $this;
+		MathUtils::$ZERO_VECTOR = new Vector3(0, 0, 0);
+		LevelUtils::$ZERO_BREAK_INFO = new BlockBreakInfo(0);
 		$this->settings = new Settings($this->getConfig()->getAll());
 		$this->dataManager = new PlayerDataManager();
 

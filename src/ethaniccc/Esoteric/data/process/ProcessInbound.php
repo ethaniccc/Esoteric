@@ -419,7 +419,7 @@ final class ProcessInbound {
 			if ($data->ticksSinceTeleport <= 1) {
 				$data->teleported = true;
 				if ($data->ticksSinceTeleport === 0) {
-					$data->currentMoveDelta = clone PlayerData::$ZERO_VECTOR;
+					$data->currentMoveDelta = clone MathUtils::$ZERO_VECTOR;
 				}
 			} else {
 				$data->teleported = false;
@@ -462,11 +462,11 @@ final class ProcessInbound {
 						$state = RuntimeBlockMapping::getInstance()->fromRuntimeId($stack->getBlockRuntimeId());
 						$block = BlockFactory::getInstance()->get($state >> 4, $state & 0xf);
 						if ($stack->getId() < 0) {
-							$block = new UnknownBlock(new BlockIdentifier($stack->getId(), $stack->getMeta()), LevelUtils::zeroBreakInfo());
+							$block = new UnknownBlock(new BlockIdentifier($stack->getId(), $stack->getMeta()), LevelUtils::$ZERO_BREAK_INFO);
 						}
 						if ($blockToReplace->canBeReplaced() && ($block instanceof UnknownBlock || $block->canBePlaced()) && $data->canPlaceBlocks && $data->boundingBox !== null && !$block->collidesWithBB($data->boundingBox)) {
 							if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
-								$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), LevelUtils::zeroBreakInfo());
+								$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), LevelUtils::$ZERO_BREAK_INFO);
 								$p = $blockToReplace->getPos();
 								$block->position($p->getWorld(), $p->x, $p->y, $p->z);
 								if ($block->collidesWithBB($data->boundingBox)) {
