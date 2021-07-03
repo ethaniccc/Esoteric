@@ -1,6 +1,6 @@
 <?php
 
-namespace ethaniccc\Esoteric\check\combat\aim;
+namespace ethaniccc\Esoteric\check\combat\autoclicker;
 
 use ethaniccc\Esoteric\check\Check;
 use ethaniccc\Esoteric\data\PlayerData;
