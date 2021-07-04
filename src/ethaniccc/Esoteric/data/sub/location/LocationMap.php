@@ -38,13 +38,14 @@ final class LocationMap {
 				$data->newPosRotationIncrements = 1;
 			}
 		}
-		$entity = Server::getInstance()->getWorldManager()->findEntity($packet->entityRuntimeId);
+		$entity = $this->worldManager->findEntity($packet->entityRuntimeId);
 		if ($entity !== null) {
-			$location = $packet->position->subtract(0, ($packet instanceof MovePlayerPacket ? 1.62 : 0), 0);
-			if (!isset($this->locations[$entity->getId()])) {
-				$this->locations[$entity->getId()] = new LocationData($entity->getId(), $entity instanceof Human, Location::fromObject($location, $entity->getWorld()), $entity->getOffsetPosition($entity->getPosition())->y - $entity->getPosition()->y);
+			$location = $packet->position->subtract(0, $entity->getOffsetPosition($entity->getPosition())->y - $entity->getPosition()->y, 0);
+			if (isset($this->locations[$entity->getId()])) {
+				$this->needSendArray[$packet->entityRuntimeId] = $location;
+			} else {
+				$this->locations[$entity->getId()] = new LocationData($entity->getId(), $entity instanceof Human, Location::fromObject($location, $entity->getWorld()));
 			}
-			$this->needSendArray[$packet->entityRuntimeId] = $location;
 		}
 	}
 

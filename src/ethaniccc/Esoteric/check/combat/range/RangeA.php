@@ -49,13 +49,13 @@ class RangeA extends Check {
 					$ray = new Ray($data->attackPos, $data->directionVector);
 					$intersection = $AABB->calculateIntercept($ray->origin, $ray->traverse(7));
 					$attackingAABB = AABB::fromPosition($data->attackPos->subtract(0, 1.62, 0));
-					if ($intersection !== null && !$AABB->intersectsWith($attackingAABB)) { // todo RayCast only flags when attacking near the head?
+					if ($intersection !== null && !$AABB->intersectsWith($attackingAABB)){
 						$raycastDist = $intersection->getHitVector()->distance($data->attackPos);
-						//$data->player->sendMessage("§bIntersection is not null and doesnt intersect (raw=$rawDistance|ray=$raycastDist)");
-						if ($raycastDist > $this->option("max_dist", 3.01) && $rawDistance >= 2.8) {
+						// $data->player->getServer()->broadcastMessage("§c{$data->player->getName()}: §aRayCast (raw=$rawDistance|ray=$raycastDist)");
+						if ($raycastDist > $this->option('max_dist', 3.01) && $rawDistance >= 2.8) {
 							$flagged = true;
 							if (++$this->secondaryBuffer >= 1.5) {
-								$this->flag($data, ["dist" => round($raycastDist, 3), "rd" => round($rawDistance, 3), "type" => "raycast"]);
+								$this->flag($data, ['dist' => round($raycastDist, 3), 'rd' => round($rawDistance, 3), 'type' => 'raycast']);
 								$this->secondaryBuffer = min($this->secondaryBuffer, 3);
 							}
 						} else {
