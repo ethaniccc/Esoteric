@@ -216,14 +216,23 @@ final class Esoteric {
 		}
 	}
 
+	/**
+	 * @return Banwave|null
+	 */
 	public function getBanwave(): ?Banwave {
 		return $this->banwave;
 	}
 
+	/**
+	 * @return Server
+	 */
 	public function getServer(): Server {
 		return Server::getInstance();
 	}
 
+	/**
+	 * @return Settings
+	 */
 	public function getSettings(): Settings {
 		return $this->settings;
 	}
