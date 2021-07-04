@@ -12,30 +12,18 @@ use function sqrt;
 
 class AABB extends AxisAlignedBB {
 
-	public $minX, $minY, $minZ;
-	public $maxX, $maxY, $maxZ;
 	public Vector3 $maxVector;
 	public Vector3 $minVector;
 
-	public function __construct(float $minX, $minY, float $minZ, float $maxX, float $maxY, float $maxZ) {
-		parent::__construct($minX, $minY, $minZ, $maxX, $maxY, $maxZ);
-		$this->minX = $minX;
-		$this->minY = $minY;
-		$this->minZ = $minZ;
-		$this->maxX = $maxX;
-		$this->maxY = $maxY;
-		$this->maxZ = $maxZ;
-		$this->minVector = new Vector3($this->minX, $this->minY, $this->minZ);
-		$this->maxVector = new Vector3($this->maxX, $this->maxY, $this->maxZ);
+	public function __construct(float $minX, float $minY, float $minZ, float $maxX, float $maxY, float $maxZ) {
+		parent::__construct($minX, $minY ?? 0.0, $minZ, $maxX, $maxY, $maxZ);
+		$this->minVector = new Vector3($minX, $minY, $minZ);
+		$this->maxVector = new Vector3($maxX, $maxY, $maxZ);
 	}
 
 	public static function from(PlayerData $data): self {
 		$pos = $data->currentLocation;
 		return new AABB($pos->x - $data->hitboxWidth, $pos->y, $pos->z - $data->hitboxWidth, $pos->x + $data->hitboxWidth, $pos->y + $data->hitboxHeight, $pos->z + $data->hitboxWidth);
-	}
-
-	public static function fromAxisAlignedBB(AxisAlignedBB $alignedBB): AABB {
-		return new AABB($alignedBB->minX - 0.1, $alignedBB->minY, $alignedBB->minZ - 0.1, $alignedBB->maxX + 0.1, $alignedBB->maxY, $alignedBB->maxZ + 0.1);
 	}
 
 	public static function fromPosition(Vector3 $pos, float $width = 0.3, float $height = 1.8): AABB {
@@ -54,32 +42,6 @@ class AABB extends AxisAlignedBB {
 
 	public function clone(): AABB {
 		return clone $this;
-	}
-
-	public function translate(float $x, float $y, float $z): AABB {
-		return new AABB($this->minX + $x, $this->minY + $y, $this->minZ + $z, $this->maxX + $x, $this->maxY, $this->maxZ);
-	}
-
-	public function grow(float $x, float $y, float $z): AABB {
-		return new AABB($this->minX - $x, $this->minY - $y, $this->minZ - $z, $this->maxX + $x, $this->maxY, $this->maxZ);
-	}
-
-	public function contains(Vector3 $pos): bool {
-		return $pos->getX() <= $this->maxX && $pos->getY() <= $this->maxY && $pos->getZ() <= $this->maxZ && $pos->getX() >= $this->minX && $pos->getY() >= $this->minY && $pos->getZ() >= $this->minZ;
-	}
-
-	public function min(int $i): float {
-		return [$this->minX, $this->minY, $this->minZ][$i] ?? 0;
-	}
-
-	public function max(int $i): float {
-		return [$this->maxX, $this->maxY, $this->maxZ][$i] ?? 0;
-	}
-
-	public function getCornerVectors(): array {
-		return [                                                                                                                                                                                                            // top vectors
-			new Vector3($this->maxX, $this->maxY, $this->maxZ), new Vector3($this->minX, $this->maxY, $this->maxZ), new Vector3($this->minX, $this->maxY, $this->minZ), new Vector3($this->maxX, $this->maxY, $this->minZ), // bottom vectors
-			new Vector3($this->maxX, $this->minY, $this->maxZ), new Vector3($this->minX, $this->minY, $this->maxZ), new Vector3($this->minX, $this->minY, $this->minZ), new Vector3($this->maxX, $this->minY, $this->minZ)];
 	}
 
 	public function distanceFromVector(Vector3 $vector): float {
