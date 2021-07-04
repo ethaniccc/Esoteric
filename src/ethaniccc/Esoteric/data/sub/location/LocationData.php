@@ -2,7 +2,6 @@
 
 namespace ethaniccc\Esoteric\data\sub\location;
 
-use ethaniccc\Esoteric\utils\EvictingList;
 use pocketmine\math\Vector3;
 
 final class LocationData {
@@ -16,12 +15,20 @@ final class LocationData {
 	public int $newPosRotationIncrements = 0;
 	public int $isSynced = 0;
 
-	public EvictingList $history;
-
 	public float $locationOffset = 0.0;
 	public float $hitboxWidth = 0.3;
 	public float $hitboxHeight = 1.8;
 
 	public bool $isHuman = false;
+
+	public function __construct(int $entityRuntimeId, bool $isHuman, Vector3 $location, float $yOffset) {
+		$this->entityRuntimeId = $entityRuntimeId;
+		$this->isHuman = $isHuman;
+		$this->currentLocation = $location;
+		$this->lastLocation = $location;
+		$this->receivedLocation = $location;
+		$this->locationOffset = $yOffset;
+	}
+
 
 }

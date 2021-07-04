@@ -12,7 +12,7 @@ use function round;
 
 class TimerA extends Check {
 
-	private $lastTime;
+	private ?float $lastTime = null;
 	private float $balance = 0;
 
 	public function __construct() {
@@ -39,7 +39,7 @@ class TimerA extends Check {
 			$this->balance += $timeDiff;
 			// if the balance is too low (the time difference is usually less than one tick)
 			if ($this->balance <= -5) {
-				$this->flag($data);
+				$this->flag($data, ['timediff' => $timeDiff, 'balance' => $this->balance]);
 				$this->balance = 0;
 			}
 			$this->lastTime = $currentTime;

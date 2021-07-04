@@ -8,12 +8,11 @@ use pocketmine\entity\Attribute;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
-use pocketmine\network\mcpe\protocol\AddActorPacket;
-use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\CorrectPlayerMovePredictionPacket;
 use pocketmine\network\mcpe\protocol\MobEffectPacket;
+use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkChunkPublisherUpdatePacket;
 use pocketmine\network\mcpe\protocol\RemoveActorPacket;
@@ -43,12 +42,19 @@ class ProcessOutbound {
 		self::$baseTimings->startTiming();
 		switch($packet::class){
 			case MovePlayerPacket::class:
+				if(is_null($data->player)) break;
 				/** @var MovePlayerPacket $packet */
 				if ($packet->entityRuntimeId === $data->player->getId() && ($packet->mode === MovePlayerPacket::MODE_TELEPORT || $packet->mode === MovePlayerPacket::MODE_RESET)) {
 					$data->networkStackLatencyHandler->queue($data, static function () use ($data): void {
 						$data->ticksSinceTeleport = 0;
 					});
+				} elseif ($packet->entityRuntimeId !== $data->player->getId()) {
+					$data->entityLocationMap->addEntity($packet);
 				}
+				break;
+			case MoveActorAbsolutePacket::class:
+				/** @var MoveActorAbsolutePacket $packet */
+				$data->entityLocationMap->addEntity($packet);
 				break;
 			case UpdateBlockPacket::class:
 				/** @var UpdateBlockPacket $packet */
@@ -64,7 +70,7 @@ class ProcessOutbound {
 				break;
 			case SetActorMotionPacket::class:
 				/** @var SetActorMotionPacket $packet */
-				if($packet->entityRuntimeId === $data->player->getId()){
+				if(!is_null($data->player) && $packet->entityRuntimeId === $data->player->getId()){
 					$data->networkStackLatencyHandler->queue($data, static function () use ($data, $packet) : void {
 						$data->motion = $packet->motion;
 						$data->ticksSinceMotion = 0;
@@ -73,7 +79,7 @@ class ProcessOutbound {
 				break;
 			case MobEffectPacket::class:
 				/** @var MobEffectPacket $packet */
-				if($packet->entityRuntimeId === $data->player->getId()){
+				if(!is_null($data->player) && $packet->entityRuntimeId === $data->player->getId()){
 					switch ($packet->eventId) {
 						case MobEffectPacket::EVENT_ADD:
 							$effectData = new EffectData();
@@ -106,6 +112,7 @@ class ProcessOutbound {
 				break;
 			case SetPlayerGameTypePacket::class:
 				/** @var SetPlayerGameTypePacket $packet */
+				if(is_null($data->player)) return;
 				$mode = $data->player->getGamemode();
 				$data->networkStackLatencyHandler->queue($data, static function () use ($data, $mode) : void {
 					$data->gamemode = $mode;
@@ -113,7 +120,7 @@ class ProcessOutbound {
 				break;
 			case SetActorDataPacket::class:
 				/** @var SetActorDataPacket $packet */
-				if($packet->entityRuntimeId === $data->player->getId()){
+				if(!is_null($data->player) && $packet->entityRuntimeId === $data->player->getId()){
 					if ($data->immobile !== ($currentImmobile = $data->player->isImmobile())) {
 						if ($data->loggedIn) {
 							$data->networkStackLatencyHandler->queue($data, static function () use ($data, $currentImmobile) : void {
@@ -144,7 +151,7 @@ class ProcessOutbound {
 					$data->inLoadedChunk = true;
 					$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
 				} else {
-					if ($data->chunkSendPosition->distance($data->currentLocation->floor()) > $data->player->getViewDistance() * 16) {
+					if (!is_null($data->player) && $data->chunkSendPosition->distance($data->currentLocation->floor()) > $data->player->getViewDistance() * 16) {
 						$data->inLoadedChunk = false;
 						$data->networkStackLatencyHandler->queue($data, static function () use ($packet, $data) : void {
 							$data->inLoadedChunk = true;
@@ -161,7 +168,7 @@ class ProcessOutbound {
 				break;
 			case ActorEventPacket::class:
 				/** @var ActorEventPacket $packet */
-				if($packet->entityRuntimeId === $data->player->getId()){
+				if(!is_null($data->player) && $packet->entityRuntimeId === $data->player->getId()){
 					switch ($packet->event) {
 						case ActorEventPacket::RESPAWN:
 							$data->networkStackLatencyHandler->queue($data, static function () use ($data) : void {
@@ -173,15 +180,15 @@ class ProcessOutbound {
 				break;
 			case UpdateAttributesPacket::class:
 				/** @var UpdateAttributesPacket $packet */
-				if($packet->entityRuntimeId === $data->player->getId()){
+				if(!is_null($data->player) && $packet->entityRuntimeId === $data->player->getId()){
 					foreach ($packet->entries as $attribute) {
 						if ($attribute->getId() === Attribute::HEALTH) {
 							if ($attribute->getCurrent() <= 0) {
-								$data->networkStackLatencyHandler->queue($data, static function (int $timestamp) use ($data): void {
+								$data->networkStackLatencyHandler->queue($data, static function () use ($data): void {
 									$data->isAlive = false;
 								});
 							} elseif ($attribute->getCurrent() > 0 && !$data->isAlive) {
-								$data->networkStackLatencyHandler->queue($data, static function (int $timestamp) use ($data): void {
+								$data->networkStackLatencyHandler->queue($data, static function () use ($data): void {
 									$data->isAlive = true;
 								});
 							}
@@ -199,18 +206,6 @@ class ProcessOutbound {
 				/** @var RemoveActorPacket $packet */
 				$data->networkStackLatencyHandler->queue($data, static function () use ($data, $packet) : void {
 					$data->entityLocationMap->removeEntity($packet->entityUniqueId);
-				});
-				break; 
-				// NetworkStackLatency force set?
-			case AddActorPacket::class:
-			case AddPlayerPacket::class:
-				/** @var AddPlayerPacket $packet */
-				$data->networkStackLatencyHandler->queue($data, function () use ($data, $packet) : void {
-					$entity = $this->worldManager->findEntity($packet->entityRuntimeId);
-					if ($entity !== null) {
-						// if the entity is null, the stupid client is out-of-sync (lag possibly)
-						$data->entityLocationMap->addEntity($entity, $packet->position);
-					}
 				});
 				break;
 		}

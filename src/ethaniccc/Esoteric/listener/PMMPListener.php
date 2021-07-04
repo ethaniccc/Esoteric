@@ -5,13 +5,13 @@ namespace ethaniccc\Esoteric\listener;
 use ethaniccc\Esoteric\Esoteric;
 use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
-use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
@@ -28,15 +28,6 @@ use function var_export;
 use const PHP_EOL;
 
 class PMMPListener implements Listener {
-
-	private const USED_OUTBOUND_PACKETS = [
-		ProtocolInfo::MOVE_PLAYER_PACKET, ProtocolInfo::MOVE_ACTOR_ABSOLUTE_PACKET, ProtocolInfo::UPDATE_BLOCK_PACKET,
-		ProtocolInfo::SET_ACTOR_MOTION_PACKET, ProtocolInfo::MOB_EFFECT_PACKET, ProtocolInfo::SET_PLAYER_GAME_TYPE_PACKET,
-		ProtocolInfo::SET_ACTOR_DATA_PACKET, ProtocolInfo::NETWORK_CHUNK_PUBLISHER_UPDATE_PACKET, ProtocolInfo::ADVENTURE_SETTINGS_PACKET,
-		ProtocolInfo::ACTOR_EVENT_PACKET, ProtocolInfo::UPDATE_ATTRIBUTES_PACKET, ProtocolInfo::CORRECT_PLAYER_MOVE_PREDICTION_PACKET,
-		ProtocolInfo::NETWORK_STACK_LATENCY_PACKET, ProtocolInfo::REMOVE_ACTOR_PACKET, ProtocolInfo::ADD_ACTOR_PACKET,
-		ProtocolInfo::ADD_PLAYER_PACKET,
-	];
 
 	public TimingsHandler $sendTimings;
 	public TimingsHandler $decodingTimings;
@@ -56,6 +47,17 @@ class PMMPListener implements Listener {
 				$event->setKickReason(PlayerPreLoginEvent::KICK_REASON_PLUGIN, str_replace(['{prefix}', '{code}', '{expires}'], [Esoteric::getInstance()->getSettings()->getPrefix(), $entry->getReason(), $entry->getExpires() !== null ? $entry->getExpires()->format("m/d/y h:i A T") : 'Never'], Esoteric::getInstance()->getSettings()->getBanMessage()));
 				break;
 			}
+		}
+	}
+
+	/**
+	 * @param PlayerJoinEvent $event
+	 * @priority LOWEST
+	 */
+	public function join(PlayerJoinEvent $event): void {
+		$data = Esoteric::getInstance()->dataManager->get($event->getPlayer()->getNetworkSession());
+		if ($data !== null) {
+			$data->hasAlerts = $data->player->hasPermission('ac.alerts');
 		}
 	}
 
@@ -85,13 +87,15 @@ class PMMPListener implements Listener {
 		$data->player = $event->getPlayer();
 	}
 
+	/**
+	 * @param DataPacketReceiveEvent $event
+	 * @handleCancelled
+	 */
 	public function receive(DataPacketReceiveEvent $event): void {
 		$packet = $event->getPacket();
 		$session = $event->getOrigin();
 		$playerData = Esoteric::getInstance()->dataManager->get($session) ?? Esoteric::getInstance()->dataManager->add($session);
-		if ($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
-			return;
-		}
+		if($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) return;
 		$playerData->inboundProcessor->execute($packet, $playerData);
 		foreach ($playerData->checks as $check) {
 			if ($check->enabled()) {

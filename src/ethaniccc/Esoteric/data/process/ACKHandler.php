@@ -29,10 +29,6 @@ class ACKHandler {
 		}
 	}
 
-	public function hasData(string $identifier): bool {
-		return isset($this->list[$identifier]);
-	}
-
 	public function next(string $identifier): int {
 		if (!isset($this->ackList[$identifier])) {
 			$this->ackList[$identifier] = 0;

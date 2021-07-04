@@ -23,15 +23,11 @@ use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
 use ethaniccc\Esoteric\utils\MathUtils;
-use pocketmine\block\Block;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
-use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\player\GameMode;
 use pocketmine\player\Player;
-use function array_filter;
-use function count;
 use function microtime;
 use function spl_object_hash;
 
@@ -42,8 +38,6 @@ final class PlayerData {
 	public string $hash;
 	/** @var string - Identifier used in network interface */
 	public string $networkIdentifier;
-	/** @var int - The current protocol of the player. */
-	public int $protocol = ProtocolInfo::CURRENT_PROTOCOL;
 	/** @var bool - Boolean value for if the player is logged in. */
 	public bool $loggedIn = false;
 	/** @var bool - The boolean value for if the player has alerts enabled. This will always be false for players without alert permissions. */
@@ -62,14 +56,9 @@ final class PlayerData {
 	public ProcessTick $tickProcessor;
 	public LocationMap $entityLocationMap;
 	public NetworkStackLatencyHandler $networkStackLatencyHandler;
-	public bool $isMobile = false;
 	public int $latency = 0;
 	/** @var int - ID of the current target entity */
 	public int $target = -1;
-	/** @var int - ID of the last target entity */
-	public int $lastTarget = -1;
-	/** @var int - The tick when the player attacked. */
-	public int $attackTick = -1;
 	/** @var ?Vector3 - Attack position of the player */
 	public ?Vector3 $attackPos;
 	/** @var EffectData[] */
@@ -77,14 +66,12 @@ final class PlayerData {
 	public int $currentTick = 0;
 	/** @var Vector3[] */
 	public array $packetDeltas = [];
-	public int $ticksPerSecond = 0;
 	/** @var ?Vector3 - The current and previous locations of the player */
 	public ?Vector3 $lastLocation = null;
 	public ?Vector3 $currentLocation = null;
 	public ?Vector3 $lastOnGroundLocation = null;
 	/** @var ?Vector3 - Movement deltas of the player */
 	public ?Vector3 $currentMoveDelta = null;
-	public ?Vector3 $lastMoveDelta = null;
 	/** @var float - Rotation values of the player */
 	public float $previousPitch = 0.0;
 	public float $currentYaw = 0.0;
@@ -92,15 +79,11 @@ final class PlayerData {
 	public float $currentPitch = 0.0;
 	/** @var float - Rotation deltas of the player */
 	public float $currentYawDelta = 0.0;
-	public float $lastYawDelta = 0.0;
-	public float $lastPitchDelta = 0.0;
 	public float $currentPitchDelta = 0.0;
 	/** @var bool - The boolean value for if the player is on the ground. The client on-ground value is used for this. */
 	public bool $onGround = true;
 	/** @var bool - An expected value for the client's on ground. */
 	public bool $expectedOnGround = true;
-	public int $offGroundTicks = 0;
-	public int $onGroundTicks = 0;
 	public ?AABB $boundingBox = null;
 	public ?Vector3 $directionVector = null;
 	/** @var int - Ticks since the player has taken motion. */
@@ -131,10 +114,6 @@ final class PlayerData {
 	/** @var Vector3 - Position sent in NetworkChunkPublisherUpdatePacket */
 	public Vector3 $chunkSendPosition;
 	public bool $immobile = false;
-	/** @var Block[] */
-	public array $blocksBelow = [];
-	/** @var Block[] */
-	public array $lastBlocksBelow = [];
 	public bool $canPlaceBlocks = true;
 	public float $hitboxWidth = 0.0;
 	public float $hitboxHeight = 0.0;
@@ -151,8 +130,6 @@ final class PlayerData {
 	public int $lastClickTick = 0;
 	public bool $isDataClosed = false;
 	public bool $isFullKeyboardGameplay = true;
-	/** @var int[] */
-	private array $ticks = [];
 
 	public function __construct(NetworkSession $session) {
 		$this->gamemode = GameMode::SURVIVAL();
@@ -162,7 +139,7 @@ final class PlayerData {
 		$zeroVec = clone MathUtils::$ZERO_VECTOR;
 
 		// AIDS START
-		$this->currentLocation = $this->lastLocation = $this->currentMoveDelta = $this->lastMoveDelta = $this->lastOnGroundLocation = $this->directionVector = $this->motion = $zeroVec;
+		$this->currentLocation = $this->lastLocation = $this->currentMoveDelta = $this->lastOnGroundLocation = $this->directionVector = $this->motion = $zeroVec;
 		// AIDS END
 
 		$this->inboundProcessor = new ProcessInbound();
@@ -188,12 +165,6 @@ final class PlayerData {
 	public function tick(): void {
 		$this->currentTick++;
 		$this->entityLocationMap->executeTick();
-		$currentTime = microtime(true);
-		$this->ticks = array_filter($this->ticks, static function (float $time) use ($currentTime): bool {
-			return $currentTime - $time < 1;
-		});
-		$this->ticksPerSecond = count($this->ticks);
-		$this->ticks[] = $currentTime;
 	}
 
 }

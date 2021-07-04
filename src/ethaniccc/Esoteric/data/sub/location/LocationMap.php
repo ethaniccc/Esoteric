@@ -3,17 +3,14 @@
 namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\data\PlayerData;
-use ethaniccc\Esoteric\utils\EvictingList;
-use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
-use pocketmine\math\Vector3;
+use pocketmine\entity\Location;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\Server;
 use pocketmine\world\Position;
 use pocketmine\world\WorldManager;
 use function count;
-use function is_null;
 
 /**
  * Class LocationMap
@@ -25,8 +22,6 @@ final class LocationMap {
 	/** @var LocationData[] - Estimated client-sided locations */
 	public array $locations = [];
 	/** @var Position[] */
-	public array $pendingLocations = [];
-	/** @var Position[] */
 	public array $needSendArray = [];
 	public WorldManager $worldManager;
 
@@ -34,35 +29,25 @@ final class LocationMap {
 		$this->worldManager = Server::getInstance()->getWorldManager();
 	}
 
-	/*/
-	  @param MoveActorAbsolutePacket|MovePlayerPacket $packet
-	 /
-	function addPacket(MovePlayerPacket|MoveActorAbsolutePacket $packet): void {
-		$locationData = $this->locations[$packet->entityRuntimeId] ?? null;
-		if (is_null($locationData)) return;
-		if (($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) || ($packet instanceof MoveActorAbsolutePacket && $packet->flags >= 2)) {
+	function addEntity(MovePlayerPacket|MoveActorAbsolutePacket $packet): void {
+		if ($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) {
+			$packet->mode = MovePlayerPacket::MODE_RESET;
 			$data = $this->locations[$packet->entityRuntimeId] ?? null;
 			if ($data !== null) {
 				$data->isSynced = 0;
 				$data->newPosRotationIncrements = 1;
 			}
 		}
-		$this->needSend->addPacket($packet);
-		$this->needSendArray[$packet->entityRuntimeId] = $packet->position->subtract(0, $locationData->locationOffset, 0);
-	}*/
-
-	function addEntity(Entity $entity, Vector3 $startPos): void {
-		$locationData = new LocationData();
-		$locationData->entityRuntimeId = $entity->getId();
-		$locationData->newPosRotationIncrements = 0;
-		$locationData->currentLocation = clone $startPos;
-		$locationData->lastLocation = clone $startPos;
-		$locationData->receivedLocation = clone $startPos;
-		$locationData->history = new EvictingList(3);
-		$locationData->isHuman = $entity instanceof Human;
-		$locationData->locationOffset = $entity->getOffsetPosition($entity->getPosition())->y - $entity->getPosition()->y;
-		$this->locations[$entity->getId()] = $locationData;
+		$entity = Server::getInstance()->getWorldManager()->findEntity($packet->entityRuntimeId);
+		if ($entity !== null) {
+			$location = $packet->position->subtract(0, ($packet instanceof MovePlayerPacket ? 1.62 : 0), 0);
+			if (!isset($this->locations[$entity->getId()])) {
+				$this->locations[$entity->getId()] = new LocationData($entity->getId(), $entity instanceof Human, Location::fromObject($location, $entity->getWorld()), $entity->getOffsetPosition($entity->getPosition())->y - $entity->getPosition()->y);
+			}
+			$this->needSendArray[$packet->entityRuntimeId] = $location;
+		}
 	}
+
 
 	function removeEntity(int $entityRuntimeId): void {
 		unset($this->locations[$entityRuntimeId]);
@@ -102,7 +87,6 @@ final class LocationMap {
 				$bb = $entity->getBoundingBox();
 				$locationData->hitboxWidth = ($bb->maxX - $bb->minX) * 0.5;
 				$locationData->hitboxHeight = $bb->maxY - $bb->minY;
-				$locationData->history->add($locationData->lastLocation);
 				$locationData->newPosRotationIncrements--;
 				$locationData->isSynced++;
 			}

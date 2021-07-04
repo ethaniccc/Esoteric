@@ -38,7 +38,6 @@ use pocketmine\network\mcpe\protocol\PacketViolationWarningPacket;
 use pocketmine\network\mcpe\protocol\PlayerActionPacket;
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use pocketmine\network\mcpe\protocol\SetLocalPlayerAsInitializedPacket;
-use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
@@ -50,7 +49,6 @@ use function ceil;
 use function count;
 use function floor;
 use function fmod;
-use function in_array;
 use function round;
 
 final class ProcessInbound {
@@ -93,14 +91,11 @@ final class ProcessInbound {
 			$data->hasMovementSuppressed = false;
 			$data->lastLocation = clone $data->currentLocation;
 			$data->currentLocation = $location;
-			$data->lastMoveDelta = $data->currentMoveDelta;
 			$data->currentMoveDelta = $data->currentLocation->subtractVector($data->lastLocation)->asVector3();
 			$data->previousYaw = $data->currentYaw;
 			$data->previousPitch = $data->currentPitch;
 			$data->currentYaw = $location->yaw;
 			$data->currentPitch = $location->pitch;
-			$data->lastYawDelta = $data->currentYawDelta;
-			$data->lastPitchDelta = $data->currentPitchDelta;
 			$data->currentYawDelta = abs($data->currentYaw - $data->previousYaw);
 			$data->currentPitchDelta = abs($data->currentPitch - $data->previousPitch);
 			if ($data->currentYawDelta > 180) {
@@ -301,8 +296,6 @@ final class ProcessInbound {
 				// if the block doesn't have an AABB, this assumes a 1x1x1 AABB for that block
 				$blocks = LevelUtils::checkBlocksInAABB($data->boundingBox->expandedCopy(0.5, 0.5, 0.5), $location->getWorld(), LevelUtils::SEARCH_ALL, false);
 				$data->expectedOnGround = false;
-				$data->lastBlocksBelow = $data->blocksBelow;
-				$data->blocksBelow = [];
 				$data->isCollidedHorizontally = false;
 				$data->isCollidedVertically = false;
 				$liquids = 0;
@@ -321,7 +314,6 @@ final class ProcessInbound {
 						$data->isCollidedVertically = true;
 						if (floor($block->getPos()->y) <= floor($location->y)) {
 							$data->expectedOnGround = true;
-							$data->blocksBelow[] = $block;
 						}
 					}
 					if ($block instanceof Liquid) {
@@ -369,7 +361,6 @@ final class ProcessInbound {
 					$data->onGround = true;
 					$data->isCollidedHorizontally = $blockPos->y >= floor($location->y) && $blockPos->y - $location->y <= ceil($data->hitboxHeight);
 					$data->isCollidedVertically = true;
-					$data->blocksBelow[] = $blockVector;
 				}
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getWorld()->getBlock($blockPos, false, false);
@@ -408,12 +399,7 @@ final class ProcessInbound {
 			}
 
 			if ($data->onGround) {
-				++$data->onGroundTicks;
-				$data->offGroundTicks = 0;
 				$data->lastOnGroundLocation = clone $data->currentLocation;
-			} else {
-				++$data->offGroundTicks;
-				$data->onGroundTicks = 0;
 			}
 			++$data->ticksSinceMotion;
 			if ($data->ticksSinceTeleport <= 1) {
@@ -445,9 +431,7 @@ final class ProcessInbound {
 			self::$inventoryTransactionTimings->startTiming();
 			$trData = $packet->trData;
 			if ($trData instanceof UseItemOnEntityTransactionData) {
-				$data->lastTarget = $data->target;
 				$data->target = $trData->getEntityRuntimeId();
-				$data->attackTick = $data->currentTick;
 				$data->attackPos = $trData->getPlayerPos();
 				$this->click($data);
 			} elseif ($trData instanceof UseItemTransactionData) {
@@ -502,10 +486,8 @@ final class ProcessInbound {
 		} elseif ($packet instanceof AdventureSettingsPacket) {
 			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);
 		} elseif ($packet instanceof LoginPacket) {
-			$data->protocol = $packet->protocol;
 			$clientData = PacketUtils::parseClientData($packet->clientDataJwt);
 			$data->playerOS = $clientData->DeviceOS;
-			$data->isMobile = in_array($clientData->DeviceOS, [DeviceOS::AMAZON, DeviceOS::ANDROID, DeviceOS::IOS]);
 		} elseif ($packet instanceof LevelSoundEventPacket) {
 			if ($packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE) {
 				$this->click($data);
