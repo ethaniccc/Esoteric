@@ -31,6 +31,7 @@ use function explode;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
+use function function_exists;
 use function implode;
 use function max;
 use function mkdir;
@@ -76,8 +77,6 @@ final class Esoteric {
 
 	/**
 	 * Esoteric constructor.
-	 * @param PluginBase $plugin
-	 * @param Config|null $config
 	 */
 	private function __construct(PluginBase $plugin, ?Config $config, string $autoloadPath = null) {
 		$this->plugin = $plugin;
@@ -97,9 +96,6 @@ final class Esoteric {
 	}
 
 	/**
-	 * @param PluginBase $plugin
-	 * @param Config|null $config
-	 * @param bool $start
 	 * @throws Exception
 	 */
 	public static function init(PluginBase $plugin, ?Config $config, string $autoloadPath = null, bool $start = false) {
@@ -120,7 +116,7 @@ final class Esoteric {
 			throw new Exception("Esoteric has not been initialized");
 		}
 		if ($this->hasComposerDeps) {
-			require $this->autoloadPath;
+			require_once $this->autoloadPath;
 		}
 		if ($this->settings->isDebugging() && !function_exists('ray')) {
 			throw new Exception("Debugging enabled, but spatie/ray was not found.");

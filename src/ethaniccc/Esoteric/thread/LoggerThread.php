@@ -3,21 +3,21 @@
 namespace ethaniccc\Esoteric\thread;
 
 use pocketmine\Thread;
+use pocketmine\utils\AssumptionFailedError;
 use Threaded;
 use function fclose;
 use function fwrite;
-use function usleep;
-use const PHP_EOL;
+use function is_resource;
 
 class LoggerThread extends Thread {
 
 	private $log;
-	private $queue;
+	private $buffer;
 	private $running = false;
 
 	public function __construct(string $log) {
 		$this->log = $log;
-		$this->queue = new Threaded();
+		$this->buffer = new Threaded();
 	}
 
 	public function start(int $options = PTHREADS_INHERIT_ALL): bool {
@@ -25,29 +25,39 @@ class LoggerThread extends Thread {
 		return parent::start($options);
 	}
 
-	public function run() {
-		while ($this->running) {
-			$count = 0;
-			$log = fopen($this->log, "a");
-			while (($data = $this->queue->shift()) !== null) {
-				$count++;
-				fwrite($log, $data);
-			}
-			fclose($log);
-			if ($count === 0) {
-				usleep(1000000 / 10);
-			}
+	public function run(): void {
+		$stream = fopen($this->log, 'ab');
+		if (!is_resource($stream)) {
+			throw new AssumptionFailedError("Open File $this->log failed");
 		}
+		while ($this->running) {
+			$this->writeStream($stream);
+			$this->synchronized(function () {
+				if ($this->running) {
+					$this->wait();
+				}
+			});
+		}
+		$this->writeStream($stream);
+		fclose($stream);
 	}
 
-	public function quit() {
+	public function quit(): void {
 		$this->running = false;
 		parent::quit();
 	}
 
 	public function write(string $data): void {
-		$this->queue[] = $data . PHP_EOL;
+		$this->buffer[] = $data;
+		$this->notify();
 	}
 
+	private function writeStream($stream): void {
+		while ($this->buffer->count() > 0) {
+			/** @var string $line */
+			$line = $this->buffer->pop();
+			fwrite($stream, $line . "\n");
+		}
+	}
 
 }

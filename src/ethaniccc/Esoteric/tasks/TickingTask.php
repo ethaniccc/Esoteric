@@ -9,7 +9,7 @@ use function array_filter;
 
 class TickingTask extends Task {
 
-	public function onRun(int $currentTick) {
+	public function onRun(int $currentTick): void {
 		if ($currentTick % 40 === 0) {
 			Esoteric::getInstance()->hasAlerts = array_filter(Esoteric::getInstance()->dataManager->getAll(), static function (PlayerData $data): bool {
 				return !$data->player->isClosed() && $data->hasAlerts && $data->player->hasPermission("ac.alerts");

@@ -30,7 +30,6 @@ use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use ethaniccc\Esoteric\data\sub\location\LocationMap;
-use ethaniccc\Esoteric\data\sub\movement\MovementCapture;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;

@@ -15,7 +15,6 @@ use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
-use pocketmine\level\format\Chunk;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
@@ -63,7 +62,6 @@ class PMMPListener implements Listener {
 	}
 
 	/**
-	 * @param PlayerPreLoginEvent $event
 	 * @priority LOWEST
 	 */
 	public function log(PlayerPreLoginEvent $event): void {
@@ -76,9 +74,7 @@ class PMMPListener implements Listener {
 		}
 	}
 
-
 	/**
-	 * @param PlayerQuitEvent $event
 	 * @priority LOWEST
 	 */
 	public function quit(PlayerQuitEvent $event): void {
@@ -103,12 +99,11 @@ class PMMPListener implements Listener {
 				}
 			}
 		}
-		Esoteric::getInstance()->logCache[strtolower($event->getPlayer()->getName())] = $message === null ? TextFormat::GREEN . "This player has no logs" : $message;
+		Esoteric::getInstance()->logCache[strtolower($event->getPlayer()->getName())] = $message ?? (TextFormat::GREEN . "This player has no logs");
 		Esoteric::getInstance()->dataManager->remove($event->getPlayer());
 	}
 
 	/**
-	 * @param PlayerJoinEvent $event
 	 * @priority LOWEST
 	 */
 	public function join(PlayerJoinEvent $event): void {
@@ -121,7 +116,6 @@ class PMMPListener implements Listener {
 	}
 
 	/**
-	 * @param DataPacketReceiveEvent $event
 	 * @priority HIGHEST
 	 * @ignoreCancelled false
 	 */
@@ -130,7 +124,7 @@ class PMMPListener implements Listener {
 		$player = $event->getPlayer();
 		$playerData = Esoteric::getInstance()->dataManager->get($player) ?? Esoteric::getInstance()->dataManager->add($player);
 		$playerData->inboundProcessor->execute($packet, $playerData);
-		if (($player->loggedIn && in_array($player->getName(), Esoteric::getInstance()->exemptList)) || $playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
+		if (($player->loggedIn && in_array($player->getName(), Esoteric::getInstance()->exemptList, true)) || $playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
 			return;
 		}
 		if ($packet instanceof PlayerAuthInputPacket) {
@@ -146,13 +140,12 @@ class PMMPListener implements Listener {
 	}
 
 	/**
-	 * @param DataPacketSendEvent $event
 	 * @priority LOWEST
 	 */
 	public function outbound(DataPacketSendEvent $event): void {
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
-		if (in_array($player->getName(), Esoteric::getInstance()->exemptList)) {
+		if (in_array($player->getName(), Esoteric::getInstance()->exemptList, true)) {
 			return;
 		}
 		$playerData = Esoteric::getInstance()->dataManager->get($player);
@@ -188,7 +181,7 @@ class PMMPListener implements Listener {
 			$gen = PacketUtils::getAllInBatch($packet);
 			foreach ($gen as $buff) {
 				$pk = PacketPool::getPacket($buff);
-				if (!in_array($pk->pid(), self::USED_OUTBOUND_PACKETS)) {
+				if (!in_array($pk->pid(), self::USED_OUTBOUND_PACKETS, true)) {
 					continue;
 				}
 				try {
