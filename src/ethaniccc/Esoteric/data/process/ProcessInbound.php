@@ -175,7 +175,6 @@ final class ProcessInbound {
 
 			if (InputConstants::hasFlag($packet, InputConstants::START_SPRINTING)) {
 				$data->isSprinting = true;
-				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_SPRINT;
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_START_SPRINT;
@@ -187,7 +186,6 @@ final class ProcessInbound {
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::STOP_SPRINTING)) {
 				$data->isSprinting = false;
-				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_STOP_SPRINT;
@@ -234,6 +232,10 @@ final class ProcessInbound {
 			if (InputConstants::hasFlag($packet, InputConstants::STOP_GLIDING)) {
 				$data->isGliding = false;
 			}
+
+			$data->isSprinting ?
+				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_SPRINT :
+				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
 
 			if ($packet->blockActions !== null) {
 				foreach ($packet->blockActions as $action) {

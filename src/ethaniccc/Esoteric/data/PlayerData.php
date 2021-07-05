@@ -25,6 +25,7 @@ use ethaniccc\Esoteric\check\movement\motion\MotionC;
 use ethaniccc\Esoteric\check\movement\motion\MotionD;
 use ethaniccc\Esoteric\check\movement\phase\PhaseA;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
+use ethaniccc\Esoteric\check\movement\velocity\VelocityB;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
@@ -235,19 +236,12 @@ final class PlayerData {
 			new RangeA(), # Range checks
 			new FlyA(), new FlyB(), new FlyC(), # Fly checks
 			new MotionA(), new MotionB(), new MotionC(), new MotionD(), # Motion checks
-			new VelocityA(), # Velocity checks
+			new VelocityA(), new VelocityB(), # Velocity checks
 			new PhaseA(), # Phase checks
 			new PacketsA(), new PacketsB(), new PacketsC(), # Packet checks
 			new EditionFakerA(), # EditionFaker checks
 			new NukerA(), # Nuker checks
 			new TimerA(),  # Timer checks
-		];
-
-		$baseDebugHandlers = [
-			new DebugHandler("movement-delta"),
-			new DebugHandler("movement-yaw"),
-			new DebugHandler("movement-pitch"),
-			new DebugHandler("click-stats"),
 		];
 
 		foreach ($this->checks as $check) {

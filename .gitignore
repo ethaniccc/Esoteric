@@ -6,3 +6,4 @@ versai_eu.cmd
 compile.cmd
 vendor/*
 libs/*
+.vscode/*
