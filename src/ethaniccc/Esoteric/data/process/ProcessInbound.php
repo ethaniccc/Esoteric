@@ -462,9 +462,7 @@ final class ProcessInbound {
 						$pk->y = $realBlock->y;
 						$pk->z = $realBlock->z;
 						if ($realBlock instanceof Liquid) {
-							$pk->blockId = $realBlock->getId();
-							$pk->blockMeta = $realBlock->getDamage();
-							//$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId(0, 0);
+							$pk->blockRuntimeId = RuntimeBlockMapping::toStaticRuntimeId(0, 0);
 							$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 							$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 							$p->addPacket($pk);
@@ -473,7 +471,7 @@ final class ProcessInbound {
 							$pk->y = $realBlock->y;
 							$pk->z = $realBlock->z;
 						}
-						$pk->block = $realBlock;
+						$pk->blockRuntimeId = $realBlock->getRuntimeId();
 						$pk->flags = UpdateBlockPacket::FLAG_ALL_PRIORITY;
 						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 						$p->addPacket($pk);
