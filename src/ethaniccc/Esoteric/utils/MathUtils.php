@@ -17,7 +17,6 @@ use function fmod;
 use function max;
 use function min;
 use function pack;
-use function pow;
 use function sin;
 use function sort;
 use function sqrt;
@@ -37,7 +36,7 @@ final class MathUtils {
 		$variance = 0;
 		$average = array_sum($nums) / $count;
 		foreach ($nums as $num) {
-			$variance += pow($num - $average, 2);
+			$variance += ($num - $average) ** 2;
 		}
 		return sqrt($variance / $count);
 	}
@@ -71,18 +70,18 @@ final class MathUtils {
 			}
 
 			$efficiencyFirst = $count * ($count + 1) / (($count - 1) * ($count - 2) * ($count - 3));
-			$efficiencySecond = 3 * pow($count - 1, 2) / (($count - 2) * ($count - 3));
+			$efficiencySecond = 3 * (($count - 1) ** 2) / (($count - 2) * ($count - 3));
 			$average = self::getAverage(...$data);
 
 			$variance = 0.0;
 			$varianceSquared = 0.0;
 
 			foreach ($data as $number) {
-				$variance += pow($average - $number, 2);
-				$varianceSquared += pow($average - $number, 4);
+				$variance += ($average - $number) ** 2;
+				$varianceSquared += ($average - $number) ** 4;
 			}
 
-			return $efficiencyFirst * ($varianceSquared / pow($variance / $sum, 2)) - $efficiencySecond;
+			return $efficiencyFirst * ($varianceSquared / (($variance / $sum) ** 2)) - $efficiencySecond;
 		} catch (ErrorException | DivisionByZeroError $e) {
 			return 0.0;
 		}
@@ -115,7 +114,7 @@ final class MathUtils {
 		$mean = array_sum($data) / $count;
 
 		foreach ($data as $number) {
-			$variance += pow($number - $mean, 2);
+			$variance += ($number - $mean) ** 2;
 		}
 
 		return $variance / $count;
@@ -123,8 +122,8 @@ final class MathUtils {
 
 	public static function getOutliers(float ...$collection): float {
 		$count = count($collection);
-		$q1 = self::getMedian(...array_splice($collection, 0, (int)ceil($count * 0.5)));
-		$q3 = self::getMedian(...array_splice($collection, (int)ceil($count * 0.5), $count));
+		$q1 = self::getMedian(...array_splice($collection, 0, (int) ceil($count * 0.5)));
+		$q3 = self::getMedian(...array_splice($collection, (int) ceil($count * 0.5), $count));
 
 		$iqr = abs($q1 - $q3);
 		$lowThreshold = $q1 - 1.5 * $iqr;
@@ -174,11 +173,11 @@ final class MathUtils {
 	public static function getGCD(float $a, float $b): float {
 		if ($a < $b) {
 			return self::getGCD($b, $a);
-		} elseif (abs($b) < 0.0001) {
-			return $a;
-		} else {
-			return self::getGCD($b, $a - floor($a / $b) * $b);
 		}
+		if (abs($b) < 0.0001) {
+			return $a;
+		}
+		return self::getGCD($b, $a - floor($a / $b) * $b);
 	}
 
 	public static function wrap180(float $par0): float {

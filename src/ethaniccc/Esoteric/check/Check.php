@@ -1,6 +1,5 @@
 <?php
 
-
 namespace ethaniccc\Esoteric\check;
 
 use DateTime;
@@ -102,7 +101,7 @@ abstract class Check {
 			if (!isset(self::$TOTAL_VIOLATIONS[$data->player->getName()])) {
 				self::$TOTAL_VIOLATIONS[$data->player->getName()] = 0;
 			}
-			self::$TOTAL_VIOLATIONS[$data->player->getName()] += 1;
+			self::$TOTAL_VIOLATIONS[$data->player->getName()]++;
 			$banwaveSettings = Esoteric::getInstance()->getSettings()->getWaveSettings();
 			if ($banwaveSettings["enabled"] && self::$TOTAL_VIOLATIONS[$data->player->getName()] >= $banwaveSettings["violations"] && !$data->player->hasPermission("ac.bypass")) {
 				$wave = Esoteric::getInstance()->getBanwave();
@@ -196,7 +195,7 @@ abstract class Check {
 		if ($this->option("punishment_type") === "ban") {
 			$data->isDataClosed = true;
 			$l = $esoteric->getSettings()->getBanLength();
-			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int)$l . " day") : null;
+			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int) $l . " day") : null;
 			$esoteric->getPlugin()->getScheduler()->scheduleTask(new BanTask($data->player, $this->getCodeName(), $expiration));
 			$this->sendPunishmentWebhook($data->player->getName(), "ban");
 			if (($bc = $esoteric->getSettings()->getBanBroadcast()) !== "none") {
@@ -231,12 +230,12 @@ abstract class Check {
 		$embed->setTitle("Anti-cheat punishment");
 		$embed->setColor(0xFF0000);
 		$embed->setFooter((new DateTime('now'))->format("m/d/y @ h:m:s A"));
-		$embed->setDescription("
+		$embed->setDescription(<<<DES
 		Player: **`$player`**
 		Type: **`$type`**
 		Codename: **`{$this->getCodeName()}`**
-		Detection name: **`{$this->name} ({$this->subType})`**
-		");
+		Detection name: **`$this->name ($this->subType)`**
+		DES);
 		$message->addEmbed($embed);
 
 		$webhook = new Webhook($webhookLink, $message);

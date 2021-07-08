@@ -14,11 +14,11 @@ class AsyncClosureTask extends AsyncTask {
 		$this->storeLocal($onComplete);
 	}
 
-	public function onRun() {
+	public function onRun(): void {
 		($this->onRun)();
 	}
 
-	public function onCompletion(Server $server) {
+	public function onCompletion(Server $server): void {
 		$onComplete = $this->fetchLocal();
 		if ($onComplete !== null) {
 			$onComplete();

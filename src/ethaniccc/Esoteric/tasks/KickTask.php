@@ -17,7 +17,7 @@ class KickTask extends Task {
 		$this->reason = $reason;
 	}
 
-	public function onRun(int $currentTick) {
+	public function onRun(int $currentTick): void {
 		$this->player->kick($this->reason, false);
 	}
 }

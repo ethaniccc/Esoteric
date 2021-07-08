@@ -25,7 +25,7 @@ class EditionFakerA extends Check {
 			try {
 				$d = $packet->chainData;
 				$parts = explode(".", $d['chain'][2]);
-				$jwt = json_decode(base64_decode($parts[1]), true);
+				$jwt = json_decode(base64_decode($parts[1], true), true);
 				$titleID = $jwt['extraData']['titleId'];
 			} catch (Exception $e) {
 				return;

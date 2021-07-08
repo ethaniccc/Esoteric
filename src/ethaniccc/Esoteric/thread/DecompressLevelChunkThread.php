@@ -3,16 +3,12 @@
 namespace ethaniccc\Esoteric\thread;
 
 use ethaniccc\Esoteric\utils\PacketUtils;
-use ethaniccc\Esoteric\utils\Pair;
-use ethaniccc\Esoteric\utils\world\NetworkChunkDeserializer;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\LevelChunkPacket;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\Thread;
 use Threaded;
 use Volatile;
-use function microtime;
-use function usleep;
 
 /**
  * Class DecompressLevelChunkThread
@@ -35,13 +31,13 @@ class DecompressLevelChunkThread extends Thread {
 	public function queue(BatchPacket $packet, callable $callable = null): void {
 		$this->queue[] = $packet;
 		self::$callables[] = $callable;
+		$this->notify();
 	}
 
-	public function run() {
+	public function run(): void {
 		$this->registerClassLoader();
 		PacketPool::init();
 		while (!$this->isKilled) {
-			$start = microtime(true);
 			while (($batch = $this->queue->shift()) !== null) {
 				/** @var BatchPacket $batch */
 				$batch->decode();
@@ -56,10 +52,11 @@ class DecompressLevelChunkThread extends Thread {
 				}
 				$this->results[] = $chunks;
 			}
-			$time = microtime(true) - $start;
-			if ($time <= (1 / self::TPS)) {
-				usleep(1000000 / self::TPS);
-			}
+			$this->synchronized(function () : void {
+				if (!$this->isKilled) {
+					$this->wait();
+				}
+			});
 		}
 	}
 
@@ -74,8 +71,7 @@ class DecompressLevelChunkThread extends Thread {
 		}
 		unset($callable);
 		foreach ($keys as $key) {
-			unset($this->results[$key]);
-			unset(self::$callables[$key]);
+			unset($this->results[$key], self::$callables[$key]);
 		}
 	}
 

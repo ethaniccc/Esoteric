@@ -4,7 +4,6 @@ namespace ethaniccc\Esoteric\data\sub\location;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
-use ethaniccc\Esoteric\data\sub\protocol\InputConstants;
 use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\entity\Entity;
@@ -14,7 +13,6 @@ use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
-use pocketmine\Player;
 use pocketmine\Server;
 use function count;
 

@@ -17,11 +17,11 @@ class CreateBanwaveTask extends AsyncTask {
 		$this->storeLocal($onCompete);
 	}
 
-	public function onRun() {
+	public function onRun(): void {
 		$this->banwave = Banwave::create($this->path, !file_exists($this->path), true);
 	}
 
-	public function onCompletion(Server $server) {
+	public function onCompletion(Server $server): void {
 		$onComplete = $this->fetchLocal();
 		if ($onComplete !== null) {
 			$onComplete($this->banwave);

@@ -6,12 +6,11 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\utils\PacketUtils;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\NetworkStackLatencyPacket;
-use pocketmine\utils\BinaryStream;
 use function mt_rand;
 
 final class NetworkStackLatencyHandler {
 
-	private static $instance = null;
+	private static $instance;
 	private $list = [];
 	private $currentTimestamp = [];
 

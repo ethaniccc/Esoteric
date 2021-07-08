@@ -30,9 +30,6 @@ class PacketUtils {
 	}
 
 	/**
-	 * @param PlayerData $data
-	 * @param BatchPacket $packet
-	 * @param bool $needACK
 	 * @param callable|null $ackResponse
 	 * This function exists so that I don't have to deal with un-needed decoding of packets that Esoteric sends. This sends a batch packet to the player
 	 * without calling the DataPacketReceiveEvent.
