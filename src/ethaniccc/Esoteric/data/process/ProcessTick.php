@@ -22,7 +22,7 @@ class ProcessTick {
 			$data->entityLocationMap->send($data);
 			$currentTime = microtime(true);
 			$networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
-			$networkStackLatencyHandler->send($data, function (int $timestamp) use ($data, $currentTime): void {
+			$networkStackLatencyHandler->send($data, function (int $timestamp) use (&$data, $currentTime): void {
 				$data->gameLatency = floor((microtime(true) - $currentTime) * 1000);
 			});
 			foreach ($this->invalid as $key) {

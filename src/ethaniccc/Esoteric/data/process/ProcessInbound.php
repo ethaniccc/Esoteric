@@ -457,7 +457,7 @@ final class ProcessInbound {
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
 					$handler = NetworkStackLatencyHandler::getInstance();
-					$handler->send($data, function (int $timestamp) use ($hasCollision, $data, $realBlock, $handler): void {
+					$handler->send($data, function (int $timestamp) use ($hasCollision, &$data, $realBlock, $handler): void {
 						$p = new BatchPacket();
 						$pk = new UpdateBlockPacket();
 						$pk->x = $realBlock->x;
@@ -490,7 +490,7 @@ final class ProcessInbound {
 							$teleportPos->z = $data->currentLocation->z;
 							$data->player->teleport($teleportPos);
 						}
-						$handler->forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
+						$handler->forceHandle($data, $n->timestamp, function (int $timestamp) use (&$data, $realBlock): void {
 							$data->world->setBlock($realBlock->asVector3(), $realBlock->getId(), $realBlock->getDamage());
 							foreach ($this->placedBlocks as $key => $vector) {
 								if ($vector->equals($realBlock->asVector3())) {

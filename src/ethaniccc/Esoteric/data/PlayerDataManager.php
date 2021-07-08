@@ -59,6 +59,9 @@ class PlayerDataManager {
 
 	public function remove(Player $player): void {
 		$hash = spl_object_hash($player);
+		if (isset($this->data[$hash])) {
+			$this->data[$hash]->destroy();
+		}
 		unset($this->data[$hash]);
 		NetworkStackLatencyHandler::getInstance()->remove($hash);
 		ACKHandler::getInstance()->remove("{$player->getAddress()} {$player->getPort()}");

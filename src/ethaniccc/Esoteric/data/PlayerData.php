@@ -31,7 +31,6 @@ use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use ethaniccc\Esoteric\data\sub\location\LocationMap;
-use ethaniccc\Esoteric\data\sub\movement\MovementCapture;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
@@ -261,11 +260,21 @@ final class PlayerData {
 		$this->ticks[] = $currentTime;
 	}
 
-	public function __destruct() {
+	public function destroy(): void {
 		$keys = array_keys($this->world->getAllChunks());
 		foreach ($keys as $key) {
 			$this->world->removeChunkByHash($key);
 		}
+		$keys = array_keys($this->checks);
+		foreach ($keys as $key) {
+			$this->checks[$key] = null;
+			unset($this->checks[$key]);
+		}
+		$this->player = null;
+		$this->inboundProcessor = null;
+		$this->outboundProcessor = null;
+		$this->tickProcessor = null;
+		$this->entityLocationMap = null;
 	}
 
 }
