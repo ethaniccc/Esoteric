@@ -175,7 +175,6 @@ final class ProcessInbound {
 
 			if (InputConstants::hasFlag($packet, InputConstants::START_SPRINTING)) {
 				$data->isSprinting = true;
-				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_SPRINT;
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_START_SPRINT;
@@ -187,7 +186,6 @@ final class ProcessInbound {
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::STOP_SPRINTING)) {
 				$data->isSprinting = false;
-				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_STOP_SPRINT;
@@ -234,6 +232,10 @@ final class ProcessInbound {
 			if (InputConstants::hasFlag($packet, InputConstants::STOP_GLIDING)) {
 				$data->isGliding = false;
 			}
+
+			$data->isSprinting ?
+				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_SPRINT :
+				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
 
 			if ($packet->blockActions !== null) {
 				foreach ($packet->blockActions as $action) {
@@ -455,7 +457,7 @@ final class ProcessInbound {
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getLevel()->getBlock($blockVector, false, false);
 					$handler = NetworkStackLatencyHandler::getInstance();
-					$handler->send($data, function (int $timestamp) use ($hasCollision, $data, $realBlock, $handler): void {
+					$handler->send($data, function (int $timestamp) use ($hasCollision, &$data, $realBlock, $handler): void {
 						$p = new BatchPacket();
 						$pk = new UpdateBlockPacket();
 						$pk->x = $realBlock->x;
@@ -488,7 +490,7 @@ final class ProcessInbound {
 							$teleportPos->z = $data->currentLocation->z;
 							$data->player->teleport($teleportPos);
 						}
-						$handler->forceHandle($data, $n->timestamp, function (int $timestamp) use ($data, $realBlock): void {
+						$handler->forceHandle($data, $n->timestamp, function (int $timestamp) use (&$data, $realBlock): void {
 							$data->world->setBlock($realBlock->asVector3(), $realBlock->getId(), $realBlock->getDamage());
 							foreach ($this->placedBlocks as $key => $vector) {
 								if ($vector->equals($realBlock->asVector3())) {

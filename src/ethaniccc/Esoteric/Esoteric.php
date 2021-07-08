@@ -86,7 +86,7 @@ final class Esoteric {
 		$this->tickingTask = new TickingTask();
 		$this->autoloadPath = $autoloadPath;
 		if (!file_exists($this->autoloadPath)) {
-			$plugin->getLogger()->warning("Autoload file does not exist - ignore if none of the dependencies are needed]");
+			$plugin->getLogger()->warning("Autoload file does not exist - [ignore if none of the dependencies are needed]");
 			$this->autoloadPath = null;
 		}
 		$this->hasComposerDeps = $this->autoloadPath !== null;
@@ -122,9 +122,10 @@ final class Esoteric {
 		if ($this->hasComposerDeps) {
 			require $this->autoloadPath;
 		}
-		if ($this->settings->isDebugging() && !function_exists('ray')) {
+		// TODO: Get Blackfire profiling running on a PocketMine-MP server.
+		/* if ($this->settings->isDebugging() && !function_exists('ray')) {
 			throw new Exception("Debugging enabled, but spatie/ray was not found.");
-		}
+		} */
 		$this->listener = new PMMPListener();
 		foreach (Server::getInstance()->getNetwork()->getInterfaces() as $interface) {
 			if ($interface instanceof RakLibInterface) {

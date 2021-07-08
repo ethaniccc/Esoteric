@@ -13,7 +13,7 @@
 #  Written by Benjamin <schooldocumentsandstuff@gmail.com>, March, 2021
 
 # Enable this if you are going to be using Blackfire debugging to identify performance issues in Esoteric. If you plan to use Esoteric
-# a production server, disable this option.
+# a production server, disable this option.F
 debugging: true
 
 # Prefix for the anti-cheat when sending warnings.
@@ -186,7 +186,7 @@ detections:
       code: Hypersonic
       pct: 99.99
     B:
-      enabled: false
+      enabled: true
       punishment_type: none
       max_vl: 20
       code: Lightspeed

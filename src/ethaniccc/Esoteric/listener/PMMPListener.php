@@ -172,7 +172,7 @@ class PMMPListener implements Listener {
 							$chunk = NetworkChunkDeserializer::chunkNetworkDeserialize($dataArr[3], (int) $dataArr[0], (int) $dataArr[1], $dataArr[2]);
 							foreach ($this->levelChunkReceivers[$id] as $data) {
 								if ($data->loggedIn) {
-									NetworkStackLatencyHandler::getInstance()->send($data, static function (int $timestamp) use ($data, $chunk): void {
+									NetworkStackLatencyHandler::getInstance()->send($data, static function (int $timestamp) use (&$data, $chunk): void {
 										$data->world->addChunk(clone $chunk);
 									});
 								} else {

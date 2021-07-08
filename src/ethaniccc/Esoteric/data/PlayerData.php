@@ -25,12 +25,12 @@ use ethaniccc\Esoteric\check\movement\motion\MotionC;
 use ethaniccc\Esoteric\check\movement\motion\MotionD;
 use ethaniccc\Esoteric\check\movement\phase\PhaseA;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
+use ethaniccc\Esoteric\check\movement\velocity\VelocityB;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
 use ethaniccc\Esoteric\data\process\ProcessTick;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use ethaniccc\Esoteric\data\sub\location\LocationMap;
-use ethaniccc\Esoteric\data\sub\movement\MovementCapture;
 use ethaniccc\Esoteric\data\sub\movement\MovementConstants;
 use ethaniccc\Esoteric\Esoteric;
 use ethaniccc\Esoteric\utils\AABB;
@@ -235,19 +235,12 @@ final class PlayerData {
 			new RangeA(), # Range checks
 			new FlyA(), new FlyB(), new FlyC(), # Fly checks
 			new MotionA(), new MotionB(), new MotionC(), new MotionD(), # Motion checks
-			new VelocityA(), # Velocity checks
+			new VelocityA(), new VelocityB(), # Velocity checks
 			new PhaseA(), # Phase checks
 			new PacketsA(), new PacketsB(), new PacketsC(), # Packet checks
 			new EditionFakerA(), # EditionFaker checks
 			new NukerA(), # Nuker checks
 			new TimerA(),  # Timer checks
-		];
-
-		$baseDebugHandlers = [
-			new DebugHandler("movement-delta"),
-			new DebugHandler("movement-yaw"),
-			new DebugHandler("movement-pitch"),
-			new DebugHandler("click-stats"),
 		];
 
 		foreach ($this->checks as $check) {
@@ -267,11 +260,21 @@ final class PlayerData {
 		$this->ticks[] = $currentTime;
 	}
 
-	public function __destruct() {
+	public function destroy(): void {
 		$keys = array_keys($this->world->getAllChunks());
 		foreach ($keys as $key) {
 			$this->world->removeChunkByHash($key);
 		}
+		$keys = array_keys($this->checks);
+		foreach ($keys as $key) {
+			$this->checks[$key] = null;
+			unset($this->checks[$key]);
+		}
+		$this->player = null;
+		$this->inboundProcessor = null;
+		$this->outboundProcessor = null;
+		$this->tickProcessor = null;
+		$this->entityLocationMap = null;
 	}
 
 }
