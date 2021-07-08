@@ -15,5 +15,5 @@ BDSX is a software that injects into a BDS server, making BDS servers now custom
 
 This branch of Esoteric abuses `async/await` (as if it was a thread) and handles packets in a queue. Some hacks are used to create custom packet wrappers, but it's fine.
 
-## Detecions
+## Detections
 There are currently no detections in this branch of Esoteric.
