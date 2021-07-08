@@ -6,7 +6,12 @@ use ethaniccc\Esoteric\Esoteric;
 use Exception;
 use pocketmine\plugin\PluginBase;
 
+/**
+ * Class Loader
+ * @package ethaniccc\Loader
+ */
 final class Loader extends PluginBase {
+
 
 	public function onEnable(): void {
 		try {
