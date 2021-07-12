@@ -10,10 +10,6 @@ I'm deciding to not disclose to the *gernal* public.
 **NOTICE: Esoteric is now currently in an experimental state - performance may degrade.
 Until this notice is removed, please refrain from using future Esoteric versions on big production servers.**
 
-## BDSX
-BDSX is a software that injects into a BDS server, making BDS servers now customizable. You are able to handle packets and whatnot on it.
+## esoteric
 
-This branch of Esoteric abuses `async/await` (as if it was a thread) and handles packets in a queue. Some hacks are used to create custom packet wrappers, but it's fine.
-
-## Detections
-There are currently no detections in this branch of Esoteric.
+An anticheat, in PHP, made completely from C extensions to pocketmine. Welcome to practical, efficient, and concise coding
