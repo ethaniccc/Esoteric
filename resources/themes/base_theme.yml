@@ -1,0 +1,18 @@
+#  _____           _            _
+# | ____|___  ___ | |_ ___ _ __(_) ___
+# |  _| / __|/ _ \| __/ _ \ '__| |/ __|
+# | |___\__ \ (_) | ||  __/ |  | | (__
+# |_____|___/\___/ \__\___|_|  |_|\___|
+
+# A private anti-cheat for PocketMine-MP made by @ethaniccc
+# GitHub: https://www.github.com/ethaniccc
+# This is the default theme for Esoteric.
+
+# Prefix for Esoteric
+prefix: "§l§6Eso§fteric§7>§r"
+# Tags: {prefix}, {player}, {check_name}, {check_subtype}, {violations}, {data}
+alert_message: "{prefix} §e{player} §7failed §e{check_name} ({check_subtype}) §7(§cx{violations}§7) §7[{data}§7]"
+# Tags: {prefix}, {code}
+kick_message: "{prefix} Kicked (code={code})\nContact staff with a screenshot of this message if this issue persists"
+# Tags: {prefix}, {code}
+ban_message: "{prefix} Banned (code={code})\nMake a ticket with a screenshot of this message if this is a mistake"

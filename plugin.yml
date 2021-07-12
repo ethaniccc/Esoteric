@@ -3,6 +3,6 @@ name: Esoteric
 author: ethaniccc
 description: An anticheat for PocketMine-MP
 version: 2.0.0
-main: ethaniccc\Loader\Loader
+main: ethaniccc\Esoteric\Esoteric
 api: 3.19.0
 mcpe-protocol: [431, 440]

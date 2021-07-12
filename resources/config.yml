@@ -1,0 +1,16 @@
+#  _____           _            _
+# | ____|___  ___ | |_ ___ _ __(_) ___
+# |  _| / __|/ _ \| __/ _ \ '__| |/ __|
+# | |___\__ \ (_) | ||  __/ |  | | (__
+# |_____|___/\___/ \__\___|_|  |_|\___|
+
+# A private anti-cheat for PocketMine-MP made by @ethaniccc
+# Github: https://www.github.com/ethaniccc
+
+#  Copyright (C) ethaniccc - All Rights Reserved
+#  Unauthorized copying of this file, via any medium is strictly prohibited
+#  Proprietary and confidential
+#  Written by Benjamin <schooldocumentsandstuff@gmail.com>, March, 2021
+
+# The theme Esoteric should use - themes are found in the theme folder
+theme: "base_theme"
