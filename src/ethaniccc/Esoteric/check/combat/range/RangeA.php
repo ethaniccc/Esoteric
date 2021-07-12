@@ -51,25 +51,22 @@ class RangeA extends Check {
 					$this->buffer = max($this->buffer - 0.04, 0);
 				}
 				$this->debug($data, "rD=$rawDistance buff={$this->buffer}");
-				if ($packet->getInputMode() !== InputMode::TOUCHSCREEN /* && $locationData->isHuman */ && !$data->boundingBox->intersectsWith($AABB)) { // TODO: Solve SetActorMotion location interpolation stuff
-					$currentDirectionVector = $data->directionVector;
-					$previousDirectionVector = MathUtils::directionVectorFromValues($data->previousYaw, $data->previousPitch);
-					$midDirectionVector = $previousDirectionVector->add($currentDirectionVector->subtract($previousDirectionVector)->divide(2));
-					$pos1 = $data->attackPos->add($previousDirectionVector->multiply(3));
-					$pos2 = $data->attackPos->add($midDirectionVector->multiply(3));
-					$pos3 = $data->attackPos->add($currentDirectionVector->multiply(3));
-					// TODO: Thread raycasts - as this will have a significant performance impact if done on the main thread.
-					// However, PHP threading is actually a meme and at this point I should just move to Cloudburst so I can abuse
-					// SingleThreadedExecutors.
-					$results = [
-						$AABB->calculateIntercept($data->attackPos, $pos1),
-						$AABB->calculateIntercept($data->attackPos, $pos2),
-						$AABB->calculateIntercept($data->attackPos, $pos3)
-					];
-					if (in_array(null, $results)) {
-						$this->flag($data, ["type" => "no-intersection"]);
-					} else {
-						$this->reward(0.005);
+				if ($packet->getInputMode() !== InputMode::TOUCHSCREEN && $locationData->isHuman && !$data->boundingBox->intersectsWith($AABB)) { // TODO: Solve SetActorMotion location interpolation stuff
+					$ray = new Ray($data->attackPos, $data->directionVector);
+					$intersection = $AABB->calculateIntercept($ray->origin, $ray->traverse(7));
+					$attackingAABB = AABB::fromPosition($data->attackPos->subtract(0, 1.62));
+					if ($intersection !== null && !$AABB->intersectsWith($attackingAABB)) {
+						$raycastDist = $intersection->getHitVector()->distance($data->attackPos);
+						if ($raycastDist > $this->option("max_dist", 3.01) && $rawDistance >= 2.8) {
+							$flagged = true;
+							if (++$this->secondaryBuffer >= 1.5) {
+								$this->flag($data, ["dist" => round($raycastDist, 3), "rd" => round($rawDistance, 3), "type" => "raycast"]);
+								$this->secondaryBuffer = min($this->secondaryBuffer, 3);
+							}
+						} else {
+							$this->secondaryBuffer = max($this->secondaryBuffer - 0.01, 0);
+						}
+						$this->debug($data, "raycastDist=$raycastDist buff={$this->secondaryBuffer}");
 					}
 				}
 				if (!isset($flagged)) {

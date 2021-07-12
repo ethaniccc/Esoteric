@@ -18,7 +18,7 @@ class VelocityB extends Check {
 	}
 
 	public function inbound(DataPacket $packet, PlayerData $data): void {
-		if ($packet instanceof PlayerAuthInputPacket && $data->ticksSinceMotion === 1 && $data->offGroundTicks > 2) { // TODO: Correct on-ground estimations
+		if ($packet instanceof PlayerAuthInputPacket && $data->ticksSinceMotion === 1 && $data->offGroundTicks > 2 && $data->ticksSinceTeleport >= 3 && $data->ticksSinceSpawn >= 20) { // TODO: Correct on-ground estimations
 			$expectedMovement = clone $data->motion;
 			if (abs($expectedMovement->x) <= 0.001 && abs($expectedMovement->z) <= 0.001) {
 				return;
