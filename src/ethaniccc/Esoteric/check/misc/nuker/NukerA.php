@@ -52,7 +52,7 @@ class NukerA extends Check {
 			if ($packet->itemInteractionData !== null) {
 				$tickDiff = $data->currentTick - $this->startBreakTick;
 				$block = $data->blockBroken;
-				if ($block !== null && $block->getId() !== BlockIds::AIR && !in_array($packet->itemInteractionData->heldItem->getId(), self::$allowBypass)) {
+				if ($block !== null && $block->getId() !== BlockIds::AIR && !in_array($packet->itemInteractionData->heldItem->getId(), self::$allowBypass, true)) {
 					// 0.05 seconds in a tick
 					$expected = $block->getBreakTime($packet->itemInteractionData->heldItem);
 					$hasteEffect = $data->effects[Effect::HASTE] ?? null;

@@ -12,19 +12,33 @@ use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionD
 use function count;
 use function in_array;
 
+/**
+ * Class KillAuraB
+ * @package ethaniccc\Esoteric\check\combat\killaura
+ */
 class KillAuraB extends Check {
 
+	/**
+	 * @var array
+	 */
 	private $entities = [];
 
+	/**
+	 * KillAuraB constructor.
+	 */
 	public function __construct() {
 		parent::__construct("Killaura", "B", "Checks if the player hits too many entities in an instance", false);
 	}
 
+	/**
+	 * @param DataPacket $packet
+	 * @param PlayerData $data
+	 */
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof InventoryTransactionPacket) {
 			$trData = $packet->trData;
 			if ($trData instanceof UseItemOnEntityTransactionData && $trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
-				if (!in_array($trData->getEntityRuntimeId(), $this->entities)) {
+				if (!in_array($trData->getEntityRuntimeId(), $this->entities, true)) {
 					$this->entities[] = $trData->getEntityRuntimeId();
 				}
 			}

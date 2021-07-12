@@ -610,7 +610,7 @@ final class ProcessInbound {
 			$pk->decode();
 			$data->protocol = $pk->protocol;
 			$data->playerOS = $pk->clientData["DeviceOS"];
-			$data->isMobile = in_array($pk->clientData["DeviceOS"], [DeviceOS::AMAZON, DeviceOS::ANDROID, DeviceOS::IOS]);
+			$data->isMobile = in_array($pk->clientData["DeviceOS"], [DeviceOS::AMAZON, DeviceOS::ANDROID, DeviceOS::IOS], true);
 		} elseif ($packet instanceof LevelSoundEventPacket) {
 			if ($packet->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE) {
 				$this->click($data);
@@ -621,7 +621,7 @@ final class ProcessInbound {
 		self::$timings->stopTiming();
 	}
 
-	private function click(PlayerData $data) {
+	private function click(PlayerData $data): void {
 		self::$clickTimings->startTiming();
 		if (count($data->clickSamples) === 20) {
 			$data->clickSamples = [];

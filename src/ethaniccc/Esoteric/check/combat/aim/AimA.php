@@ -11,12 +11,23 @@ use function fmod;
 use function max;
 use function round;
 
+/**
+ * Class AimA
+ * @package ethaniccc\Esoteric\check\combat\aim
+ */
 class AimA extends Check {
 
+	/**
+	 * AimA constructor.
+	 */
 	public function __construct() {
 		parent::__construct("Aim", "A", "Checks for invalid headYaw to yaw patterns", true);
 	}
 
+	/**
+	 * @param DataPacket $packet
+	 * @param PlayerData $data
+	 */
 	public function inbound(DataPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket && !$data->isFullKeyboardGameplay) {
 			$expectedHeadYaw = fmod(($packet->getYaw() > 0 ? 0 : 360) + $packet->getYaw(), 360);

@@ -34,5 +34,4 @@ class UseItemInteractionData {
 	/** @var int */
 	public $blockRuntimeId;
 
-
 }

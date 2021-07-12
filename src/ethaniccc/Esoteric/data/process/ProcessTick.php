@@ -28,8 +28,7 @@ class ProcessTick {
 			foreach ($this->invalid as $key) {
 				if (isset($this->waiting[$key])) {
 					// packet order 9000, no?
-					unset($this->waiting[$key]);
-					unset($this->invalid[$key]);
+					unset($this->waiting[$key], $this->invalid[$key]);
 				}
 			}
 			$timeoutSettings = Esoteric::getInstance()->getSettings()->getTimeoutSettings();

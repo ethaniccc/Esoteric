@@ -23,7 +23,7 @@ class BanTask extends Task {
 		$this->expiration = $expiration;
 	}
 
-	public function onRun(int $currentTick) {
+	public function onRun(int $currentTick): void {
 		Server::getInstance()->getNameBans()->addBan($this->player->getName(), $this->reason, $this->expiration, "Esoteric AC");
 		$this->player->kick(str_replace(['{prefix}', '{code}', '{expires}'], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->reason, $this->expiration !== null ? $this->expiration->format("m/d/y h:i A T") : 'Never'], Esoteric::getInstance()->getSettings()->getBanMessage()), false);
 	}

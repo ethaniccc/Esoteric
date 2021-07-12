@@ -50,7 +50,8 @@ class MotionA extends Check {
 			if ($block->getId() === BlockIds::SLIME_BLOCK) {
 				$this->lastPreviousYMovement *= -1;
 				break;
-			} elseif ($block->getId() === BlockIds::BED_BLOCK) {
+			}
+			if ($block->getId() === BlockIds::BED_BLOCK) {
 				$currentYMovement -= 0.658;
 				break;
 			}

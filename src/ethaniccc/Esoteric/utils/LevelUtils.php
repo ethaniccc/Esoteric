@@ -15,15 +15,6 @@ final class LevelUtils {
 	public const SEARCH_TRANSPARENT = 1;
 	public const SEARCH_SOLID = 2;
 
-	/**
-	 * @param AxisAlignedBB $AABB
-	 * @param VirtualWorld $world
-	 * @param int $searchOption
-	 * @param float $epsilonXZ
-	 * @param float $epsilonY
-	 * @param bool $first
-	 * @return Generator
-	 */
 	public static function checkBlocksInAABB(AxisAlignedBB $AABB, VirtualWorld $world, int $searchOption, float $epsilonXZ = 1, float $epsilonY = 1, bool $first = false): Generator {
 		$minX = floor($AABB->minX - 1);
 		$maxX = ceil($AABB->maxX + 1);

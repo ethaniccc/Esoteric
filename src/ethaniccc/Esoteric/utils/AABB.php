@@ -36,8 +36,6 @@ class AABB extends AxisAlignedBB {
 	}
 
 	/**
-	 * @param Block $block
-	 * @return AABB
 	 * @author senqai / senpayeh
 	 * @link https://github.com/senqai/Sirius/blob/master/src/senpayeh/api/sirius/utils/blockbox/BlockBoxManager.php#L36
 	 */

@@ -4,7 +4,7 @@ namespace ethaniccc\Esoteric\data\process;
 
 class ACKHandler {
 
-	private static $instance = null;
+	private static $instance;
 	private $list = [];
 	private $ackList = [];
 
@@ -39,8 +39,7 @@ class ACKHandler {
 	}
 
 	public function remove(string $identifier): void {
-		unset($this->list[$identifier]);
-		unset($this->ackList[$identifier]);
+		unset($this->list[$identifier], $this->ackList[$identifier]);
 	}
 
 }

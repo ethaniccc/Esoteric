@@ -28,8 +28,6 @@ final class MovementUtils {
 	}
 
 	/**
-	 * @param PlayerData $data
-	 * @return Vector3
 	 * @link https://github.com/MWHunter/Grim/blob/06122780d09e78e7a7a52cbee694b8d6f52b69f1/src/main/java/ac/grim/grimac/checks/predictionengine/movementTick/MovementTicker.java#L347-L371
 	 * @author DefineOutside#4497 - Literal M.A.C legend
 	 */
@@ -41,7 +39,7 @@ final class MovementUtils {
 		$d3 = MathUtils::hypot($estimated->x, $estimated->z);
 		$d4 = $directionVector->length();
 		$f3 = cos($yRotRadians);
-		$f3 = $f3 * $f3 * min(1, $d4 / 0.4);
+		$f3 = ($f3 ** 2) * min(1, $d4 / 0.4);
 		$estimated = $estimated->add(new Vector3(0, $data->gravity * (-1 + $f3 * 0.75), 0));
 		if ($estimated->y < 0 && $d2 > 0) {
 			$d5 = $estimated->y * -0.1 * $f3;
@@ -61,7 +59,6 @@ final class MovementUtils {
 	}
 
 	/**
-	 * @param PlayerData $data
 	 * @return Vector3 - An estimated position of where the player should be next.
 	 */
 	public static function doCollisions(PlayerData $data): Vector3 {

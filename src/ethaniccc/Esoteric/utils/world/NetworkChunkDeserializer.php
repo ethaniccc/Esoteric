@@ -40,7 +40,7 @@ final class NetworkChunkDeserializer {
 		$data = str_replace($total, "", $data);
 		$biomeIds = substr($data, 0, 256);
 		$data = str_replace($biomeIds . "\x00", "", $data);
-		if (strlen($data) !== 0) {
+		if ($data !== '') {
 			// TODO: Tiles, however - we probably don't need Tiles for our use case right now
 		}
 		self::$timings->stopTiming();

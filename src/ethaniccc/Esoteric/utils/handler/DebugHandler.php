@@ -4,6 +4,7 @@ namespace ethaniccc\Esoteric\utils\handler;
 
 use ethaniccc\Esoteric\data\PlayerData;
 use pocketmine\utils\TextFormat;
+use function count;
 
 final class DebugHandler {
 

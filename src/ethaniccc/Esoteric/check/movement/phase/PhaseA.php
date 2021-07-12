@@ -18,6 +18,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use function array_unique;
+use function count;
 
 class PhaseA extends Check {
 
