@@ -366,6 +366,7 @@ final class ProcessInbound {
 				// TODO: Improve vertical and horizontal collisions to work with checks (pReDicTioN bRo)
 				$horizontalAABB = $data->boundingBox->expandedCopy(0.25, 0, 0.25);
 				$verticalAABB = $data->boundingBox->expandedCopy(0.25, MovementConstants::GROUND_MODULO * 2, 0.25);
+				$hasAbove = false;
 				foreach ($blocks as $block) {
 					if (!$data->isCollidedHorizontally) {
 						// snow layers are evil
@@ -376,6 +377,8 @@ final class ProcessInbound {
 						if (floor($block->y) <= floor($location->y)) {
 							$data->expectedOnGround = true;
 							$data->blocksBelow[] = $block;
+						} else {
+							$hasAbove = true;
 						}
 					}
 					if ($block instanceof Liquid) {
@@ -415,12 +418,8 @@ final class ProcessInbound {
 				}
 				$flag3 = abs($predictedMoveY - $actualMoveY) > 0.001;
 				$flag4 = $predictedMoveY < 0 || $data->isCollidedHorizontally;
-				$data->hasBlockAbove = $flag3 && $predictedMoveY > 0 && abs($predictedMoveY) > 0.005 && $data->isCollidedVertically;
+				$data->hasBlockAbove = $flag3 && $predictedMoveY > 0 && abs($predictedMoveY) > 0.005 && $hasAbove;
 				$data->onGround = $flag3 && $flag4 && $data->expectedOnGround;
-
-				if ($data->ticksSinceTeleport <= 1) {
-					$data->onGround = true;
-				}
 
 				if ($data->onGround && $data->isGliding) {
 					/**
@@ -431,7 +430,7 @@ final class ProcessInbound {
 				}
 			}
 
-			if ($data->teleported || !$data->inLoadedChunk) {
+			if (!$data->inLoadedChunk) {
 				$data->expectedOnGround = true;
 				$data->onGround = true;
 			}
