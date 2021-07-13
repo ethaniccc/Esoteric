@@ -36,10 +36,10 @@ class RangeA extends Check {
 				}
 				$AABB = AABB::fromPosition($locationData->lastLocation, $locationData->hitboxWidth + 0.1001, $locationData->hitboxHeight + 0.1001);
 				$rawDistance = $AABB->distanceFromVector($data->attackPos);
-				if ($rawDistance > $this->option("max_raw", 3.05)) {
+				if ($rawDistance > $this->option('max_raw', 3.05)) {
 					$flagged = true;
 					if (++$this->buffer >= 3) {
-						$this->flag($data, ["dist" => round($rawDistance, 3), "type" => "raw"]);
+						$this->flag($data, ['dist' => round($rawDistance, 3), 'type' => 'raw']);
 						$this->buffer = min($this->buffer, 4.5);
 					}
 				} else {
