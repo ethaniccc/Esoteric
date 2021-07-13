@@ -24,7 +24,7 @@ class AutoClickerB extends Check{
 			$this->samples->add("kurtosis=$data->kurtosis skewness=$data->skewness outliers=$data->outliers");
 			$duplicates = $this->samples->duplicates();
 			if ($this->samples->full() && $duplicates >= $this->option("max_duplicates", 4) && $data->cps > 10) {
-				$this->flag($data, ["duplicates" => $duplicates, "cps" => round($data->cps, 2)]);
+				$this->flag($data, ['duplicates' => $duplicates, 'cps' => round($data->cps, 2)]);
 				$this->samples->clear();
 			}
 		}

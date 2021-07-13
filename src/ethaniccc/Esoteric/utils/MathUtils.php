@@ -20,6 +20,10 @@ final class MathUtils {
 
 	public static Vector3 $ZERO_VECTOR;
 
+	public static function hypot(float $p1, float $p2): float {
+		return sqrt($p1 * $p1 + $p2 * $p2);
+	}
+
 	public static function getDeviation(float ...$nums): float {
 		$count = count($nums);
 		if ($count === 0) {

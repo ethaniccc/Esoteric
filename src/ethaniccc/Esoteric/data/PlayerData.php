@@ -13,6 +13,7 @@ use ethaniccc\Esoteric\check\combat\range\RangeA;
 use ethaniccc\Esoteric\check\misc\editionfaker\EditionFakerA;
 use ethaniccc\Esoteric\check\misc\timer\TimerA;
 use ethaniccc\Esoteric\check\movement\velocity\VelocityA;
+use ethaniccc\Esoteric\check\movement\velocity\VelocityB;
 use ethaniccc\Esoteric\data\process\NetworkStackLatencyHandler;
 use ethaniccc\Esoteric\data\process\ProcessInbound;
 use ethaniccc\Esoteric\data\process\ProcessOutbound;
@@ -84,6 +85,7 @@ final class PlayerData {
 	public bool $onGround = true;
 	/** @var bool - An expected value for the client's on ground. */
 	public bool $expectedOnGround = true;
+	public int $offGroundTicks = 0;
 	public ?AABB $boundingBox = null;
 	public ?Vector3 $directionVector = null;
 	/** @var int - Ticks since the player has taken motion. */
@@ -118,10 +120,15 @@ final class PlayerData {
 	public float $hitboxWidth = 0.0;
 	public float $hitboxHeight = 0.0;
 	public bool $isAlive = true;
+	/** @var int - Amount of client ticks that have passed since the player has spawned. */
+	public int $ticksSinceSpawn = 0;
 	/** @var int - Device OS of the player */
 	public int $playerOS = DeviceOS::UNKNOWN;
 	public GameMode $gamemode;
 	public float $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
+	public float $jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
+	public float $moveStrafe = 0.0;
+	public float $moveForward = 0.0;
 	/** @var int[] */
 	public array $clickSamples = [];
 	public bool $runClickChecks = false;
@@ -156,7 +163,7 @@ final class PlayerData {
 			new AimA, new AimB, # Aim Checks
 			new KillAuraA, new KillAuraB, # Killaura checks
 			new RangeA, # Range checks
-			new VelocityA, # Velocity checks
+			new VelocityA, new VelocityB, # Velocity checks
 			new EditionFakerA, # EditionFaker checks
 			new TimerA, # Timer checks
 		];

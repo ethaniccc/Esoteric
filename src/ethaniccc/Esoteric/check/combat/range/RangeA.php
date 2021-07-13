@@ -36,22 +36,21 @@ class RangeA extends Check {
 				}
 				$AABB = AABB::fromPosition($locationData->lastLocation, $locationData->hitboxWidth + 0.1001, $locationData->hitboxHeight + 0.1001);
 				$rawDistance = $AABB->distanceFromVector($data->attackPos);
-				if ($rawDistance > $this->option('max_raw', 3.05)) {
+				if ($rawDistance > $this->option("max_raw", 3.05)) {
 					$flagged = true;
 					if (++$this->buffer >= 3) {
-						$this->flag($data, ['dist' => round($rawDistance, 3), 'type' => 'raw']);
+						$this->flag($data, ["dist" => round($rawDistance, 3), "type" => "raw"]);
 						$this->buffer = min($this->buffer, 4.5);
 					}
 				} else {
 					$this->buffer = max($this->buffer - 0.04, 0);
 				}
-				if ($packet->getInputMode() !== InputMode::TOUCHSCREEN && $locationData->isHuman) { // TODO: Solve SetActorMotion location interpolation stuff
+				if ($packet->getInputMode() !== InputMode::TOUCHSCREEN && $locationData->isHuman && !$data->boundingBox->intersectsWith($AABB)) { // TODO: Solve SetActorMotion location interpolation stuff
 					$ray = new Ray($data->attackPos, $data->directionVector);
 					$intersection = $AABB->calculateIntercept($ray->origin, $ray->traverse(7));
 					$attackingAABB = AABB::fromPosition($data->attackPos->subtract(0, 1.62, 0));
-					if ($intersection !== null && !$AABB->intersectsWith($attackingAABB)){
+					if ($intersection !== null && !$AABB->intersectsWith($attackingAABB)) {
 						$raycastDist = $intersection->getHitVector()->distance($data->attackPos);
-						// $data->player->getServer()->broadcastMessage("§c{$data->player->getName()}: §aRayCast (raw=$rawDistance|ray=$raycastDist)");
 						if ($raycastDist > $this->option('max_dist', 3.01) && $rawDistance >= 2.8) {
 							$flagged = true;
 							if (++$this->secondaryBuffer >= 1.5) {

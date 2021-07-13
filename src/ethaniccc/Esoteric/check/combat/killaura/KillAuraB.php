@@ -25,7 +25,7 @@ class KillAuraB extends Check {
 		if ($packet instanceof InventoryTransactionPacket) {
 			$trData = $packet->trData;
 			if ($trData instanceof UseItemOnEntityTransactionData && $trData->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK) {
-				if (!in_array($trData->getEntityRuntimeId(), $this->entities)) {
+				if (!in_array($trData->getEntityRuntimeId(), $this->entities, true)) {
 					$this->entities[] = $trData->getEntityRuntimeId();
 				}
 			}
@@ -48,7 +48,7 @@ class KillAuraB extends Check {
 					$lastAABB = $AABB;
 				}
 				if (!$collides) {
-					$this->flag($data, ["entities" => count($this->entities)]);
+					$this->flag($data, ['entities' => count($this->entities)]);
 				}
 			}
 			$this->entities = [];

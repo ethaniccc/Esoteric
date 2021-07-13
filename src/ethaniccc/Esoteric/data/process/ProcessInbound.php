@@ -148,6 +148,7 @@ final class ProcessInbound {
 			}
 
 			if (InputConstants::hasFlag($packet, InputConstants::START_SPRINTING)) {
+				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_SPRINT;
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_START_SPRINT;
@@ -158,6 +159,7 @@ final class ProcessInbound {
 				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::STOP_SPRINTING)) {
+				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
 				$pk = new PlayerActionPacket();
 				$pk->entityRuntimeId = $data->player->getId();
 				$pk->action = PlayerActionPacket::ACTION_STOP_SPRINT;
@@ -304,6 +306,7 @@ final class ProcessInbound {
 				// TODO: Improve vertical and horizontal collisions to work with checks (pReDicTioN bRo)
 				$horizontalAABB = $data->boundingBox->expandedCopy(0.25, 0, 0.25);
 				$verticalAABB = $data->boundingBox->expandedCopy(0.25, MovementConstants::GROUND_MODULO * 2, 0.25);
+				$hasAbove = false;
 				/** @var Block $block */
 				foreach ($blocks as $block) {
 					if (!$data->isCollidedHorizontally) {
@@ -314,6 +317,8 @@ final class ProcessInbound {
 						$data->isCollidedVertically = true;
 						if (floor($block->getPos()->y) <= floor($location->y)) {
 							$data->expectedOnGround = true;
+						} else {
+							$hasAbove = true;
 						}
 					}
 					if ($block instanceof Liquid) {
@@ -334,15 +339,14 @@ final class ProcessInbound {
 				if($data->ticksSinceJump === 0) $predictedMoveY = $data->jumpVelocity;
 				$flag3 = abs($predictedMoveY - $actualMoveY) > 0.001;
 				$flag4 = $predictedMoveY < 0 || $data->isCollidedHorizontally;
-				$data->hasBlockAbove = $flag3 && $predictedMoveY > 0 && abs($predictedMoveY) > 0.005 && $data->isCollidedVertically;
+				$data->hasBlockAbove = $flag3 && $predictedMoveY > 0 && abs($predictedMoveY) > 0.005 && $hasAbove;
 				$data->onGround = $flag3 && $flag4 && $data->expectedOnGround;
 
-				if($data->ticksSinceTeleport <= 1) $data->onGround = true;
 				if($data->onGround && $data->isGliding) $data->isGliding = false;
 			}
 
-			if ($data->teleported || !$data->inLoadedChunk) {
-				$data->expectedOnGround = true; // might need to remove this
+			if (!$data->inLoadedChunk) {
+				$data->expectedOnGround = true;
 				$data->onGround = true;
 			}
 
@@ -365,30 +369,26 @@ final class ProcessInbound {
 				if ($validMovement || $hasCollision) {
 					$realBlock = $data->player->getWorld()->getBlock($blockPos, false, false);
 					$handler = NetworkStackLatencyHandler::getInstance();
-					$data->networkStackLatencyHandler->queue($data, function () use ($hasCollision, $data, $realBlock, $handler, $blockPos): void {
-						if ($realBlock instanceof Liquid) {
-							$pk = new UpdateBlockPacket();
-							$pk->x = $blockPos->x;
-							$pk->y = $blockPos->y;
-							$pk->z = $blockPos->z;
-							$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId((BlockLegacyIds::AIR << 4) | 0);
-							$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
-							$data->player->getNetworkSession()->addToSendBuffer($pk);
-						}
+					$data->networkStackLatencyHandler->queue($data, function () use ($hasCollision, &$data, $realBlock, $handler, $blockPos): void {
 						$pk = new UpdateBlockPacket();
 						$pk->x = $blockPos->x;
 						$pk->y = $blockPos->y;
 						$pk->z = $blockPos->z;
-						$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($realBlock->getFullId());
 						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+						if ($realBlock instanceof Liquid) {
+							$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId((BlockLegacyIds::AIR << 4) | 0);
+							$data->player->getNetworkSession()->addToSendBuffer($pk);
+						}
+						$pk = new UpdateBlockPacket();
+						$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($realBlock->getFullId());
 						$data->player->getNetworkSession()->addToSendBuffer($pk);
 						if ($hasCollision && floor($data->currentLocation->y) > $blockPos->y) {
 							// prevent the player from possibly false flagging when removing ghost blocks fail
 							$data->player->teleport(new Vector3($data->currentLocation->x, $blockPos->y, $data->currentLocation->z));
 						}
-						$handler->queue($data, function () use ($data, $realBlock): void {
+						$handler->queue($data, function () use (&$data, $realBlock): void {
 							foreach ($this->placedBlocks as $key => $vector) {
-								if ($vector->getPos()->equals($realBlock->asVector3())) {
+								if ($vector->getPos()->equals($realBlock->getPos())) {
 									unset($this->placedBlocks[$key]);
 									break;
 								}
@@ -399,7 +399,10 @@ final class ProcessInbound {
 			}
 
 			if ($data->onGround) {
+				$data->offGroundTicks = 0;
 				$data->lastOnGroundLocation = clone $data->currentLocation;
+			} else {
+				++$data->offGroundTicks;
 			}
 			++$data->ticksSinceMotion;
 			if ($data->ticksSinceTeleport <= 1) {
@@ -417,11 +420,19 @@ final class ProcessInbound {
 				++$data->ticksSinceFlight;
 			}
 			++$data->ticksSinceJump;
+			if ($data->isAlive) {
+				++$data->ticksSinceSpawn;
+			} else {
+				$data->ticksSinceSpawn = 0;
+			}
 			if ($data->isGliding) {
 				$data->ticksSinceGlide = 0;
 			} else {
 				++$data->ticksSinceGlide;
 			}
+
+			$data->moveForward = $packet->getMoveVecZ() * 0.98;
+			$data->moveStrafe = $packet->getMoveVecX() * 0.98;
 
 			$data->isInVoid = $location->y <= -35;
 

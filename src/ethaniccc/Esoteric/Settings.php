@@ -39,7 +39,7 @@ final class Settings {
 
 	public function getSetbackType(): string {
 		if (is_null($this->setbackType)) {
-			$this->setbackType = isset($this->data['setback_type']) ? (in_array($this->data['setback_type'], [self::SETBACK_INSTANT, self::SETBACK_SMOOTH]) ? $this->data['setback_type'] : 'none') : self::SETBACK_SMOOTH;
+			$this->setbackType = isset($this->data['setback_type']) ? (in_array($this->data['setback_type'], [self::SETBACK_INSTANT, self::SETBACK_SMOOTH], true) ? $this->data['setback_type'] : 'none') : self::SETBACK_SMOOTH;
 		}
 		return $this->setbackType;
 	}

@@ -24,7 +24,7 @@ class AimA extends Check {
 			$roundedDiff = round($diff, 4);
 			if ($diff > 5E-5 && $roundedDiff !== 360.0 && $packet->getHeadYaw() > 0) {
 				if (++$this->buffer >= 3) {
-					$this->flag($data, ["diff" => ($diff >= 0.0001 ? round($diff, 4) : $diff)]);
+					$this->flag($data, ['diff' => ($diff >= 0.0001 ? round($diff, 4) : $diff)]);
 				}
 			} elseif ($packet->getHeadYaw() < 0) {
 				$expectedHeadYaw = fmod($packet->getHeadYaw(), 180);
@@ -32,7 +32,7 @@ class AimA extends Check {
 				$roundedDiff = round($diff, 4);
 				if ($diff > 5E-5 && $roundedDiff !== 360.0) {
 					if (++$this->buffer >= 3) {
-						$this->flag($data, ["diff" => ($diff >= 0.0001 ? round($diff, 4) : $diff)]);
+						$this->flag($data, ['diff' => ($diff >= 0.0001 ? round($diff, 4) : $diff)]);
 					}
 				} else {
 					$this->buffer = max($this->buffer - 0.025, 0);

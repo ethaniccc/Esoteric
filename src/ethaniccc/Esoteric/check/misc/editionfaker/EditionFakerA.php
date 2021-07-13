@@ -33,11 +33,11 @@ class EditionFakerA extends Check {
 				default => null
 			};
 			if(is_null($expectedOS)){
-				Esoteric::getInstance()->loggerThread->write("Unknown TitleID from " . TextFormat::clean($authData->displayName) . " (titleID=$titleID os=$givenOS)");
+				Esoteric::getInstance()->loggerThread->write('Unknown TitleID from ' . TextFormat::clean($authData->displayName) . " (titleID=$titleID os=$givenOS)");
 				return;
 			}
 			if ($givenOS !== $expectedOS) {
-				$this->flag($data, ["titleID" => $titleID, "givenOS" => $givenOS, "expectedOS" => $expectedOS]);
+				$this->flag($data, ['titleID' => $titleID, 'givenOS' => $givenOS, 'expectedOS' => $expectedOS]);
 			}
 		}
 	}

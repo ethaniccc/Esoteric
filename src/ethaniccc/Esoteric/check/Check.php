@@ -102,7 +102,7 @@ abstract class Check {
 			if (!isset(self::$TOTAL_VIOLATIONS[$data->player->getName()])) {
 				self::$TOTAL_VIOLATIONS[$data->player->getName()] = 0;
 			}
-			self::$TOTAL_VIOLATIONS[$data->player->getName()] += 1;
+			self::$TOTAL_VIOLATIONS[$data->player->getName()]++;
 			$banwaveSettings = Esoteric::getInstance()->getSettings()->getWaveSettings();
 			if ($banwaveSettings["enabled"] && self::$TOTAL_VIOLATIONS[$data->player->getName()] >= $banwaveSettings["violations"] && !$data->player->hasPermission("ac.bypass")) {
 				$wave = Esoteric::getInstance()->getBanwave();

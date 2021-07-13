@@ -21,7 +21,7 @@ class AimB extends Check {
 			$roundedDiff = abs(round($data->currentYawDelta, 1) - round($data->currentYawDelta, 5));
 			if ($roundedDiff <= 3E-5 && !$data->isFullKeyboardGameplay) {
 				if (++$this->buffer >= 3) {
-					$this->flag($data, ["diff" => $roundedDiff]);
+					$this->flag($data, ['diff' => $roundedDiff]);
 				}
 			} else {
 				$this->reward();
