@@ -22,6 +22,7 @@ use pocketmine\block\BlockLegacyIds;
 use pocketmine\block\Cobweb;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
+use pocketmine\block\tile\Spawnable;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
 use pocketmine\entity\effect\VanillaEffects;
@@ -271,6 +272,39 @@ final class ProcessInbound {
 						$player->getInventory()->setItemInHand($item);
 					}
 				}
+				$target = $player->getWorld()->getBlock($packet->itemInteractionData->blockPos);
+				// $blocks = $target->getAllSides();
+				// $blocks[] = $target;
+				$pk = new UpdateBlockPacket();
+				$p = $target->getPos();
+				$pk->x = $p->x;
+				$pk->y = $p->y;
+				$pk->z = $p->z;
+				$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+				if($target instanceof Liquid){
+					$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId((BlockLegacyIds::AIR << 4) | 0);
+				} else {
+					$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($target->getFullId());
+				}
+				$data->player->getNetworkSession()->addToSendBuffer($pk);
+				/*foreach ($blocks as $b) {
+					$tile = $player->getWorld()->getTile($b->getPos());
+					if ($tile instanceof Spawnable) {
+						$tile->spawnTo($player);
+					}
+					$p = $b->getPos();
+					$pk->x = $p->x;
+					$pk->y = $p->y;
+					$pk->z = $p->z;
+					$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
+					if($b instanceof Liquid){
+						$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId((BlockLegacyIds::AIR << 4) | 0);
+					} else {
+						$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($b->getFullId());
+					}
+					$data->player->getNetworkSession()->addToSendBuffer($pk);
+
+				}*/
 			}
 
 			$data->jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
@@ -379,7 +413,6 @@ final class ProcessInbound {
 							$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId((BlockLegacyIds::AIR << 4) | 0);
 							$data->player->getNetworkSession()->addToSendBuffer($pk);
 						}
-						$pk = new UpdateBlockPacket();
 						$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($realBlock->getFullId());
 						$data->player->getNetworkSession()->addToSendBuffer($pk);
 						if ($hasCollision && floor($data->currentLocation->y) > $blockPos->y) {

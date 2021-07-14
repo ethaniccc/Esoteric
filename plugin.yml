@@ -3,7 +3,7 @@ author: ethaniccc
 description: A lightweight version of the Esoteric anti-cheat
 version: 1.0.0
 main: ethaniccc\Esoteric\Esoteric
-mcpe-protocol: [437, 440, 441]
+mcpe-protocol: [437, 440, 441, 448]
 api: 4.0.0
 extensions:
   Core: ">=8.0"

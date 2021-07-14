@@ -62,9 +62,8 @@ class ProcessOutbound {
 				foreach ($data->inboundProcessor->placedBlocks as $key => $block) {
 					// check if the block's position sent in UpdateBlockPacket is the same as the placed block
 					// and if the block runtime ID sent in the packet equals the
-					if ($blockVector->equals($block->getPos()) && $block->getFullId() !== RuntimeBlockMapping::getInstance()->fromRuntimeId($packet->blockRuntimeId)) {
+					if ($blockVector->equals($block->getPos()) && $block->getFullId() === RuntimeBlockMapping::getInstance()->fromRuntimeId($packet->blockRuntimeId)) {
 						unset($data->inboundProcessor->placedBlocks[$key]);
-						break;
 					}
 				}
 				break;

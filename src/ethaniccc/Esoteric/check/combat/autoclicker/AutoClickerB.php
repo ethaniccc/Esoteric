@@ -15,7 +15,7 @@ class AutoClickerB extends Check{
 	private EvictingList $samples;
 
 	public function __construct() {
-		parent::__construct("Autoclicker", "B", "Checks for duplicated statistical values in clicks", false);
+		parent::__construct("Autoclicker", "B", "Checks for duplicated statistical values in clicks", true);
 		$this->samples = new EvictingList($this->option("samples", 10));
 	}
 
