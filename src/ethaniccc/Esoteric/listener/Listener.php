@@ -60,10 +60,9 @@ class Listener implements \pocketmine\event\Listener {
 		$packet = $event->getPacket();
 		$session = $event->getOrigin();
 		$playerData = Esoteric::getInstance()->dataManager->get($session) ?? Esoteric::getInstance()->dataManager->add($session);
-		if ($playerData->isDataClosed || $playerData->playerOS === DeviceOS::PLAYSTATION) {
-			return;
-		}
+		if ($playerData->isDataClosed) return;
 		$playerData->inboundProcessor->execute($packet, $playerData);
+		if($playerData->playerOS === DeviceOS::PLAYSTATION) return;
 		foreach ($playerData->checks as $check) {
 			if ($check->enabled()) {
 				$check->getTimings()->startTiming();
