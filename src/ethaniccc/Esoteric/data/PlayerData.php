@@ -35,6 +35,7 @@ use function spl_object_hash;
 final class PlayerData {
 
 	public ?Player $player = null;
+	public NetworkSession $networkSession;
 	/** @var string - The spl_object_hash identifier of the player. */
 	public string $hash;
 	/** @var string - Identifier used in network interface */
@@ -143,6 +144,7 @@ final class PlayerData {
 		$this->hash = spl_object_hash($session);
 		$this->networkIdentifier = "{$session->getPort()} {$session->getIp()}";
 		$this->networkStackLatencyHandler = NetworkStackLatencyHandler::getInstance();
+		$this->networkSession = $session;
 		$zeroVec = clone MathUtils::$ZERO_VECTOR;
 
 		// AIDS START

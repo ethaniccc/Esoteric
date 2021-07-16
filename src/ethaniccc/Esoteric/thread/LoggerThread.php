@@ -20,7 +20,7 @@ class LoggerThread extends Thread {
 		$this->queue = new Threaded();
 	}
 
-	public function start(int $options = PTHREADS_INHERIT_ALL): bool {
+	public function start(int $options = PTHREADS_INHERIT_NONE): bool {
 		$this->running = true;
 		return parent::start($options);
 	}
