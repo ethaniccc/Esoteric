@@ -30,8 +30,7 @@ final class LocationMap {
 	}
 
 	function addEntity(MovePlayerPacket|MoveActorAbsolutePacket $packet): void {
-		if ($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) {
-			$packet->mode = MovePlayerPacket::MODE_RESET;
+		if ($packet instanceof MoveActorAbsolutePacket && $packet->flags >= 2) {
 			$data = $this->locations[$packet->entityRuntimeId] ?? null;
 			if ($data !== null) {
 				$data->isSynced = 0;

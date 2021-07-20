@@ -33,7 +33,7 @@ class WebhookThread extends Thread {
 		self::$instance->queue = new Threaded();
 		self::$instance->errors = new Threaded();
 		self::$instance->running = true;
-		self::$instance->setClassLoader(Server::getInstance()->getLoader());
+		self::$instance->setClassLoaders();
 		self::$instance->logger = Server::getInstance()->getLogger();
 		if ($shouldStart) {
 			self::$instance->start(PTHREADS_INHERIT_NONE);
@@ -45,7 +45,7 @@ class WebhookThread extends Thread {
 	}
 
 	public function onRun() : void {
-		$this->registerClassLoader();
+		$this->registerClassLoaders();
 		while ($this->running) {
 			while (($webhook = $this->queue->shift()) !== null) {
 				/** @var Webhook $webhook */
