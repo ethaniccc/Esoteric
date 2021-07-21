@@ -15,24 +15,20 @@ use ethaniccc\Esoteric\utils\EvictingList;
 use ethaniccc\Esoteric\utils\LevelUtils;
 use ethaniccc\Esoteric\utils\MathUtils;
 use ethaniccc\Esoteric\utils\PacketUtils;
-use pocketmine\block\Air;
 use pocketmine\block\Block;
 use pocketmine\block\BlockBreakInfo;
 use pocketmine\block\BlockFactory;
 use pocketmine\block\BlockIdentifier;
 use pocketmine\block\BlockLegacyIds;
-use pocketmine\block\Cactus;
 use pocketmine\block\Cobweb;
-use pocketmine\block\Fence;
 use pocketmine\block\Ladder;
 use pocketmine\block\Liquid;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\Vine;
-use pocketmine\color\Color;
+use pocketmine\data\java\GameModeIdMap;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\entity\Location;
-use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\AdventureSettingsPacket;
@@ -51,21 +47,13 @@ use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionD
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\timings\TimingsHandler;
-use pocketmine\world\particle\DustParticle;
-use pocketmine\world\particle\FlameParticle;
 use function abs;
 use function array_shift;
-use function array_unique;
 use function count;
 use function floor;
 use function fmod;
-use function implode;
 use function in_array;
-use function iterator_count;
 use function round;
-use function strpos;
-use function var_dump;
-use function var_export;
 
 final class ProcessInbound {
 
@@ -549,7 +537,7 @@ final class ProcessInbound {
 			self::$networkStackLatencyTimings->stopTiming();
 		} elseif ($packet instanceof SetLocalPlayerAsInitializedPacket) {
 			$data->loggedIn = true;
-			$data->gamemode = $data->player->getGamemode()->getMagicNumber();
+			$data->gamemode = GameModeIdMap::getInstance()->toId($data->player->getGamemode());
 			$data->hasAlerts = $data->player->hasPermission(Constants::ALERT_PERMISSION);
 		} elseif ($packet instanceof AdventureSettingsPacket) {
 			$data->isFlying = $packet->getFlag(AdventureSettingsPacket::FLYING) || $packet->getFlag(AdventureSettingsPacket::NO_CLIP);

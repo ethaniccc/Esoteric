@@ -5,7 +5,7 @@ description: A loader for the Esoteric anti-cheat
 version: 2.0.0
 main: ethaniccc\Loader\Loader
 api: 4.0.0
-mcpe-protocol: [431]
+mcpe-protocol: [448]
 permissions:
   ac.alerts:
     description: Get access to anti-cheat alerts
