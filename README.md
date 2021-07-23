@@ -11,7 +11,9 @@ I'm deciding to not disclose to the public.
 Until this notice is removed, please refrain from using future Esoteric versions on big production servers.**
  
 ## Supported Versions
-- 431 (1.16.220+)
+- 431 (1.16.220)
+- 440 (1.17.0)
+- 448 (1.17.10)
 
 ## Planned Features
 
