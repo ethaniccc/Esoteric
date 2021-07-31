@@ -13,7 +13,7 @@
 #  Written by Benjamin <schooldocumentsandstuff@gmail.com>, March, 2021
 
 # Enable this if you are going to be using Blackfire debugging to identify performance issues in Esoteric. If you plan to use Esoteric
-# a production server, disable this option.F
+# a production server, disable this option.
 debugging: true
 
 # Prefix for the anti-cheat when sending warnings.
