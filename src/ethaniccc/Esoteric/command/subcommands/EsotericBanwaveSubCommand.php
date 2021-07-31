@@ -29,6 +29,7 @@ class EsotericBanwaveSubCommand extends BaseSubCommand {
         $this->registerSubCommand(new BanwaveUndoSubCommand($this->plugin, "undo", "Undo the punishments executed from a specified banwave"));
         $this->registerSubCommand(new BanwaveExecuteSubCommand($this->plugin, "execute", "Execute a banwave in the Esoteric anti-cheat"));
     }
+
 }
 
 
