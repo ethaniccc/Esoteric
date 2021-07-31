@@ -22,6 +22,7 @@ final class VirtualWorld {
 			$this->removeChunk($chunkX, $chunkZ);
 		}
 		$this->chunks[Level::chunkHash($chunkX, $chunkZ)] = $chunk;
+		echo "chunks loaded=" . count($this->chunks) . PHP_EOL;
 	}
 
 	public function removeChunk(int $chunkX, int $chunkZ): void {
@@ -82,8 +83,8 @@ final class VirtualWorld {
 		return $this->chunks[Level::chunkHash($chunkX, $chunkZ)] ?? null;
 	}
 
-	public function isValidChunk(int $x, int $z): bool {
-		return isset($this->chunks[Level::chunkHash($x, $z)]);
+	public function isValidChunk(int $x, int $z = null): bool {
+		return $z === null ? isset($this->chunks[$x]) : isset($this->chunks[Level::chunkHash($x, $z)]);
 	}
 
 }
