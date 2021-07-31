@@ -22,7 +22,6 @@ final class VirtualWorld {
 			$this->removeChunk($chunkX, $chunkZ);
 		}
 		$this->chunks[Level::chunkHash($chunkX, $chunkZ)] = $chunk;
-		echo "chunks loaded=" . count($this->chunks) . PHP_EOL;
 	}
 
 	public function removeChunk(int $chunkX, int $chunkZ): void {
