@@ -11,19 +11,16 @@ class BanwaveExecuteSubCommand extends BaseSubCommand {
 
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
     {
-        if ($sender->hasPermission("ac.command.banwave")) {
-            if (Esoteric::getInstance()->getBanwave() === null) {
-                $sender->sendMessage(TextFormat::RED . "Banwaves are disabled");
-                return;
-            }
-
-            Esoteric::getInstance()->getBanwave()->execute();
-        } else {
-            $sender->sendMessage($this->getPermissionMessage());
+        if (Esoteric::getInstance()->getBanwave() === null) {
+            $sender->sendMessage(TextFormat::RED . "Banwaves are disabled");
+            return;
         }
+
+        Esoteric::getInstance()->getBanwave()->execute();
     }
 
     protected function prepare(): void {
+    	$this->setPermission('ac.command.banwave.execute');
     }
 }
 

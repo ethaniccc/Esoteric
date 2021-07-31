@@ -22,6 +22,7 @@ class EsotericCommand extends BaseCommand {
 
     protected function prepare(): void {
         // the commands: help, logs, delay, alerts, banwave, timings, exempt, debug
+        $this->setPermission('ac.command');
         $this->registerSubCommand(new EsotericHelpSubCommand($this->plugin, "help", "A help message with all the commands of the Esoteric"));
         $this->registerSubCommand(new EsotericLogsSubCommand($this->plugin, "logs", "Retrieve user anti-cheat logs"));
         $this->registerSubCommand(new EsotericDelaySubCommand($this->plugin, "delay", "Set your anti-cheat alert delay cooldown"));
