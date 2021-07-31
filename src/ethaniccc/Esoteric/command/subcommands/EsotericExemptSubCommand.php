@@ -21,11 +21,10 @@ class EsotericExemptSubCommand extends BaseSubCommand {
     }
 
     protected function prepare(): void {
-        // TODO: Descriptions
-        $this->registerSubCommand(new ExemptAllSubCommand($this->plugin, "all", "Create a new banwave in the Esoteric anti-cheat"));
-        $this->registerSubCommand(new ExemptGetSubCommand($this->plugin, "get", "Create a new banwave in the Esoteric anti-cheat"));
-        $this->registerSubCommand(new ExemptAddSubCommand($this->plugin, "add", "Create a new banwave in the Esoteric anti-cheat"));
-        $this->registerSubCommand(new ExemptRemoveSubCommand($this->plugin, "remove", "Create a new banwave in the Esoteric anti-cheat"));
+        $this->registerSubCommand(new ExemptAllSubCommand($this->plugin, "all", "Get all the currently exempted players"));
+        $this->registerSubCommand(new ExemptGetSubCommand($this->plugin, "get", "Check if a target player is exempt or not"));
+        $this->registerSubCommand(new ExemptAddSubCommand($this->plugin, "add", "Add a player to an exempt list"));
+        $this->registerSubCommand(new ExemptRemoveSubCommand($this->plugin, "remove", "Remove a player to an exempt list"));
     }
 }
 
