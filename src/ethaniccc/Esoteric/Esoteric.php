@@ -2,6 +2,8 @@
 
 namespace ethaniccc\Esoteric;
 
+use CortexPE\Commando\BaseCommand;
+use CortexPE\Commando\PacketHooker;
 use ethaniccc\Esoteric\blocks\FenceGateOverride;
 use ethaniccc\Esoteric\command\EsotericCommand;
 use ethaniccc\Esoteric\data\PlayerData;
@@ -31,7 +33,6 @@ use function explode;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
-use function function_exists;
 use function implode;
 use function max;
 use function mkdir;
@@ -45,33 +46,33 @@ final class Esoteric {
 	/** @var Esoteric|null */
 	private static $instance;
 	/** @var PluginBase */
-	public $plugin;
+	public PluginBase $plugin;
 	/** @var Settings */
-	public $settings;
+	public Settings $settings;
 	/** @var PlayerDataManager */
-	public $dataManager;
+	public PlayerDataManager $dataManager;
 	/** @var PlayerData[] */
-	public $hasAlerts = [];
+	public array $hasAlerts = [];
 	/** @var string[] */
-	public $logCache = [];
+	public array $logCache = [];
 	/** @var array */
-	public $exemptList = [];
+	public array $exemptList = [];
 	/** @var Banwave|null */
-	public $banwave;
+	public ?Banwave $banwave = null;
 	/** @var TickingTask */
-	public $tickingTask;
+	public TickingTask $tickingTask;
 	/** @var EsotericCommand */
-	public $command;
+	public EsotericCommand $command;
 	/** @var PMMPListener */
-	public $listener;
+	public PMMPListener $listener;
 	/** @var CustomNetworkInterface */
-	public $networkInterface;
+	public CustomNetworkInterface $networkInterface;
 	/** @var LoggerThread */
-	public $loggerThread;
+	public LoggerThread $loggerThread;
 	/** @var DecompressLevelChunkThread */
-	public $chunkThread;
+	public DecompressLevelChunkThread $chunkThread;
 	/** @var bool */
-	public $hasComposerDeps;
+	public bool $hasComposerDeps;
 	/** @var string */
 	public $autoloadPath;
 
@@ -99,7 +100,11 @@ final class Esoteric {
 	 * @throws Exception
 	 */
 	public static function init(PluginBase $plugin, ?Config $config, string $autoloadPath = null, bool $start = false) {
-		if (self::$instance !== null) {
+        if (!class_exists(BaseCommand::class)) {
+            throw new Exception("Commando is required for Esoteric to run");
+        }
+
+        if (self::$instance !== null) {
 			throw new Exception("Esoteric is already started");
 		}
 		self::$instance = new self($plugin, $config, $autoloadPath);
@@ -132,6 +137,7 @@ final class Esoteric {
 				break;
 			}
 		}
+		$this->command = new EsotericCommand($this->plugin, "ac", "The Esoteric anti-cheat command");
 		$this->loggerThread = new LoggerThread($this->getPlugin()->getDataFolder() . "esoteric.log");
 		$this->loggerThread->start();
 		$this->chunkThread = new DecompressLevelChunkThread();
@@ -142,7 +148,6 @@ final class Esoteric {
 		}
 		PacketPool::registerPacket(new PlayerAuthInputPacket());
 		$this->plugin->getScheduler()->scheduleRepeatingTask($this->tickingTask, 1);
-		$this->command = new EsotericCommand();
 
 		if (!file_exists($this->getPlugin()->getDataFolder() . "exempt.txt")) {
 			file_put_contents($this->getPlugin()->getDataFolder() . "exempt.txt", "");
@@ -170,8 +175,12 @@ final class Esoteric {
 		/**
 		 * End the ctrl+c ctrl+v madness
 		 */
+        if(!PacketHooker::isRegistered()) {
+            PacketHooker::register($this->plugin);
+        }
 
-		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
+        Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
+
 		if ($this->settings->getWaveSettings()["enabled"]) {
 			@mkdir($this->getPlugin()->getDataFolder() . "banwaves");
 			$count = count(scandir($this->getPlugin()->getDataFolder() . "banwaves")) - 2;
