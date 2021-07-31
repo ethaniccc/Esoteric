@@ -63,11 +63,11 @@ final class Banwave {
 		}
 		$c = explode("/", $path);
 		$c = $c[max(array_keys($c))];
-		return $get ? new Banwave(file_get_contents($path), $path, (int) explode("-", explode(".", $c)[0])[1]) : null;
+		return $get ? new Banwave(file_get_contents($path), $path, (int)explode("-", explode(".", $c)[0])[1]) : null;
 	}
 
 	public static function get(string $path): self {
-		return new Banwave(file_get_contents($path), $path, (int) explode("-", explode(".", $path)[0])[1]);
+		return new Banwave(file_get_contents($path), $path, (int)explode("-", explode(".", $path)[0])[1]);
 	}
 
 	public function getPath(): string {
@@ -125,7 +125,7 @@ final class Banwave {
 				} else {
 					$d = array_shift($data);
 					$p = array_shift($usernames);
-					$expiration = is_numeric($settings["ban_length"]) ? (new DateTime('now'))->modify("+" . (int) $settings["ban_length"] . " day") : null;
+					$expiration = is_numeric($settings["ban_length"]) ? (new DateTime('now'))->modify("+" . (int)$settings["ban_length"] . " day") : null;
 					$string = str_replace(["{prefix}", "{code}", "{expires}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $d["code"], $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], Esoteric::getInstance()->getSettings()->getBanMessage());
 					if (($player = Server::getInstance()->getPlayerExact($p)) !== null) {
 						Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new BanTask($player, $string));

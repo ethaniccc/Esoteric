@@ -122,8 +122,8 @@ final class MathUtils {
 
 	public static function getOutliers(float ...$collection): float {
 		$count = count($collection);
-		$q1 = self::getMedian(...array_splice($collection, 0, (int) ceil($count * 0.5)));
-		$q3 = self::getMedian(...array_splice($collection, (int) ceil($count * 0.5), $count));
+		$q1 = self::getMedian(...array_splice($collection, 0, (int)ceil($count * 0.5)));
+		$q3 = self::getMedian(...array_splice($collection, (int)ceil($count * 0.5), $count));
 
 		$iqr = abs($q1 - $q3);
 		$lowThreshold = $q1 - 1.5 * $iqr;

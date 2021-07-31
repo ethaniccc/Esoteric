@@ -9,7 +9,6 @@ use UnexpectedValueException;
 use function base64_encode;
 use function count;
 use function str_replace;
-use function strlen;
 use function substr;
 
 final class NetworkChunkDeserializer {

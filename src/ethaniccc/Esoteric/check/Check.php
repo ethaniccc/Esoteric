@@ -235,7 +235,8 @@ abstract class Check {
 		Type: **`$type`**
 		Codename: **`{$this->getCodeName()}`**
 		Detection name: **`$this->name ($this->subType)`**
-		DES);
+		DES
+		);
 		$message->addEmbed($embed);
 
 		$webhook = new Webhook($webhookLink, $message);

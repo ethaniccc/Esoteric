@@ -22,18 +22,6 @@ final class DebugHandler {
 		$this->broadcast("{$data->player->getName()} was added to this debug handler");
 	}
 
-	public function remove(PlayerData $data): void {
-		$wasSet = isset($this->targets[$data->networkIdentifier]);
-		unset($this->targets[$data->networkIdentifier]);
-		if ($wasSet) {
-			$this->broadcast("{$data->player->getName()} was removed from this debug handler");
-		}
-	}
-
-	public function getName(): string {
-		return $this->name;
-	}
-
 	public function broadcast(string $message): void {
 		if (count($this->targets) === 0) {
 			return;
@@ -57,6 +45,18 @@ final class DebugHandler {
 		foreach ($toRemove as $key) {
 			unset($this->targets[$key]);
 		}
+	}
+
+	public function remove(PlayerData $data): void {
+		$wasSet = isset($this->targets[$data->networkIdentifier]);
+		unset($this->targets[$data->networkIdentifier]);
+		if ($wasSet) {
+			$this->broadcast("{$data->player->getName()} was removed from this debug handler");
+		}
+	}
+
+	public function getName(): string {
+		return $this->name;
 	}
 
 }

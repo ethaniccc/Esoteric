@@ -162,7 +162,7 @@ class PMMPListener implements Listener {
 							$dataArr = explode(":::::::::::", $chunkData);
 							// it's either this or we have pthreads fuck us over with it just serializing everything (the chunks in this case)
 							// either way, serialization with threads is inevitable :pensive:
-							$chunk = NetworkChunkDeserializer::chunkNetworkDeserialize($dataArr[3], (int) $dataArr[0], (int) $dataArr[1], $dataArr[2]);
+							$chunk = NetworkChunkDeserializer::chunkNetworkDeserialize($dataArr[3], (int)$dataArr[0], (int)$dataArr[1], $dataArr[2]);
 							foreach ($this->levelChunkReceivers[$id] as $data) {
 								if ($data->loggedIn) {
 									NetworkStackLatencyHandler::getInstance()->send($data, static function (int $timestamp) use (&$data, $chunk): void {

@@ -42,6 +42,14 @@ class LoggerThread extends Thread {
 		fclose($stream);
 	}
 
+	private function writeStream($stream): void {
+		while ($this->buffer->count() > 0) {
+			/** @var string $line */
+			$line = $this->buffer->pop();
+			fwrite($stream, $line . "\n");
+		}
+	}
+
 	public function quit(): void {
 		$this->running = false;
 		parent::quit();
@@ -50,14 +58,6 @@ class LoggerThread extends Thread {
 	public function write(string $data): void {
 		$this->buffer[] = $data;
 		$this->notify();
-	}
-
-	private function writeStream($stream): void {
-		while ($this->buffer->count() > 0) {
-			/** @var string $line */
-			$line = $this->buffer->pop();
-			fwrite($stream, $line . "\n");
-		}
 	}
 
 }

@@ -6,7 +6,6 @@ use CortexPE\Commando\BaseCommand;
 use CortexPE\Commando\PacketHooker;
 use ethaniccc\Esoteric\blocks\FenceGateOverride;
 use ethaniccc\Esoteric\command\EsotericCommand;
-use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\PlayerDataManager;
 use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use ethaniccc\Esoteric\listener\PMMPListener;
@@ -84,11 +83,11 @@ final class Esoteric {
 	 * @throws Exception
 	 */
 	public static function init(PluginBase $plugin, ?Config $config, string $autoloadPath = null, bool $start = false) {
-        if (!class_exists(BaseCommand::class)) {
-            throw new Exception("Commando is required for Esoteric to run");
-        }
+		if (!class_exists(BaseCommand::class)) {
+			throw new Exception("Commando is required for Esoteric to run");
+		}
 
-        if (self::$instance !== null) {
+		if (self::$instance !== null) {
 			throw new Exception("Esoteric is already started");
 		}
 		self::$instance = new self($plugin, $config, $autoloadPath);
@@ -159,11 +158,11 @@ final class Esoteric {
 		/**
 		 * End the ctrl+c ctrl+v madness
 		 */
-        if(!PacketHooker::isRegistered()) {
-            PacketHooker::register($this->plugin);
-        }
+		if (!PacketHooker::isRegistered()) {
+			PacketHooker::register($this->plugin);
+		}
 
-        Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
+		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
 
 		if ($this->settings->getWaveSettings()["enabled"]) {
 			@mkdir($this->getPlugin()->getDataFolder() . "banwaves");
