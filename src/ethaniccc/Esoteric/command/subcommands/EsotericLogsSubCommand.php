@@ -9,6 +9,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat;
 
 class EsotericLogsSubCommand extends BaseSubCommand {
+
 	public function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
 		$selectedUser = $args['player'];
 		$data = Esoteric::getInstance()->dataManager->getFromName($selectedUser->getName());

@@ -24,10 +24,10 @@ class EsotericBanwaveSubCommand extends BaseSubCommand {
 
 	protected function prepare(): void {
 		$this->setPermission('ac.command.banwave');
-		$this->registerSubCommand(new BanwaveAddSubCommand($this->plugin, "add", "Create a new banwave in the Esoteric anti-cheat"));
-		$this->registerSubCommand(new BanwaveRemoveSubCommand($this->plugin, "remove", "Remove an existing Esoteric banwave"));
-		$this->registerSubCommand(new BanwaveUndoSubCommand($this->plugin, "undo", "Undo the punishments executed from a specified banwave"));
-		$this->registerSubCommand(new BanwaveExecuteSubCommand($this->plugin, "execute", "Execute a banwave in the Esoteric anti-cheat"));
+		$this->registerSubCommand(new BanwaveAddSubCommand("add", "Create a new banwave in the Esoteric anti-cheat"));
+		$this->registerSubCommand(new BanwaveRemoveSubCommand("remove", "Remove an existing Esoteric banwave"));
+		$this->registerSubCommand(new BanwaveUndoSubCommand("undo", "Undo the punishments executed from a specified banwave"));
+		$this->registerSubCommand(new BanwaveExecuteSubCommand("execute", "Execute a banwave in the Esoteric anti-cheat"));
 	}
 
 }

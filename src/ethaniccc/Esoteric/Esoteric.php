@@ -42,10 +42,10 @@ use const PTHREADS_INHERIT_NONE;
 
 final class Esoteric {
 
-	private static ?self $instance;
+	private static ?self $instance = null;
 	public PluginBase $plugin;
 	public Settings $settings;
-	public PlayerDataManager $dataManager
+	public PlayerDataManager $dataManager;
 	public array $hasAlerts = [];
 	public array $logCache = [];
 	public array $exemptList = [];
@@ -57,7 +57,7 @@ final class Esoteric {
 	public LoggerThread $loggerThread;
 	public DecompressLevelChunkThread $chunkThread;
 	public bool $hasComposerDeps;
-	public string $autoloadPath;
+	public ?string $autoloadPath;
 
 	/**
 	 * Esoteric constructor.

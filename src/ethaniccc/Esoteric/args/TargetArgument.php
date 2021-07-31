@@ -10,6 +10,7 @@ use pocketmine\Player;
 use pocketmine\Server;
 
 class TargetArgument extends BaseArgument {
+
 	public function getNetworkType(): int {
 		return AvailableCommandsPacket::ARG_TYPE_TARGET;
 	}
