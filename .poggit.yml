@@ -3,7 +3,6 @@ build-by-default: true
 branches:
 - master
 - API4
-- commando
 projects:
   Esoteric:
     path: ""
