@@ -6,6 +6,7 @@ use ethaniccc\Esoteric\data\PlayerData;
 use ethaniccc\Esoteric\data\sub\effect\EffectData;
 use pocketmine\entity\Attribute;
 use pocketmine\math\Vector3;
+use pocketmine\level\Level;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\AddActorPacket;

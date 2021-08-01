@@ -1,0 +1,1 @@
+    private $menuItem = null;
