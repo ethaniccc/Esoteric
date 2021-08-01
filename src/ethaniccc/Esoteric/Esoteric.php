@@ -57,7 +57,8 @@ final class Esoteric {
 	public LoggerThread $loggerThread;
 	public DecompressLevelChunkThread $chunkThread;
 	public bool $hasComposerDeps;
-	public ?string $autoloadPath;
+	/** @var ?string */
+	public $autoloadPath;
 
 	/**
 	 * Esoteric constructor.
