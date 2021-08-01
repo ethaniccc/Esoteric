@@ -1,8 +1,8 @@
 --- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/ethaniccc/Esoteric
 build-by-default: true
 branches:
-- master
-- API4
+  - master
+  - API4
 projects:
   Esoteric:
     path: ""

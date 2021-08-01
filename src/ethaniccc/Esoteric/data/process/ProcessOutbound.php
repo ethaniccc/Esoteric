@@ -126,18 +126,53 @@ class ProcessOutbound {
 		} elseif ($packet instanceof NetworkChunkPublisherUpdatePacket) {
 			$handler->send($data, static function (int $timestamp) use ($packet, &$data): void {
 				$data->chunkSendPosition = new Vector3($packet->x, $packet->y, $packet->z);
-				$radius = $packet->radius >> 4;
-				$chunkX = $data->chunkSendPosition->x >> 4;
-				$chunkZ = $data->chunkSendPosition->z >> 4;
-				$toRemove = [];
-				foreach ($data->world->getAllChunks() as $hash => $chunk) {
-					if (abs($chunk->getX() - $chunkX) >= $radius || abs($chunk->getZ() - $chunkZ) >= $radius) {
-						$toRemove[] = $hash;
+				$toRemove = $data->world->getAllChunks();
+				$centerX = $packet->x >> 4;
+				$centerZ = $packet->z >> 4;
+				$radius = $packet->radius / 16;
+				for ($x = 0; $x < $radius; ++$x) {
+					for ($z = 0; $z <= $x; ++$z) {
+						if (($x ** 2 + $z ** 2) > $radius ** 2) {
+							break;
+						}
+						$index = Level::chunkHash($centerX + $x, $centerZ + $z);
+						if ($data->world->isValidChunk($index)) {
+							unset($toRemove[$index]);
+						}
+						$index = Level::chunkHash($centerX - $x - 1, $centerZ + $z);
+						if ($data->world->isValidChunk($index)) {
+							unset($toRemove[$index]);
+						}
+						$index = Level::chunkHash($centerX + $x, $centerZ - $z - 1);
+						if ($data->world->isValidChunk($index)) {
+							unset($toRemove[$index]);
+						}
+						$index = Level::chunkHash($centerX - $x - 1, $centerZ - $z - 1);
+						if ($data->world->isValidChunk($index)) {
+							unset($toRemove[$index]);
+						}
+						if ($x !== $z) {
+							$index = Level::chunkHash($centerX + $z, $centerZ + $x);
+							if ($data->world->isValidChunk($index)) {
+								unset($toRemove[$index]);
+							}
+							$index = Level::chunkHash($centerX - $z - 1, $centerZ + $x);
+							if ($data->world->isValidChunk($index)) {
+								unset($toRemove[$index]);
+							}
+							$index = Level::chunkHash($centerX + $z, $centerZ - $x - 1);
+							if ($data->world->isValidChunk($index)) {
+								unset($toRemove[$index]);
+							}
+							$index = Level::chunkHash($centerX - $z - 1, $centerZ - $x - 1);
+							if ($data->world->isValidChunk($index)) {
+								unset($toRemove[$index]);
+							}
+						}
 					}
 				}
-				// remove chunks after there are no more references to them
-				foreach ($toRemove as $chunkHash) {
-					$data->world->removeChunkByHash($chunkHash);
+				foreach (array_keys($toRemove) as $hash) {
+					$data->world->removeChunkByHash($hash);
 				}
 			});
 		} elseif ($packet instanceof AdventureSettingsPacket) {
