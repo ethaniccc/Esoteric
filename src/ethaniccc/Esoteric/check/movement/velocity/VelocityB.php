@@ -71,8 +71,7 @@ class VelocityB extends Check {
 			}
 			$keys = implode(",", $keys);
 			$subVec = $data->currentMoveDelta->subtract($expectedMovement);
-			if (!$data->isCollidedHorizontally && $data->ticksSinceInClimbable > 5 && $data->ticksSinceFlight > 5 && !$data->isGliding
-			&& $data->ticksSinceInCobweb > 5 && $data->ticksSinceInLiquid > 5) {
+			if (!$data->isCollidedHorizontally && $data->ticksSinceInClimbable > 5 && $data->ticksSinceFlight > 5 && !$data->isGliding && $data->ticksSinceInCobweb > 5 && $data->ticksSinceInLiquid > 5) {
 				if (abs($subVec->x) > 5E-5 && abs($subVec->z) > 5E-5) {
 					$r = round($pct, 3);
 					$this->flag($data, ["pct" => "$r%", "keys" => $keys === "" ? "none" : $keys]);

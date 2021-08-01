@@ -228,8 +228,7 @@ final class PlayerData {
 		$this->world = new VirtualWorld();
 		$this->movements = new EvictingList(20);
 
-		$this->checks = [
-			new AimA(), new AimB(), # Aim checks
+		$this->checks = [new AimA(), new AimB(), # Aim checks
 			new AutoClickerA(), new AutoClickerB(), # Autoclicker checks
 			new KillAuraA(), new KillAuraB(), # Killaura checks
 			new RangeA(), # Range checks

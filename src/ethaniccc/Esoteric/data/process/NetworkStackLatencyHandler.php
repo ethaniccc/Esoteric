@@ -21,17 +21,6 @@ final class NetworkStackLatencyHandler {
 		return self::$instance;
 	}
 
-	private function next(PlayerData $data): NetworkStackLatencyPacket {
-		if (!isset($this->currentTimestamp[$data->hash])) {
-			$this->currentTimestamp[$data->hash] = 0;
-		}
-		$this->currentTimestamp[$data->hash] += mt_rand(1, 10) * 1000;
-		$pk = new NetworkStackLatencyPacket();
-		$pk->needResponse = true;
-		$pk->timestamp = $this->currentTimestamp[$data->hash];
-		return $pk;
-	}
-
 	public function send(PlayerData $data, callable $onResponse) {
 		$packet = $this->next($data);
 		$timestamp = $packet->timestamp;
@@ -47,6 +36,17 @@ final class NetworkStackLatencyHandler {
 			$this->list[$data->hash] = [];
 		}
 		$this->list[$data->hash][$timestamp] = $onResponse;
+	}
+
+	private function next(PlayerData $data): NetworkStackLatencyPacket {
+		if (!isset($this->currentTimestamp[$data->hash])) {
+			$this->currentTimestamp[$data->hash] = 0;
+		}
+		$this->currentTimestamp[$data->hash] += mt_rand(1, 10) * 1000;
+		$pk = new NetworkStackLatencyPacket();
+		$pk->needResponse = true;
+		$pk->timestamp = $this->currentTimestamp[$data->hash];
+		return $pk;
 	}
 
 	public function forceHandle(PlayerData $data, int $timestamp, callable $onResponse): void {

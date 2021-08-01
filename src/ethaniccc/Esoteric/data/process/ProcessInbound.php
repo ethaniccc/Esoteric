@@ -233,9 +233,7 @@ final class ProcessInbound {
 				$data->isGliding = false;
 			}
 
-			$data->isSprinting ?
-				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_SPRINT :
-				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
+			$data->isSprinting ? $data->jumpMovementFactor = MovementConstants::JUMP_MOVE_SPRINT : $data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
 
 			if ($packet->blockActions !== null) {
 				foreach ($packet->blockActions as $action) {

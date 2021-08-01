@@ -15,10 +15,10 @@ class FenceGateOverride extends FenceGate {
 	/**
 	 * FenceGateOverride constructor.
 	 *
-	 * @param int         $id
-	 * @param int         $meta
+	 * @param int $id
+	 * @param int $meta
 	 * @param string|null $name
-	 * @param int|null    $itemId
+	 * @param int|null $itemId
 	 */
 	public function __construct(int $id, int $meta = 0, string $name = null, int $itemId = null) {
 		parent::__construct($id, $meta, $name, $itemId);

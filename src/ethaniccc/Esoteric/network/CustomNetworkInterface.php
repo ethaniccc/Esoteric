@@ -60,7 +60,7 @@ class CustomNetworkInterface implements ServerInstance, AdvancedSourceInterface 
 		$this->server = $server;
 
 		$this->sleeper = new SleeperNotifier();
-		$this->rakLib = new RakLibServer($this->server->getLogger(), COMPOSER_AUTOLOADER_PATH, new InternetAddress($this->server->getIp(), $this->server->getPort(), 4), (int) $this->server->getProperty("network.max-mtu-size", 1492), self::MCPE_RAKNET_PROTOCOL_VERSION, $this->sleeper);
+		$this->rakLib = new RakLibServer($this->server->getLogger(), COMPOSER_AUTOLOADER_PATH, new InternetAddress($this->server->getIp(), $this->server->getPort(), 4), (int)$this->server->getProperty("network.max-mtu-size", 1492), self::MCPE_RAKNET_PROTOCOL_VERSION, $this->sleeper);
 		$this->interface = new ServerHandler($this->rakLib, $this);
 	}
 

@@ -52,7 +52,7 @@ class DecompressLevelChunkThread extends Thread {
 				}
 				$this->results[] = $chunks;
 			}
-			$this->synchronized(function () : void {
+			$this->synchronized(function (): void {
 				if (!$this->isKilled) {
 					$this->wait();
 				}
