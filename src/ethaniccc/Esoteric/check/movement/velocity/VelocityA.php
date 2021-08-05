@@ -9,6 +9,7 @@ use ethaniccc\Esoteric\data\sub\protocol\v428\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
 use function min;
 use function round;
+use function var_dump;
 
 class VelocityA extends Check {
 
@@ -20,6 +21,7 @@ class VelocityA extends Check {
 
 	public function inbound(ServerboundPacket $packet, PlayerData $data): void {
 		if ($packet instanceof PlayerAuthInputPacket) {
+			//var_dump('motion: ' . $data->ticksSinceMotion, 'jump: ' . $data->ticksSinceJump);
 			if ($data->ticksSinceMotion === 1 && $data->ticksSinceJump !== 1) {
 				$this->yMotion = $data->motion->y;
 			}
@@ -32,7 +34,9 @@ class VelocityA extends Check {
 				}
 
 				$percentage = ($data->currentMoveDelta->y / $this->yMotion) * 100;
+				// var_dump("Esoteric -> (Y: $this->yMotion | DELTA: {$data->currentMoveDelta->y} | PCT: $percentage)");
 				if ($percentage < $this->option("pct", 99.9) && $data->inLoadedChunk && !$data->hasBlockAbove && $data->ticksSinceInCobweb >= 5 && $data->ticksSinceFlight >= 10 && $data->ticksSinceInLiquid >= 5 && $data->ticksSinceInClimbable >= 5) {
+					//var_dump('Esoteric -> ' . $percentage);
 					if (++$this->buffer >= 8) {
 						$this->flag($data, ["pct" => round($percentage, 5) . "%",]);
 					}

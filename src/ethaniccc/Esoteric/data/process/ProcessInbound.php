@@ -453,6 +453,7 @@ final class ProcessInbound {
 				++$data->ticksSinceFlight;
 			}
 			++$data->ticksSinceJump;
+			++$data->ticksSinceJump;
 			if ($data->isAlive) {
 				++$data->ticksSinceSpawn;
 			} else {
@@ -494,7 +495,8 @@ final class ProcessInbound {
 						}
 						if ($blockToReplace->canBeReplaced() && ($block instanceof UnknownBlock || $block->canBePlaced()) && $data->canPlaceBlocks && $data->boundingBox !== null && !$block->collidesWithBB($data->boundingBox)) {
 							if ($trData->getItemInHand()->getItemStack()->getId() < 0) {
-								$block = new UnknownBlock($trData->getItemInHand()->getItemStack()->getId(), LevelUtils::$ZERO_BREAK_INFO);
+								$stack = $trData->getItemInHand()->getItemStack();
+								$block = new UnknownBlock(new BlockIdentifier($stack->getId(), $stack->getMeta()), LevelUtils::$ZERO_BREAK_INFO);
 								$p = $blockToReplace->getPos();
 								$block->position($p->getWorld(), $p->x, $p->y, $p->z);
 								if ($block->collidesWithBB($data->boundingBox)) {
