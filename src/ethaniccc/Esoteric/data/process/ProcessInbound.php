@@ -453,7 +453,6 @@ final class ProcessInbound {
 				++$data->ticksSinceFlight;
 			}
 			++$data->ticksSinceJump;
-			++$data->ticksSinceJump;
 			if ($data->isAlive) {
 				++$data->ticksSinceSpawn;
 			} else {
