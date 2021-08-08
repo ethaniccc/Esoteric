@@ -143,6 +143,8 @@ final class PlayerData {
 	public $isInVoid = false;
 	/** @var float */
 	public $gravity = MovementConstants::NORMAL_GRAVITY;
+	/** @var float */
+	public $ySize = 0;
 	/** @var bool */
 	public $teleported = false;
 	/** @var int - The amount of movements that have passed since the player has disabled flight. */

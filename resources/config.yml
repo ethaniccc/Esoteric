@@ -14,7 +14,7 @@
 
 # Enable this if you are going to be using Blackfire debugging to identify performance issues in Esoteric. If you plan to use Esoteric
 # a production server, disable this option.
-debugging: true
+debugging: false
 
 # Prefix for the anti-cheat when sending warnings.
 prefix: "§l§6Eso§fteric§7>§r"
@@ -172,7 +172,7 @@ detections:
   # Phase detections
   Phase:
     A:
-      enabled: true
+      enabled: false
       punishment_type: none
       max_vl: 20
       code: Ghost
