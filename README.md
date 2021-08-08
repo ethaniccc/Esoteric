@@ -28,7 +28,7 @@ These are a list of the current detections Esoteric has, along with descriptions
 
 - **Autoclicker**
   - A: Checks if the player's CPS exceeds a certain threshold.
-  - B: Checks if the player has duplicated click statistics
+  - B: Checks if the player has duplicated click statistics 
 - **Aim**
   - A: Checks if the player's headYaw does not correlate with the player's yaw.
   - B: Checks if the player's yaw movement is rounded.
