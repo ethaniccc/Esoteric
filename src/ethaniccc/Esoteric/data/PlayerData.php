@@ -7,6 +7,7 @@ use ethaniccc\Esoteric\check\combat\aim\AimA;
 use ethaniccc\Esoteric\check\combat\aim\AimB;
 use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerA;
 use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerB;
+use ethaniccc\Esoteric\check\combat\autoclicker\AutoClickerC;
 use ethaniccc\Esoteric\check\combat\killaura\KillAuraA;
 use ethaniccc\Esoteric\check\combat\killaura\KillAuraB;
 use ethaniccc\Esoteric\check\combat\range\RangeA;
@@ -230,8 +231,9 @@ final class PlayerData {
 		$this->world = new VirtualWorld();
 		$this->movements = new EvictingList(20);
 
-		$this->checks = [new AimA(), new AimB(), # Aim checks
-			new AutoClickerA(), new AutoClickerB(), # Autoclicker checks
+		$this->checks = [
+			new AimA(), new AimB(), # Aim checks
+			new AutoClickerA(), new AutoClickerB(), new AutoClickerC(), # Autoclicker checks
 			new KillAuraA(), new KillAuraB(), # Killaura checks
 			new RangeA(), # Range checks
 			new FlyA(), new FlyB(), new FlyC(), # Fly checks

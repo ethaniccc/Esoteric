@@ -88,6 +88,12 @@ detections:
       code: Crocodile
       samples: 10
       max_duplicates: 4
+    # This check is not listed as experimental to get results from semi-production servers
+    C:
+      enabled: true
+      punishment_type: kick
+      max_vl: 5
+      code: Perverse Instantiation
   # Aim detections
   Aim:
     A:

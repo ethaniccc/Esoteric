@@ -10,6 +10,9 @@ I'm deciding to not disclose to the public.
 **NOTICE: Esoteric is now currently in an experimental state - performance may degrade. 
 Until this notice is removed, please refrain from using future Esoteric versions on big production servers.**
  
+## Dependencies
+- [Commando](https://github.com/Paroxity/Commando) v2.1.2 (Virion)
+
 ## Supported Versions
 - 431 (1.16.220)
 - 440 (1.17.0)
@@ -29,6 +32,7 @@ These are a list of the current detections Esoteric has, along with descriptions
 - **Autoclicker**
   - A: Checks if the player's CPS exceeds a certain threshold.
   - B: Checks if the player has duplicated click statistics 
+  - C: Checks if the player is clicking over 15 cps without double-clicking (clicking two times in the same client tick) once. 
 - **Aim**
   - A: Checks if the player's headYaw does not correlate with the player's yaw.
   - B: Checks if the player's yaw movement is rounded.
@@ -51,7 +55,7 @@ These are a list of the current detections Esoteric has, along with descriptions
     cannot be greater than your previous speed.
   - D: Checks if the player's movement is valid while gliding.
 - **Phase**
-  - A: Checks if the player makes an invalid move inside a block.
+  - A: Checks if the player makes an invalid move inside a block. Please note that this check is disabled by default due to the resource drain.
 - **Velocity**
   - A: Checks if the player takes less vertical knockback than normal.
   - B: Checks if the player takes less horizontal knockback than normal. This check is currently unusable.
