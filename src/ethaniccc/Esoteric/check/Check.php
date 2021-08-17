@@ -225,7 +225,7 @@ abstract class Check {
 				case Settings::SETBACK_SMOOTH:
 					$delta = ($data->packetDeltas[0] ?? new Vector3(0, -0.08 * 0.98, 0));
 					$packet = CorrectPlayerMovePredictionPacket::create(($data->onGround ? $data->lastLocation : $data->lastOnGroundLocation)->add(0, 1.62, 0), $delta, $data->onGround, array_keys($data->packetDeltas)[0] ?? 0);
-					$data->player->getNetworkSession()->sendDataPacket($packet);
+					$data->networkSession->sendDataPacket($packet);
 					break;
 				case Settings::SETBACK_INSTANT:
 					$position = $data->onGround ? $data->lastLocation : $data->lastOnGroundLocation;

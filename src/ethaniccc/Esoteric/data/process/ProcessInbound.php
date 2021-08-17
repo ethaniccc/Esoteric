@@ -145,7 +145,7 @@ final class ProcessInbound {
 				$pk->mode = MovePlayerPacket::MODE_NORMAL;
 				$pk->onGround = $data->onGround;
 				$pk->tick = $packet->getTick();
-				$data->player->getNetworkSession()->getHandler()->handleMovePlayer($pk);
+				$data->networkSession->getHandler()->handleMovePlayer($pk);
 			}
 
 			if (InputConstants::hasFlag($packet, InputConstants::START_SPRINTING)) {
@@ -157,7 +157,7 @@ final class ProcessInbound {
 				$pk->y = $location->y;
 				$pk->z = $location->z;
 				$pk->face = $data->player->getHorizontalFacing();
-				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
+				$data->networkSession->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::STOP_SPRINTING)) {
 				$data->jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
@@ -168,7 +168,7 @@ final class ProcessInbound {
 				$pk->y = $location->y;
 				$pk->z = $location->z;
 				$pk->face = $data->player->getHorizontalFacing();
-				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
+				$data->networkSession->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::START_SNEAKING)) {
 				$pk = new PlayerActionPacket();
@@ -178,7 +178,7 @@ final class ProcessInbound {
 				$pk->y = $location->y;
 				$pk->z = $location->z;
 				$pk->face = $data->player->getHorizontalFacing();
-				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
+				$data->networkSession->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::STOP_SNEAKING)) {
 				$pk = new PlayerActionPacket();
@@ -188,7 +188,7 @@ final class ProcessInbound {
 				$pk->y = $location->y;
 				$pk->z = $location->z;
 				$pk->face = $data->player->getHorizontalFacing();
-				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
+				$data->networkSession->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::START_JUMPING)) {
 				$data->ticksSinceJump = 0;
@@ -199,7 +199,7 @@ final class ProcessInbound {
 				$pk->y = $location->y;
 				$pk->z = $location->z;
 				$pk->face = $data->player->getHorizontalFacing();
-				$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
+				$data->networkSession->getHandler()->handlePlayerAction($pk);
 			}
 			if (InputConstants::hasFlag($packet, InputConstants::START_GLIDING)) {
 				$data->isGliding = true;
@@ -219,7 +219,7 @@ final class ProcessInbound {
 							$pk->y = $action->blockPos->y;
 							$pk->z = $action->blockPos->z;
 							$pk->face = $data->player->getHorizontalFacing();
-							$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
+							$data->networkSession->getHandler()->handlePlayerAction($pk);
 							break;
 						case PlayerBlockAction::CONTINUE:
 						case PlayerBlockAction::CRACK_BREAK:
@@ -230,7 +230,7 @@ final class ProcessInbound {
 							$pk->y = $action->blockPos->y;
 							$pk->z = $action->blockPos->z;
 							$pk->face = $data->player->getHorizontalFacing();
-							$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
+							$data->networkSession->getHandler()->handlePlayerAction($pk);
 							break;
 						case PlayerBlockAction::ABORT_BREAK:
 							$pk = new PlayerActionPacket();
@@ -240,7 +240,7 @@ final class ProcessInbound {
 							$pk->y = $action->blockPos->y;
 							$pk->z = $action->blockPos->z;
 							$pk->face = $data->player->getHorizontalFacing();
-							$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
+							$data->networkSession->getHandler()->handlePlayerAction($pk);
 							break;
 						case PlayerBlockAction::STOP_BREAK:
 							$pk = new PlayerActionPacket();
@@ -250,7 +250,7 @@ final class ProcessInbound {
 							$pk->y = $location->y;
 							$pk->z = $location->z;
 							$pk->face = $data->player->getHorizontalFacing();
-							$data->player->getNetworkSession()->getHandler()->handlePlayerAction($pk);
+							$data->networkSession->getHandler()->handlePlayerAction($pk);
 							break;
 						case PlayerBlockAction::PREDICT_DESTROY:
 							break;
@@ -286,7 +286,7 @@ final class ProcessInbound {
 				} else {
 					$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($target->getFullId());
 				}
-				$data->player->getNetworkSession()->addToSendBuffer($pk);
+				$data->networkSession->addToSendBuffer($pk);
 				/*foreach ($blocks as $b) {
 					$tile = $player->getWorld()->getTile($b->getPos());
 					if ($tile instanceof Spawnable) {
@@ -302,7 +302,7 @@ final class ProcessInbound {
 					} else {
 						$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($b->getFullId());
 					}
-					$data->player->getNetworkSession()->addToSendBuffer($pk);
+					$data->networkSession->addToSendBuffer($pk);
 
 				}*/
 			}
@@ -411,10 +411,10 @@ final class ProcessInbound {
 						$pk->dataLayerId = UpdateBlockPacket::DATA_LAYER_NORMAL;
 						if ($realBlock instanceof Liquid) {
 							$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId((BlockLegacyIds::AIR << 4) | 0);
-							$data->player->getNetworkSession()->addToSendBuffer($pk);
+							$data->networkSession->addToSendBuffer($pk);
 						}
 						$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($realBlock->getFullId());
-						$data->player->getNetworkSession()->addToSendBuffer($pk);
+						$data->networkSession->addToSendBuffer($pk);
 						if ($hasCollision && floor($data->currentLocation->y) > $blockPos->y) {
 							// prevent the player from possibly false flagging when removing ghost blocks fail
 							$data->player->teleport(new Vector3($data->currentLocation->x, $blockPos->y, $data->currentLocation->z));

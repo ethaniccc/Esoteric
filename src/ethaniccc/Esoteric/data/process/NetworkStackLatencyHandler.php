@@ -40,7 +40,7 @@ final class NetworkStackLatencyHandler {
 		$pk = new NetworkStackLatencyPacket();
 		$pk->timestamp = $data->tickProcessor->currentTimestamp;
 		$pk->needResponse = true;
-		$data->player->getNetworkSession()->addToSendBuffer($pk);
+		$data->networkSession->addToSendBuffer($pk);
 		$data->tickProcessor->waiting[$pk->timestamp] = $data->currentTick;
 		$data->tickProcessor->randomizeTimestamps();
 	}
