@@ -4,11 +4,14 @@
 
 <p align="center"><b><font size="+16">Esoteric</font></b></p>
 
-Esoteric is another anti-cheat made for PocketMine-MP. Compared to Mockingbird, this has more checks
-I'm deciding to not disclose to the public.
+Esoteric was originally a private anti-cheat for PM servers. However, the anticheat has basically
+been abandoned and is now being disclosed to the public. 
 
-**NOTICE: Esoteric is now currently in an experimental state - performance may degrade. 
-Until this notice is removed, please refrain from using future Esoteric versions on big production servers.**
+The anti-cheat's performance in terms of execution
+time is better than Mockingbird's, however it uses a significant amount of RAM due to the world
+lag compensation I never got to optimize.
+
+Feel free to look at the checks and how they work - you are also free to contribute to this project to keep it alive.
  
 ## Dependencies
 - [Commando](https://github.com/Paroxity/Commando) v2.1.2 (Virion)
