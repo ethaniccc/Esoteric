@@ -20,6 +20,8 @@ Feel free to look at the checks and how they work - you are also free to contrib
 - 431 (1.16.220)
 - 440 (1.17.0)
 - 448 (1.17.10)
+- 465 (1.17.30)
+- 471 (1.17.40)
 
 ## Planned Features
 
