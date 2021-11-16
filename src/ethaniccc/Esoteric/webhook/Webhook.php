@@ -28,35 +28,35 @@ declare(strict_types=1);
 
 namespace ethaniccc\Esoteric\webhook;
 
-class Webhook {
+class Webhook{
 
 	/** @var string */
-	protected $url;
+	protected string $url;
 	/** @var Message */
-	protected $message;
+	protected Message $message;
 
-	public function __construct(string $url, Message $message) {
+	public function __construct(string $url, Message $message){
 		$this->url = $url;
 		$this->message = $message;
 	}
 
-	public function getURL(): string {
+	public function getURL() : string{
 		return $this->url;
 	}
 
-	public function getMessage(): Message {
+	public function getMessage() : Message{
 		return $this->message;
 	}
 
-	public function isValid(): bool {
+	public function isValid() : bool{
 		return filter_var($this->url, FILTER_VALIDATE_URL) !== false;
 	}
 
-	public function send(): void {
-		if (!WebhookThread::valid()) {
+	public function send() : void{
+		if(!WebhookThread::valid()){
 			WebhookThread::init();
 		}
-		WebhookThread::getInstance()->queue($this);
+		WebhookThread::getInstance()?->queue($this);
 	}
 
 }

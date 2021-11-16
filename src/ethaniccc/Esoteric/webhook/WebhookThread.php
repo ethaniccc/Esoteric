@@ -7,7 +7,7 @@ use Exception;
 use pocketmine\Server;
 use Threaded;
 
-class WebhookThread extends Thread {
+class WebhookThread extends Thread{
 
 	private static $instance;
 
@@ -17,16 +17,17 @@ class WebhookThread extends Thread {
 	/** @var AttachableLogger */
 	private $logger;
 
-	public static function valid(): bool {
+	public static function valid() : bool{
 		return self::$instance !== null;
 	}
 
 	/**
 	 * @param bool $shouldStart
+	 *
 	 * @throws Exception
 	 */
-	public static function init(bool $shouldStart = true): void {
-		if (self::$instance !== null) {
+	public static function init(bool $shouldStart = true) : void{
+		if(self::$instance !== null){
 			throw new Exception("WebhookThread is already initialized");
 		}
 		self::$instance = new self();
@@ -35,19 +36,19 @@ class WebhookThread extends Thread {
 		self::$instance->running = true;
 		self::$instance->setClassLoader(Server::getInstance()->getLoader());
 		self::$instance->logger = Server::getInstance()->getLogger();
-		if ($shouldStart) {
+		if($shouldStart){
 			self::$instance->start(PTHREADS_INHERIT_NONE);
 		}
 	}
 
-	public static function getInstance(): ?self {
+	public static function getInstance() : ?self{
 		return self::$instance;
 	}
 
-	public function run() {
+	public function run(){
 		$this->registerClassLoader();
-		while ($this->running) {
-			while (($webhook = $this->queue->shift()) !== null) {
+		while($this->running){
+			while(($webhook = $this->queue->shift()) !== null){
 				/** @var Webhook $webhook */
 				$ch = curl_init($webhook->getURL());
 				curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($webhook->getMessage()));
@@ -58,12 +59,12 @@ class WebhookThread extends Thread {
 				curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
 				$responseCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 				$err = curl_exec($ch);
-				if (!in_array($responseCode, [0, 200, 204])) {
+				if(!in_array($responseCode, [0, 200, 204])){
 					$this->errors[] = ($error = "Got error ($responseCode) while sending Webhook - $err");
 					$this->logger->debug("($responseCode) $error");
 				}
 				curl_close($ch);
-				if ($this->running) {
+				if($this->running){
 					usleep(500000);
 				}
 			}
@@ -71,15 +72,15 @@ class WebhookThread extends Thread {
 		}
 	}
 
-	public function stop(): void {
+	public function stop() : void{
 		$this->running = false;
 	}
 
-	public function queue(Webhook $webhook): void {
+	public function queue(Webhook $webhook) : void{
 		$this->queue[] = $webhook;
 	}
 
-	public function getErrors(): Threaded {
+	public function getErrors() : Threaded{
 		return $this->errors;
 	}
 

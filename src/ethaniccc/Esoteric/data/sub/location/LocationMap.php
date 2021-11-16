@@ -15,45 +15,45 @@ use pocketmine\Server;
  * @package ethaniccc\Esoteric\data\sub
  * LocationMap is a class that stores estimated client side locations in an array. This will be used in some combat checks.
  */
-final class LocationMap {
+final class LocationMap{
 
 	/** @var LocationData[] - Estimated client-sided locations */
-	public $locations = [];
+	public array $locations = [];
 	/** @var Location[] */
-	public $pendingLocations = [];
+	public array $pendingLocations = [];
 
 	/**
 	 * @param MovePlayerPacket|MoveActorAbsolutePacket $packet
 	 */
-	function add($packet): void {
-		if ($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL) {
+	public function add($packet) : void{
+		if($packet instanceof MovePlayerPacket && $packet->mode !== MovePlayerPacket::MODE_NORMAL){
 			$packet->mode = MovePlayerPacket::MODE_RESET;
-			$data = $this->locations[$packet->entityRuntimeId] ?? null;
-			if ($data !== null) {
+			$data = $this->locations[$packet->actorRuntimeId] ?? null;
+			if($data !== null){
 				$data->isSynced = 0;
 				$data->newPosRotationIncrements = 1;
 			}
 		}
-		$entity = Server::getInstance()->getWorldManager()->findEntity($packet->entityRuntimeId);
-		if ($entity !== null) {
+		$entity = Server::getInstance()->getWorldManager()->findEntity($packet->actorRuntimeId);
+		if($entity !== null){
 			$location = $packet->position->subtract(0, ($packet instanceof MovePlayerPacket ? 1.62 : 0), 0);
-			if (!isset($this->locations[$entity->getId()])) {
+			if(!isset($this->locations[$entity->getId()])){
 				$this->locations[$entity->getId()] = new LocationData($entity->getId(), $entity instanceof Player, Location::fromObject($location, $entity->getWorld()), 0.3, 1.8);
 			}
 			$this->pendingLocations[$packet->entityRuntimeId] = $location;
 		}
 	}
 
-	function send(PlayerData $data): void {
-		if (!$data->loggedIn) {
+	public function send(PlayerData $data) : void{
+		if(!$data->loggedIn){
 			return;
 		}
 		$locations = $this->pendingLocations;
 		$this->pendingLocations = [];
-		NetworkStackLatencyHandler::getInstance()->queue($data, function (int $timestamp) use ($locations): void {
-			foreach ($locations as $entityRuntimeId => $location) {
+		NetworkStackLatencyHandler::getInstance()->queue($data, function(int $timestamp) use ($locations) : void{
+			foreach($locations as $entityRuntimeId => $location){
 				$locationData = $this->locations[$entityRuntimeId] ?? null;
-				if ($locationData === null)
+				if($locationData === null)
 					continue;
 				$locationData->newPosRotationIncrements = 3;
 				$locationData->receivedLocation = $location;
@@ -61,20 +61,19 @@ final class LocationMap {
 		});
 	}
 
-	function executeTick(): void {
-		foreach ($this->locations as $entityRuntimeId => $locationData) {
-			if (($entity = Server::getInstance()->getWorldManager()->findEntity($entityRuntimeId)) === null) {
+	public function executeTick() : void{
+		foreach($this->locations as $entityRuntimeId => $locationData){
+			if(($entity = Server::getInstance()->getWorldManager()->findEntity($entityRuntimeId)) === null){
 				// entity go brrt !
-				unset($this->locations[$entityRuntimeId]);
-				unset($this->pendingLocations[$entityRuntimeId]);
-			} else {
-				if ($locationData->newPosRotationIncrements > 0) {
+				unset($this->locations[$entityRuntimeId], $this->pendingLocations[$entityRuntimeId]);
+			}else{
+				if($locationData->newPosRotationIncrements > 0){
 					$locationData->lastLocation = clone $locationData->currentLocation;
-					$locationData->currentLocation->x = ($locationData->currentLocation->x + (($locationData->receivedLocation->x - $locationData->currentLocation->x) / $locationData->newPosRotationIncrements));
-					$locationData->currentLocation->y = ($locationData->currentLocation->y + (($locationData->receivedLocation->y - $locationData->currentLocation->y) / $locationData->newPosRotationIncrements));
-					$locationData->currentLocation->z = ($locationData->currentLocation->z + (($locationData->receivedLocation->z - $locationData->currentLocation->z) / $locationData->newPosRotationIncrements));
+					$locationData->currentLocation->x += (($locationData->receivedLocation->x - $locationData->currentLocation->x) / $locationData->newPosRotationIncrements);
+					$locationData->currentLocation->y += (($locationData->receivedLocation->y - $locationData->currentLocation->y) / $locationData->newPosRotationIncrements);
+					$locationData->currentLocation->z += (($locationData->receivedLocation->z - $locationData->currentLocation->z) / $locationData->newPosRotationIncrements);
 					$locationData->currentLocation->world = $entity->getWorld();
-				} elseif ($locationData->newPosRotationIncrements === 0) {
+				}elseif($locationData->newPosRotationIncrements === 0){
 					// don't need to clone all the time... lol
 					$locationData->lastLocation = clone $locationData->currentLocation;
 				}
@@ -87,7 +86,7 @@ final class LocationMap {
 		}
 	}
 
-	function get(int $entityRuntimeId): ?LocationData {
+	public function get(int $entityRuntimeId) : ?LocationData{
 		return $this->locations[$entityRuntimeId] ?? null;
 	}
 

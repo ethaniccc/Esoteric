@@ -4,7 +4,7 @@ namespace ethaniccc\Esoteric\protocol;
 
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 
-final class InputConstants {
+final class InputConstants{
 
 	public const ASCEND = 0;
 	public const DESCEND = 1;
@@ -45,9 +45,9 @@ final class InputConstants {
 	public const PERFORM_BLOCK_ACTIONS = 35;
 	public const PERFORM_ITEM_STACK_REQUEST = 36;
 
-	public static function hasFlag(PlayerAuthInputPacket $packet, ...$flags): bool {
-		foreach ($flags as $flag) {
-			if (($packet->getInputFlags() & (1 << $flag)) !== 0) {
+	public static function hasFlag(PlayerAuthInputPacket $packet, ...$flags) : bool{
+		foreach($flags as $flag){
+			if(($packet->getInputFlags() & (1 << $flag)) !== 0){
 				return true;
 			}
 		}

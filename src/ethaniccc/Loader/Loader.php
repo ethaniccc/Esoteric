@@ -6,20 +6,20 @@ use ethaniccc\Esoteric\Esoteric;
 use Exception;
 use pocketmine\plugin\PluginBase;
 
-final class Loader extends PluginBase {
+final class Loader extends PluginBase{
 
-	public function onEnable(): void {
-		try {
+	protected function onEnable() : void{
+		try{
 			Esoteric::init($this, $this->getConfig(), true);
-		} catch (Exception $e) {
+		}catch(Exception $e){
 			$this->getLogger()->error("Unable to start Esoteric [{$e->getMessage()}]");
 		}
 	}
 
-	public function onDisable(): void {
-		try {
+	protected function onDisable() : void{
+		try{
 			Esoteric::getInstance()->stop();
-		} catch (Exception $e) {
+		}catch(Exception $e){
 			$this->getLogger()->error("Unable to stop esoteric [{$e->getMessage()}]");
 		}
 	}

@@ -2,7 +2,8 @@
 
 namespace ethaniccc\Esoteric\data\sub\movement;
 
-final class MovementConstants {
+final class MovementConstants{
+	public const NORMAL_GRAVITY = 0.08;
 
 	public const Y_SUBTRACTION = 0.08;
 	public const Y_MULTIPLICATION = 0.98000001907349;
