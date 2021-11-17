@@ -2,6 +2,7 @@
 
 namespace ethaniccc\Esoteric\network;
 
+use Exception;
 use pocketmine\network\AdvancedNetworkInterface;
 use pocketmine\network\mcpe\compression\ZlibCompressor;
 use pocketmine\network\mcpe\convert\TypeConverter;
@@ -27,6 +28,8 @@ use raklib\server\ipc\RakLibToUserThreadMessageReceiver;
 use raklib\server\ipc\UserToRakLibThreadMessageSender;
 use raklib\server\ServerEventListener;
 use raklib\utils\InternetAddress;
+use RuntimeException;
+use Threaded;
 use function addcslashes;
 use function bin2hex;
 use function implode;
@@ -37,7 +40,7 @@ use function substr;
 use const PHP_INT_MAX;
 use const PTHREADS_INHERIT_CONSTANTS;
 
-class RaklibOverride extends RakLibInterface implements ServerEventListener, AdvancedNetworkInterface{
+class RaklibOverride extends RakLibInterface{
 	/**
 	 * Sometimes this gets changed when the MCPE-layer protocol gets broken to the point where old and new can't
 	 * communicate. It's important that we check this to avoid catastrophes.
@@ -75,12 +78,12 @@ class RaklibOverride extends RakLibInterface implements ServerEventListener, Adv
 	public function __construct(Server $server){
 		//parent::__construct($server);
 		$this->server = $server;
-		$this->rakServerId = mt_rand(0, PHP_INT_MAX);
+		$this->rakServerId = random_int(0, PHP_INT_MAX);
 
 		$this->sleeper = new SleeperNotifier();
 
-		$mainToThreadBuffer = new \Threaded;
-		$threadToMainBuffer = new \Threaded;
+		$mainToThreadBuffer = new Threaded;
+		$threadToMainBuffer = new Threaded;
 
 		$this->rakLib = new RakLibServer(
 			$this->server->getLogger(),
@@ -104,7 +107,8 @@ class RaklibOverride extends RakLibInterface implements ServerEventListener, Adv
 
 	public function start() : void{
 		$this->server->getTickSleeper()->addNotifier($this->sleeper, function() : void{
-			while($this->eventReceiver->handle($this));
+			while($this->eventReceiver->handle($this)){
+			}
 		});
 		$this->server->getLogger()->debug("Waiting for RakLib override to start...");
 		$this->rakLib->startAndWait(PTHREADS_INHERIT_CONSTANTS); //HACK: MainLogger needs constants for exception logging
@@ -119,9 +123,9 @@ class RaklibOverride extends RakLibInterface implements ServerEventListener, Adv
 		if(!$this->rakLib->isRunning()){
 			$e = $this->rakLib->getCrashInfo();
 			if($e !== null){
-				throw new \RuntimeException("RakLib crashed: $e");
+				throw new RuntimeException("RakLib crashed: $e");
 			}
-			throw new \Exception("RakLib Thread crashed without crash information");
+			throw new Exception("RakLib Thread crashed without crash information");
 		}
 	}
 

@@ -2,20 +2,20 @@
 
 namespace ethaniccc\Esoteric\utils;
 
-final class Pair {
+final class Pair{
 
 	public $x, $y;
 
-	public function __construct($x, $y) {
+	public function __construct($x, $y){
 		$this->x = $x;
 		$this->y = $y;
 	}
 
-	public function getX() {
+	public function getX(){
 		return $this->x;
 	}
 
-	public function getY() {
+	public function getY(){
 		return $this->y;
 	}
 

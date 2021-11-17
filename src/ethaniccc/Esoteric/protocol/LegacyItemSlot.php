@@ -2,11 +2,11 @@
 
 namespace ethaniccc\Esoteric\protocol;
 
-final class LegacyItemSlot {
+final class LegacyItemSlot{
 
 	/** @var int */
-	public $containerId;
+	public int $containerId;
 	/** @var string[] */
-	public $slots;
+	public array $slots;
 
 }

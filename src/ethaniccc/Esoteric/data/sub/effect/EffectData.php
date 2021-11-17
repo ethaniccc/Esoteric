@@ -2,10 +2,10 @@
 
 namespace ethaniccc\Esoteric\data\sub\effect;
 
-final class EffectData {
+final class EffectData{
 
-	public $effectId;
-	public $ticks;
-	public $amplifier;
+	public int $effectId = -1;
+	public int $ticks = -1;
+	public int $amplifier = -1;
 
 }

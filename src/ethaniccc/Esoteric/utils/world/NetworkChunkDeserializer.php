@@ -6,15 +6,15 @@ use pocketmine\block\BlockLegacyIds;
 use pocketmine\utils\BinaryStream;
 use pocketmine\world\format\BiomeArray;
 use pocketmine\world\format\Chunk;
-use pocketmine\world\format\SubChunk;
 use pocketmine\world\format\PalettedBlockArray;
+use pocketmine\world\format\SubChunk;
 
 /**
  * Class NetworkChunkDeserializer
  * @package ethaniccc\Esoteric\utils\world
  * Fun fact: we might not even this this LMAO
  */
-final class NetworkChunkDeserializer {
+final class NetworkChunkDeserializer{
 
 	public static function deserialize(string $payload, int $subChunkCount) : Chunk{
 		$stream = new BinaryStream($payload);

@@ -2,7 +2,7 @@
 
 namespace ethaniccc\Esoteric;
 
-final class Constants {
+final class Constants{
 
 	public const ALERT_PERMISSION = "ac.alerts";
 	public const BYPASS_PERMISSION = "ac.bypass";

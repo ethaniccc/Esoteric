@@ -8,22 +8,22 @@ use pocketmine\player\Player;
 use pocketmine\scheduler\Task;
 use pocketmine\Server;
 
-class BanTask extends Task {
+class BanTask extends Task{
 
 	/** @var Player */
-	private $player;
+	private Player $player;
 	/** @var string */
-	private $reason;
+	private string $reason;
 	/** @var DateTime|null */
-	private $expiration;
+	private ?DateTime $expiration;
 
-	public function __construct(Player $player, string $reason, DateTime $expiration = null) {
+	public function __construct(Player $player, string $reason, DateTime $expiration = null){
 		$this->player = $player;
 		$this->reason = $reason;
 		$this->expiration = $expiration;
 	}
 
-	public function onRun(): void {
+	public function onRun() : void{
 		Server::getInstance()->getNameBans()->addBan($this->player->getName(), $this->reason, $this->expiration, Constants::PUNISHMENT_ENTRY_NAME);
 		$this->player->kick($this->reason, $this->reason);
 	}

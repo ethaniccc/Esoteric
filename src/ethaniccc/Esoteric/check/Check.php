@@ -26,106 +26,106 @@ use function round;
 use function str_replace;
 use function var_export;
 
-abstract class Check {
+abstract class Check{
 
-	public static $settings = [];
-	public static $timings = [];
+	public static array $settings = [];
+	public static array $timings = [];
 	/** @var int[] */
-	private static $TOTAL_VIOLATIONS = [];
-	public $name;
-	public $subType;
-	public $description;
-	public $experimental;
-	public $violations = 0;
-	public $buffer = 0;
+	private static array $TOTAL_VIOLATIONS = [];
+	public string $name;
+	public string $subType;
+	public string $description;
+	public bool $experimental;
+	public int $violations = 0;
+	public int $buffer = 0;
 
-	public function __construct(string $name, string $subType, string $description, bool $experimental = false) {
+	public function __construct(string $name, string $subType, string $description, bool $experimental = false){
 		$this->name = $name;
 		$this->subType = $subType;
 		$this->description = $description;
 		$this->experimental = $experimental;
-		if (!isset(self::$settings["$name:$subType"])) {
+		if(!isset(self::$settings["$name:$subType"])){
 			$settings = Esoteric::getInstance()->getSettings()->getCheckSettings($name, $subType);
-			if ($settings === null) {
+			if($settings === null){
 				$settings = ["enabled" => true, "punishment_type" => "none", "max_vl" => 20];
 			}
 			self::$settings["$name:$subType"] = $settings;
 		}
-		if (!isset(self::$timings["$name:$subType"])) {
+		if(!isset(self::$timings["$name:$subType"])){
 			self::$timings["$name:$subType"] = new TimingsHandler("Esoteric Check $name($subType)");
 		}
 	}
 
-	public function getData(): array {
+	public function getData() : array{
 		return ["violations" => $this->violations, "description" => $this->description, "full_name" => $this->name . " ({$this->subType})", "name" => $this->name, "subType" => $this->subType];
 	}
 
-	public function getTimings(): TimingsHandler {
+	public function getTimings() : TimingsHandler{
 		return self::$timings["{$this->name}:{$this->subType}"];
 	}
 
-	public abstract function inbound(ServerboundPacket $packet, PlayerData $data): void;
+	public abstract function inbound(ServerboundPacket $packet, PlayerData $data) : void;
 
-	public function outbound(DataPacket $packet, PlayerData $data): void {
+	public function outbound(DataPacket $packet, PlayerData $data) : void{
 	}
 
-	public function handleOut(): bool {
+	public function handleOut() : bool{
 		return false;
 	}
 
-	public function enabled(): bool {
+	public function enabled() : bool{
 		return $this->option("enabled");
 	}
 
-	protected function option(string $option, $default = null) {
+	protected function option(string $option, $default = null){
 		return self::$settings["{$this->name}:{$this->subType}"][$option] ?? $default;
 	}
 
-	protected function flag(PlayerData $data, array $extraData = []): void {
+	protected function flag(PlayerData $data, array $extraData = []) : void{
 		$extraData["ping"] = $data->player->getNetworkSession()->getPing() ?? "N/A";
 		$dataString = self::getDataString($extraData);
-		if (!$this->experimental) {
+		if(!$this->experimental){
 			++$this->violations;
-			if (!isset(self::$TOTAL_VIOLATIONS[$data->player->getName()])) {
+			if(!isset(self::$TOTAL_VIOLATIONS[$data->player->getName()])){
 				self::$TOTAL_VIOLATIONS[$data->player->getName()] = 0;
 			}
-			self::$TOTAL_VIOLATIONS[$data->player->getName()] += 1;
+			++self::$TOTAL_VIOLATIONS[$data->player->getName()];
 			$banwaveSettings = Esoteric::getInstance()->getSettings()->getWaveSettings();
-			if ($banwaveSettings["enabled"] && self::$TOTAL_VIOLATIONS[$data->player->getName()] >= $banwaveSettings["violations"] && !$data->player->hasPermission("ac.bypass")) {
+			if($banwaveSettings["enabled"] && self::$TOTAL_VIOLATIONS[$data->player->getName()] >= $banwaveSettings["violations"] && !$data->player->hasPermission("ac.bypass")){
 				$wave = Esoteric::getInstance()->getBanwave();
 				$wave->add($data->player->getName(), $this->getCodeName());
 			}
 			$this->sendAlertWebhook($data->player->getName(), $dataString);
 		}
 		$this->warn($data, $extraData);
-		if ($this->violations >= $this->option("max_vl") && $this->canPunish()) {
+		if($this->violations >= $this->option("max_vl") && $this->canPunish()){
 			$data->player->hasPermission("ac.bypass") ? $this->violations = 0 : $this->punish($data);
 		}
 	}
 
-	public static function getDataString(array $data): string {
+	public static function getDataString(array $data) : string{
 		$dataString = "";
 		$n = count($data);
 		$i = 1;
-		foreach ($data as $name => $value) {
+		foreach($data as $name => $value){
 			$dataString .= "$name=$value";
-			if ($i !== $n)
+			if($i !== $n)
 				$dataString .= " ";
 			$i++;
 		}
 		return $dataString;
 	}
 
-	public function getCodeName(): string {
+	public function getCodeName() : string{
 		return $this->option("code", "{$this->name}({$this->subType})");
 	}
 
-	private function sendAlertWebhook(string $player, string $debug): void {
+	private function sendAlertWebhook(string $player, string $debug) : void{
 		$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
 		$webhookLink = $webhookSettings["link"];
 		$canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
 
-		if (!$canSend) {
+		if(!$canSend){
 			return;
 		}
 
@@ -149,54 +149,54 @@ abstract class Check {
 		$webhook->send();
 	}
 
-	protected function warn(PlayerData $data, array $extraData): void {
+	protected function warn(PlayerData $data, array $extraData) : void{
 		$dataString = "";
 		$n = count($extraData);
 		$i = 1;
-		foreach ($extraData as $name => $value) {
+		foreach($extraData as $name => $value){
 			$dataString .= "$name=$value";
-			if ($i !== $n)
+			if($i !== $n)
 				$dataString .= " ";
 			$i++;
 		}
 		$string = str_replace(["{prefix}", "{player}", "{check_name}", "{check_subtype}", "{violations}", "{data}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $data->player->getName(), $this->name, $this->subType, var_export(round($this->violations, 2), true), $dataString], Esoteric::getInstance()->getSettings()->getAlertMessage());
 		Esoteric::getInstance()->getPlugin()->getLogger()->debug($string);
-		foreach (Esoteric::getInstance()->hasAlerts as $other) {
-			if (microtime(true) - $other->lastAlertTime >= $other->alertCooldown) {
+		foreach(Esoteric::getInstance()->hasAlerts as $other){
+			if(microtime(true) - $other->lastAlertTime >= $other->alertCooldown){
 				$other->lastAlertTime = microtime(true);
 				$other->player->sendMessage($string);
 			}
 		}
 	}
 
-	protected function canPunish(): bool {
+	protected function canPunish() : bool{
 		return $this->option("punishment_type") !== "none" && !$this->experimental;
 	}
 
-	protected function punish(PlayerData $data): void {
-		if ($this->option("punishment_type") === "ban") {
+	protected function punish(PlayerData $data) : void{
+		if($this->option("punishment_type") === "ban"){
 			$data->isDataClosed = true;
 			$l = Esoteric::getInstance()->getSettings()->getBanLength();
 			$expiration = is_numeric($l) ? (new DateTime('now'))->modify("+" . (int) $l . " day") : null;
 			$string = str_replace(["{prefix}", "{code}", "{expires}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName(), $expiration !== null ? $expiration->format("m/d/y H:i") : "Never"], Esoteric::getInstance()->getSettings()->getBanMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleTask(new BanTask($data->player, $string, $expiration));
 			$this->sendPunishmentWebhook($data->player->getName(), "ban");
-		} elseif ($this->option("punishment_type") === "kick") {
+		}elseif($this->option("punishment_type") === "kick"){
 			$data->isDataClosed = true;
 			$string = str_replace(["{prefix}", "{code}"], [Esoteric::getInstance()->getSettings()->getPrefix(), $this->getCodeName()], Esoteric::getInstance()->getSettings()->getKickMessage());
 			Esoteric::getInstance()->getPlugin()->getScheduler()->scheduleDelayedTask(new KickTask($data->player, $string), 1);
 			$this->sendPunishmentWebhook($data->player->getName(), "kick");
-		} else {
+		}else{
 			$this->violations = 0;
 		}
 	}
 
-	private function sendPunishmentWebhook(string $player, string $type): void {
+	private function sendPunishmentWebhook(string $player, string $type) : void{
 		$webhookSettings = Esoteric::getInstance()->getSettings()->getWebhookSettings();
 		$webhookLink = $webhookSettings["link"];
 		$canSend = $webhookSettings["alerts"] && $webhookLink !== "none";
 
-		if (!$canSend) {
+		if(!$canSend){
 			return;
 		}
 
@@ -218,10 +218,10 @@ abstract class Check {
 		$webhook->send();
 	}
 
-	protected function setback(PlayerData $data): void {
-		if (!$data->hasMovementSuppressed && $this->option("setback", false)) {
+	protected function setback(PlayerData $data) : void{
+		if(!$data->hasMovementSuppressed && $this->option("setback", false)){
 			$type = Esoteric::getInstance()->getSettings()->getSetbackType();
-			switch ($type) {
+			switch($type){
 				case Settings::SETBACK_SMOOTH:
 					$delta = ($data->packetDeltas[0] ?? new Vector3(0, -0.08 * 0.98, 0));
 					$packet = CorrectPlayerMovePredictionPacket::create(($data->onGround ? $data->lastLocation : $data->lastOnGroundLocation)->add(0, 1.62, 0), $delta, $data->onGround, array_keys($data->packetDeltas)[0] ?? 0);
@@ -236,7 +236,7 @@ abstract class Check {
 		}
 	}
 
-	protected function reward(float $sub = 0.01): void {
+	protected function reward(float $sub = 0.01) : void{
 		$this->violations = max($this->violations - $sub, 0);
 	}
 

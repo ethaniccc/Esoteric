@@ -37,159 +37,179 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
-use pocketmine\player\GameMode;
 use pocketmine\player\Player;
 use function array_filter;
 use function count;
 use function microtime;
 use function spl_object_hash;
 
-final class PlayerData {
+final class PlayerData{
 
 	/** @var Vector3 - A zero vector, duh. */
-	public static $ZERO_VECTOR;
+	public static ?Vector3 $ZERO_VECTOR = null;
 
 	/** @var Player|null */
-	public $player;
+	public ?Player $player = null;
 	/** @var VirtualWorld */
-	public $world;
+	public VirtualWorld $world;
 	/** @var NetworkSession */
-	public $session;
+	public NetworkSession $session;
 	/** @var string - The spl_object_hash identifier of the player. */
-	public $hash;
+	public string $hash;
 	/** @var string - Identifier used in network interface */
-	public $networkIdentifier;
+	public string $networkIdentifier;
 	/** @var int - The current protocol of the player. */
-	public $protocol = ProtocolInfo::CURRENT_PROTOCOL;
+	public int $protocol = ProtocolInfo::CURRENT_PROTOCOL;
 	/** @var bool - Boolean value for if the player is logged in. */
-	public $loggedIn = false;
+	public bool $loggedIn = false;
 	/** @var bool - The boolean value for if the player has alerts enabled. This will always be false for players without alert permissions. */
-	public $hasAlerts = false;
+	public bool $hasAlerts = false;
 	/** @var int - The alert cooldown the player has set. */
-	public $alertCooldown = 0;
+	public int|float $alertCooldown = 0;
 	/** @var float - The last time the player has received an alert message. */
-	public $lastAlertTime;
+	public float $lastAlertTime;
 	/** @var Check[] - An array of checks */
-	public $checks = [];
+	public array $checks = [];
 	/** @var ProcessInbound - A class to process packet data sent by the client. */
-	public $inboundProcessor;
+	public ProcessInbound $inboundProcessor;
 	/** @var ProcessOutbound - A class to process packet data sent by the server. */
-	public $outboundProcessor;
+	public ProcessOutbound $outboundProcessor;
 	/** @var ProcessTick - A class to execute every tick. Mainly will be used for NetworkStackLatency timeouts, and */
-	public $tickProcessor;
+	public ProcessTick $tickProcessor;
 	/** @var LocationMap */
-	public $entityLocationMap;
+	public LocationMap $entityLocationMap;
 	/** @var bool */
-	public $isMobile = false;
+	public bool $isMobile = false;
 	/** @var int */
-	public $latency = 0;
+	public int $latency = 0;
 	/** @var int - ID of the current target entity */
-	public $target = -1;
+	public int $target = -1;
 	/** @var int - ID of the last target entity */
-	public $lastTarget = -1;
+	public int $lastTarget = -1;
 	/** @var int - The tick when the player attacked. */
-	public $attackTick = -1;
+	public int $attackTick = -1;
 	/** @var Vector3 - Attack position of the player */
-	public $attackPos;
+	public Vector3 $attackPos;
 	/** @var EffectData[] */
-	public $effects = [];
+	public array $effects = [];
 	/** @var int */
-	public $currentTick = 0;
+	public int $currentTick = 0;
 	/** @var Vector3[] */
-	public $packetDeltas = [];
+	public array $packetDeltas = [];
 	/** @var int */
-	public $ticksPerSecond = 0;
+	public int $ticksPerSecond = 0;
 	/** @var Vector3 - The current and previous locations of the player */
-	public $currentLocation, $lastLocation, $lastOnGroundLocation;
+	public Vector3 $lastOnGroundLocation;
+	public Vector3 $lastLocation;
+	public Vector3 $currentLocation;
 	/** @var Vector3 - Movement deltas of the player */
-	public $currentMoveDelta, $lastMoveDelta;
+	public Vector3 $lastMoveDelta;
+	public Vector3 $currentMoveDelta;
 	/** @var float - Rotation values of the player */
-	public $currentYaw = 0.0, $previousYaw = 0.0, $currentPitch = 0.0, $previousPitch = 0.0;
+	public float $previousPitch = 0.0;
+	public float $currentPitch = 0.0;
+	public float $previousYaw = 0.0;
+	public float $currentYaw = 0.0;
 	/** @var float - Rotation deltas of the player */
-	public $currentYawDelta = 0.0, $lastYawDelta = 0.0, $currentPitchDelta = 0.0, $lastPitchDelta = 0.0;
+	public float $lastPitchDelta = 0.0;
+	public float $currentPitchDelta = 0.0;
+	public float $lastYawDelta = 0.0;
+	public float $currentYawDelta = 0.0;
 	/** @var bool - The boolean value for if the player is on the ground. The client on-ground value is used for this. */
-	public $onGround = true;
+	public bool $onGround = true;
 	/** @var bool - An expected value for the client's on ground. */
-	public $expectedOnGround = true;
+	public bool $expectedOnGround = true;
 	/** @var int */
-	public $onGroundTicks = 0, $offGroundTicks = 0;
+	public int $offGroundTicks = 0;
+	public int $onGroundTicks = 0;
 	/** @var AABB */
-	public $boundingBox;
+	public AABB $boundingBox;
 	/** @var Vector3 */
-	public $directionVector;
+	public Vector3 $directionVector;
 	/** @var int - Ticks since the player has taken motion. */
-	public $ticksSinceMotion = 0;
+	public int $ticksSinceMotion = 0;
 	/** @var Vector3 */
-	public $motion;
+	public Vector3 $motion;
 	/** @var bool */
-	public $isCollidedVertically = false, $isCollidedHorizontally = false, $hasBlockAbove = false;
+	public bool $hasBlockAbove = false;
+	public bool $isCollidedHorizontally = false;
+	public bool $isCollidedVertically = false;
 	/** @var int */
-	public $ticksSinceInLiquid = 0, $ticksSinceInCobweb = 0, $ticksSinceInClimbable = 0;
+	public int $ticksSinceInClimbable = 0;
+	public int $ticksSinceInCobweb = 0;
+	public int $ticksSinceInLiquid = 0;
 	/** @var int - Movements passed since the user teleported. */
-	public $ticksSinceTeleport = 0;
+	public int $ticksSinceTeleport = 0;
 	/** @var bool - Boolean value for if the player is in the void. */
-	public $isInVoid = false;
+	public bool $isInVoid = false;
 	/** @var bool */
-	public $teleported = false;
+	public bool $teleported = false;
 	/** @var int - The amount of movements that have passed since the player has disabled flight. */
-	public $ticksSinceFlight = 0;
+	public int $ticksSinceFlight = 0;
 	/** @var bool - Boolean value for if the player is flying. */
-	public $isFlying = false;
+	public bool $isFlying = false;
 	/** @var int - Movements that have passed since the user has jumped. */
-	public $ticksSinceJump = 0;
+	public int $ticksSinceJump = 0;
 	/** @var bool */
-	public $hasMovementSuppressed = false;
+	public bool $hasMovementSuppressed = false;
 	/** @var bool - Boolean value for if the player is in a chunk they've received */
-	public $inLoadedChunk = false;
+	public bool $inLoadedChunk = false;
 	/** @var Vector3 - Position sent in NetworkChunkPublisherUpdatePacket */
-	public $chunkSendPosition;
+	public Vector3 $chunkSendPosition;
 	/** @var bool */
-	public $immobile = false;
+	public bool $immobile = false;
 	/** @var Block[] */
-	public $blocksBelow = [];
+	public array $blocksBelow = [];
 	/** @var Block[] */
-	public $lastBlocksBelow = [];
+	public array $lastBlocksBelow = [];
 	/** @var bool */
-	public $canPlaceBlocks = true;
+	public bool $canPlaceBlocks = true;
 	/** @var float */
-	public $hitboxWidth = 0.0, $hitboxHeight = 0.0;
+	public float $hitboxHeight = 0.0;
+	public float $hitboxWidth = 0.0;
 	/** @var bool */
-	public $isAlive = true;
+	public bool $isAlive = true;
 	/** @var int - Amount of client ticks that have passed since the player has spawned. */
-	public $ticksSinceSpawn = 0;
+	public int $ticksSinceSpawn = 0;
 	/** @var bool */
-	public $isGliding = false;
+	public bool $isGliding = false;
 	/** @var int */
-	public $ticksSinceGlide = 0;
+	public int $ticksSinceGlide = 0;
 	/** @var int - Device OS of the player */
-	public $playerOS = DeviceOS::UNKNOWN;
+	public int $playerOS = DeviceOS::UNKNOWN;
 	/** @var int - Current gamemode of the player. */
-	public $gamemode = 0;
-	public $isSprinting = false;
-	public $movementSpeed = 0.1;
-	public $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
-	public $jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
-	public $moveForward = 0.0, $moveStrafe = 0.0;
+	public int $gamemode = 0;
+	public bool $isSprinting = false;
+	public float $movementSpeed = 0.1;
+	public float $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
+	public float $jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
+	public float $moveStrafe = 0.0;
+	public float $moveForward = 0.0;
 	/** @var int[] */
-	public $clickSamples = [];
+	public array $clickSamples = [];
 	/** @var bool - Boolean value for if autoclicker checks should run. */
-	public $runClickChecks = false;
+	public bool $runClickChecks = false;
 	/** @var float - Statistical data for autoclicker checks. */
-	public $cps = 0.0, $kurtosis = 0.0, $skewness = 0.0, $deviation = 0.0, $outliers = 0.0, $variance = 0.0;
+	public float $variance = 0.0;
+	public float $outliers = 0.0;
+	public float $deviation = 0.0;
+	public float $skewness = 0.0;
+	public float $kurtosis = 0.0;
+	public float $cps = 0.0;
 	/** @var int - Last tick the client clicked. */
-	public $lastClickTick = 0;
+	public int $lastClickTick = 0;
 	/** @var bool */
-	public $isDataClosed = false;
+	public bool $isDataClosed = false;
 	/** @var Block|null */
-	public $blockBroken;
+	public ?Block $blockBroken;
 	/** @var bool */
-	public $isFullKeyboardGameplay = true;
+	public bool $isFullKeyboardGameplay = true;
 	/** @var int[] */
-	private $ticks = [];
+	private array $ticks = [];
 
 
-	public function __construct(NetworkSession $session) {
-		if (self::$ZERO_VECTOR === null) {
+	public function __construct(NetworkSession $session){
+		if(self::$ZERO_VECTOR === null){
 			self::$ZERO_VECTOR = new Vector3(0, 0, 0);
 		}
 		$this->hash = spl_object_hash($session);
@@ -225,11 +245,11 @@ final class PlayerData {
 		];
 	}
 
-	public function tick(): void {
+	public function tick() : void{
 		$this->currentTick++;
 		$this->entityLocationMap->executeTick();
 		$currentTime = microtime(true);
-		$this->ticks = array_filter($this->ticks, static function (float $time) use ($currentTime): bool {
+		$this->ticks = array_filter($this->ticks, static function(float $time) use ($currentTime) : bool{
 			return $currentTime - $time < 1;
 		});
 		$this->ticksPerSecond = count($this->ticks);

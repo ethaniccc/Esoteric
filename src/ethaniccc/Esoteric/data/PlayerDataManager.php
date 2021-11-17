@@ -9,29 +9,29 @@ use function stripos;
 use function strlen;
 use function strtolower;
 
-class PlayerDataManager {
+class PlayerDataManager{
 
 	/** @var PlayerData[] */
-	private $data = [];
+	private array $data = [];
 
-	public function get(NetworkSession $session): ?PlayerData {
+	public function get(NetworkSession $session) : ?PlayerData{
 		return $this->data[spl_object_hash($session)] ?? null;
 	}
 
-	public function getFromName(string $username): ?PlayerData {
+	public function getFromName(string $username) : ?PlayerData{
 		$found = null;
 		$name = strtolower($username);
 		$delta = PHP_INT_MAX;
-		foreach ($this->data as $data) {
-			if ($data->player === null)
+		foreach($this->data as $data){
+			if($data->player === null)
 				continue;
-			if (stripos($data->player->getName(), $name) === 0) {
+			if(stripos($data->player->getName(), $name) === 0){
 				$curDelta = strlen($data->player->getName()) - strlen($name);
-				if ($curDelta < $delta) {
+				if($curDelta < $delta){
 					$found = $data;
 					$delta = $curDelta;
 				}
-				if ($curDelta === 0) {
+				if($curDelta === 0){
 					break;
 				}
 			}
@@ -39,17 +39,17 @@ class PlayerDataManager {
 		return $found;
 	}
 
-	public function getDirect(string $hash): ?PlayerData {
+	public function getDirect(string $hash) : ?PlayerData{
 		return $this->data[$hash] ?? null;
 	}
 
-	public function add(NetworkSession $session): PlayerData {
+	public function add(NetworkSession $session) : PlayerData{
 		$data = new PlayerData($session);
 		$this->data[$data->hash] = $data;
 		return $data;
 	}
 
-	public function remove(NetworkSession $session): void {
+	public function remove(NetworkSession $session) : void{
 		$hash = spl_object_hash($session);
 		unset($this->data[$hash]);
 		NetworkStackLatencyHandler::getInstance()->remove($hash);
@@ -58,7 +58,7 @@ class PlayerDataManager {
 	/**
 	 * @return PlayerData[]
 	 */
-	public function getAll(): array {
+	public function getAll() : array{
 		return $this->data;
 	}
 
