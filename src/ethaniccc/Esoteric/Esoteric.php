@@ -131,7 +131,7 @@ final class Esoteric{
 			}
 		}
 
-		// TODO: Remove PlayerAuthInputPacket override when BedrockProtocol gets bumped
+		// TODO: Remove PlayerAuthInputPacket override when BedrockProtocol gets updated
 		PacketPool::getInstance()->registerPacket(new PlayerAuthInputPacket());
 
 		$this->command = new EsotericCommand();

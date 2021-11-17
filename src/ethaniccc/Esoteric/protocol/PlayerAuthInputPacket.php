@@ -44,8 +44,7 @@ use function assert;
 use function count;
 
 /**
- * @override This will temporarily fix for https://github.com/pmmp/BedrockProtocol/issues/20
- * When BedrockProtocol gets bumped, this will be removed.
+ * @override This will temporarily fix https://github.com/pmmp/BedrockProtocol/issues/20
  */
 
 class PlayerAuthInputPacket extends PMPlayerAuthInputPacket{
