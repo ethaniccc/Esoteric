@@ -93,21 +93,6 @@ final class Esoteric{
 			return;
 		}
 
-		/*
-		$this->getPlugin()->getScheduler()->scheduleTask(new ClosureTask(function() : void{
-			foreach(Server::getInstance()->getNetwork()->getInterfaces() as $interface){
-				if($interface instanceof RakLibInterface){
-					$interface->shutdown();
-					Server::getInstance()->getNetwork()->unregisterInterface($interface);
-					break;
-				}
-			}
-			$this->getPlugin()->getScheduler()->scheduleDelayedTask(new ClosureTask(function() : void{
-				Server::getInstance()->getNetwork()->registerInterface(new RaklibOverride(Server::getInstance()));
-			}), 40);
-		}));
-		*/
-
 		BlockFactory::getInstance()->register(new class() extends Cactus{
 			public function __construct(){
 				parent::__construct(new BlockIdentifier(BlockLegacyIds::CACTUS, 0), "Cactus", new BlockBreakInfo(0.4));
@@ -146,6 +131,7 @@ final class Esoteric{
 			}
 		}
 
+		// TODO: Remove PlayerAuthInputPacket override when BedrockProtocol gets bumped
 		PacketPool::getInstance()->registerPacket(new PlayerAuthInputPacket());
 
 		$this->command = new EsotericCommand();

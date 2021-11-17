@@ -43,6 +43,11 @@ use pocketmine\network\mcpe\protocol\types\PlayMode;
 use function assert;
 use function count;
 
+/**
+ * @override This will temporarily fix for https://github.com/pmmp/BedrockProtocol/issues/20
+ * When BedrockProtocol gets bumped, this will be removed.
+ */
+
 class PlayerAuthInputPacket extends PMPlayerAuthInputPacket{
 	public const NETWORK_ID = ProtocolInfo::PLAYER_AUTH_INPUT_PACKET;
 
