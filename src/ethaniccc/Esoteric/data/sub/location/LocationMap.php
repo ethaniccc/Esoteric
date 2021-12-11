@@ -40,7 +40,7 @@ final class LocationMap{
 			if(!isset($this->locations[$entity->getId()])){
 				$this->locations[$entity->getId()] = new LocationData($entity->getId(), $entity instanceof Player, Location::fromObject($location, $entity->getWorld()), 0.3, 1.8);
 			}
-			$this->pendingLocations[$packet->entityRuntimeId] = $location;
+			$this->pendingLocations[$packet->actorRuntimeId] = $location;
 		}
 	}
 
