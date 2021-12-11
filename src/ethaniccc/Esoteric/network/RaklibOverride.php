@@ -75,7 +75,7 @@ class RaklibOverride extends RakLibInterface{
 	/** @var PacketBroadcaster */
 	private $broadcaster;
 
-	public function __construct(Server $server){
+	public function __construct(Server $server, string $ip, int $port, bool $ipv6 = false){
 		//parent::__construct($server);
 		$this->server = $server;
 		$this->rakServerId = random_int(0, PHP_INT_MAX);
@@ -89,7 +89,7 @@ class RaklibOverride extends RakLibInterface{
 			$this->server->getLogger(),
 			$mainToThreadBuffer,
 			$threadToMainBuffer,
-			new InternetAddress($this->server->getIp(), $this->server->getPort(), 4),
+			new InternetAddress($ip, $port, $ipv6 ? 6 : 4),
 			$this->rakServerId,
 			(int) $this->server->getConfigGroup()->getProperty("network.max-mtu-size", 1492),
 			self::MCPE_RAKNET_PROTOCOL_VERSION,

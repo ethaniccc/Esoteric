@@ -108,7 +108,11 @@ class EsotericEventListener implements Listener{
 		if($interface instanceof RakLibInterface && !$interface instanceof RaklibOverride){
 			$event->cancel();
 			if(!$this->networkRegistered){
-				Server::getInstance()->getNetwork()->registerInterface(new RaklibOverride(Server::getInstance()));
+				$server = Server::getInstance();
+				$server->getNetwork()->registerInterface(new RaklibOverride($server, $server->getIp(), $server->getPort(), false));
+				if($server->getConfigGroup()->getConfigBool("enable-ipv6", true)){
+					$server->getNetwork()->registerInterface(new RaklibOverride($server, $server->getIpV6(), $server->getPortV6(), true));
+				}
 				$this->networkRegistered = true;
 			}
 		}elseif($interface instanceof DedicatedQueryNetworkInterface){
