@@ -107,7 +107,7 @@ final class Esoteric{
 			public function __construct(){
 				parent::__construct(new BlockIdentifier(BlockLegacyIds::FENCE, 7), "Oak Fence [Hack]", new BlockBreakInfo(2.0, BlockToolType::AXE, 0, 15.0));
 			}
-		});
+		}, true);
 
 		$this->logger->start(PTHREADS_INHERIT_NONE);
 		$this->plugin->getServer()->getPluginManager()->registerEvents($this->listener, $this->plugin);
