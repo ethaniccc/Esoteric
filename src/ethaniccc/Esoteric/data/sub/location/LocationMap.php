@@ -9,6 +9,7 @@ use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\player\Player;
 use pocketmine\Server;
+use pocketmine\world\Position;
 
 /**
  * Class LocationMap
@@ -50,13 +51,13 @@ final class LocationMap{
 		}
 		$locations = $this->pendingLocations;
 		$this->pendingLocations = [];
-		NetworkStackLatencyHandler::getInstance()->queue($data, function(int $timestamp) use ($locations) : void{
+		NetworkStackLatencyHandler::getInstance()->queue($data, function(int $timestamp) use ($locations, $data) : void{
 			foreach($locations as $entityRuntimeId => $location){
 				$locationData = $this->locations[$entityRuntimeId] ?? null;
 				if($locationData === null)
 					continue;
 				$locationData->newPosRotationIncrements = 3;
-				$locationData->receivedLocation = $location;
+				$locationData->receivedLocation = Position::fromObject($location, $data->player->getWorld());
 			}
 		});
 	}
