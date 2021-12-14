@@ -5,7 +5,7 @@ description: A loader for the Esoteric anti-cheat
 version: 1.0.0
 main: ethaniccc\Loader\Loader
 api: 3.19.0
-mcpe-protocol: [431, 440, 448, 465, 471]
+mcpe-protocol: [431, 440, 448, 465, 471, 475]
 extensions:
   Core: ">=7.4"
 permissions:
