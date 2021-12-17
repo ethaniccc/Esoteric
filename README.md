@@ -22,6 +22,7 @@ Feel free to look at the checks and how they work - you are also free to contrib
 - 448 (1.17.10)
 - 465 (1.17.30)
 - 471 (1.17.40)
+- 475 (1.18.0)
 
 ## Planned Features
 
