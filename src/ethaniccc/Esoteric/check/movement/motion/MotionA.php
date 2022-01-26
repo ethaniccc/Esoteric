@@ -12,7 +12,7 @@ use function round;
 
 class MotionA extends Check {
 
-	private $lastPreviousYMovement = 0.0;
+	private float $lastPreviousYMovement = 0.0;
 
 	public function __construct() {
 		parent::__construct("Motion", "A", "Checks for impossible upward motion", false);

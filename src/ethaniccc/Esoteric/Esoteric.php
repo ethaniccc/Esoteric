@@ -57,8 +57,7 @@ final class Esoteric {
 	public LoggerThread $loggerThread;
 	public DecompressLevelChunkThread $chunkThread;
 	public bool $hasComposerDeps;
-	/** @var ?string */
-	public $autoloadPath;
+	public ?string $autoloadPath = null;
 
 	/**
 	 * Esoteric constructor.
@@ -121,7 +120,7 @@ final class Esoteric {
 				break;
 			}
 		}
-		$this->command = new EsotericCommand($this->plugin, "ac", "The Esoteric anti-cheat command");
+		//$this->command = new EsotericCommand($this->plugin, "ac", "The Esoteric anti-cheat command");
 		$this->loggerThread = new LoggerThread($this->getPlugin()->getDataFolder() . "esoteric.log");
 		$this->loggerThread->start();
 		$this->chunkThread = new DecompressLevelChunkThread();
@@ -163,7 +162,7 @@ final class Esoteric {
 			PacketHooker::register($this->plugin);
 		}
 
-		Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
+		//Server::getInstance()->getCommandMap()->register($this->plugin->getName(), $this->command);
 
 		if ($this->settings->getWaveSettings()["enabled"]) {
 			@mkdir($this->getPlugin()->getDataFolder() . "banwaves");
@@ -195,7 +194,7 @@ final class Esoteric {
 			throw new Exception("Esoteric has not been initialized");
 		}
 		$this->plugin->getScheduler()->cancelTask($this->tickingTask->getTaskId());
-		Server::getInstance()->getCommandMap()->unregister($this->command);
+		//Server::getInstance()->getCommandMap()->unregister($this->command);
 		HandlerList::unregisterAll($this->listener);
 		if ($this->getBanwave() !== null) {
 			$this->getBanwave()->update();

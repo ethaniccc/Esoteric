@@ -14,7 +14,7 @@ use function round;
 
 class FlyA extends Check {
 
-	private $lastBlockAbove = false;
+	private bool $lastBlockAbove = false;
 
 	public function __construct() {
 		parent::__construct("Fly", "A", "Estimates the next Y movement of the player", false);

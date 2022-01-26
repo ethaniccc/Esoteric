@@ -51,159 +51,99 @@ use function spl_object_hash;
 
 final class PlayerData {
 
-	/** @var Vector3 - A zero vector, duh. */
-	public static $ZERO_VECTOR;
+	public static ?Vector3 $ZERO_VECTOR = null;
 
-	/** @var Player */
-	public $player;
-	/** @var string - The spl_object_hash identifier of the player. */
-	public $hash;
+	public Player $player;
+	public string $hash;
 	/** @var DebugHandler[] */
-	public $debugHandlers = [];
+	public array $debugHandlers = [];
 	/** @var EvictingList */
-	public $movements;
-	/** @var string - Identifier used in network interface */
-	public $networkIdentifier;
-	/** @var int - The current protocol of the player. */
-	public $protocol = ProtocolInfo::CURRENT_PROTOCOL;
-	/** @var bool - Boolean value for if the player is logged in. */
-	public $loggedIn = false;
-	/** @var bool - The boolean value for if the player has alerts enabled. This will always be false for players without alert permissions. */
-	public $hasAlerts = false;
-	/** @var int - The alert cooldown the player has set. */
-	public $alertCooldown = 0;
-	/** @var float - The last time the player has received an alert message. */
-	public $lastAlertTime;
+	public EvictingList $movements;
+	public string $networkIdentifier;
+	public int $protocol = ProtocolInfo::CURRENT_PROTOCOL;
+	public bool $loggedIn = false;
+	public bool $hasAlerts = false;
+	public int $alertCooldown = 0;
+	public float $lastAlertTime;
 	/** @var Check[] - An array of checks */
-	public $checks = [];
+	public array $checks = [];
 	/** @var ProcessInbound - A class to process packet data sent by the client. */
-	public $inboundProcessor;
+	public ProcessInbound $inboundProcessor;
 	/** @var ProcessOutbound - A class to process packet data sent by the server. */
-	public $outboundProcessor;
+	public ProcessOutbound $outboundProcessor;
 	/** @var ProcessTick - A class to execute every tick. Mainly will be used for NetworkStackLatency timeouts, and */
-	public $tickProcessor;
-	/** @var LocationMap */
-	public $entityLocationMap;
-	/** @var bool */
-	public $isMobile = false;
-	/** @var int */
-	public $gameLatency = 0;
-	/** @var int */
-	public $networkLatency = 0;
-	/** @var int - ID of the current target entity */
-	public $target = -1;
-	/** @var int - ID of the last target entity */
-	public $lastTarget = -1;
-	/** @var int - The tick when the player attacked. */
-	public $attackTick = -1;
-	/** @var Vector3 - Attack position of the player */
-	public $attackPos;
+	public ProcessTick $tickProcessor;
+	public LocationMap $entityLocationMap;
+	public bool $isMobile = false;
+	public int $gameLatency = 0;
+	public int $networkLatency = 0;
+	public int $target = -1;
+	public int $lastTarget = -1;
+	public int $attackTick = -1;
+	public Vector3 $attackPos;
 	/** @var EffectData[] */
-	public $effects = [];
-	/** @var int */
-	public $currentTick;
+	public array $effects = [];
+	public int $currentTick;
 	/** @var Vector3[] */
-	public $packetDeltas = [];
-	/** @var int */
-	public $ticksPerSecond = 0;
-	/** @var Vector3 - The current and previous locations of the player */
-	public $currentLocation, $lastLocation, $lastOnGroundLocation;
-	/** @var Vector3 - Movement deltas of the player */
-	public $currentMoveDelta, $lastMoveDelta;
-	/** @var float - Rotation values of the player */
-	public $currentYaw = 0.0, $previousYaw = 0.0, $currentPitch = 0.0, $previousPitch = 0.0;
-	/** @var float - Rotation deltas of the player */
-	public $currentYawDelta = 0.0, $lastYawDelta = 0.0, $currentPitchDelta = 0.0, $lastPitchDelta = 0.0;
-	/** @var bool - The boolean value for if the player is on the ground. The client on-ground value is used for this. */
-	public $onGround = true;
-	/** @var bool - An expected value for the client's on ground. */
-	public $expectedOnGround = true;
-	/** @var int */
-	public $onGroundTicks = 0, $offGroundTicks = 0;
-	/** @var AABB */
-	public $boundingBox;
-	/** @var AABB */
-	public $lastBoundingBox;
-	/** @var Vector3 */
-	public $directionVector;
-	/** @var int - Ticks since the player has taken motion. */
-	public $ticksSinceMotion = 0;
-	/** @var Vector3 */
-	public $motion;
-	/** @var bool */
-	public $isCollidedVertically = false, $isCollidedHorizontally = false, $hasBlockAbove = false;
-	/** @var int */
-	public $ticksSinceInLiquid = 0, $ticksSinceInCobweb = 0, $ticksSinceInClimbable = 0;
-	/** @var int - Movements passed since the user teleported. */
-	public $ticksSinceTeleport = 0;
-	/** @var bool */
-	public $isGliding = false;
-	/** @var int */
-	public $ticksSinceGlide = 0;
-	/** @var bool - Boolean value for if the player is in the void. */
-	public $isInVoid = false;
-	/** @var float */
-	public $gravity = MovementConstants::NORMAL_GRAVITY;
-	/** @var float */
-	public $ySize = 0;
-	/** @var bool */
-	public $teleported = false;
-	/** @var int - The amount of movements that have passed since the player has disabled flight. */
-	public $ticksSinceFlight = 0;
-	/** @var bool - Boolean value for if the player is flying. */
-	public $isFlying = false;
-	/** @var bool */
-	public $isClipping = false;
-	/** @var int - Movements that have passed since the user has jumped. */
-	public $ticksSinceJump = 0;
-	/** @var bool */
-	public $hasMovementSuppressed = false;
-	/** @var bool - Boolean value for if the player is in a chunk they've received */
-	public $inLoadedChunk = false;
-	/** @var Vector3 - Position sent in NetworkChunkPublisherUpdatePacket */
-	public $chunkSendPosition;
-	/** @var bool */
-	public $immobile = false;
+	public array $packetDeltas = [];
+	public int $ticksPerSecond = 0;
+	public Vector3 $currentLocation, $lastLocation, $lastOnGroundLocation;
+	public float $currentMoveDelta, $lastMoveDelta;
+	public float $currentYaw = 0.0, $previousYaw = 0.0, $currentPitch = 0.0, $previousPitch = 0.0;
+	public float $currentYawDelta = 0.0, $lastYawDelta = 0.0, $currentPitchDelta = 0.0, $lastPitchDelta = 0.0;
+	public bool $onGround = true;
+	public bool $expectedOnGround = true;
+	public int $onGroundTicks = 0, $offGroundTicks = 0;
+	public AABB $boundingBox;
+	public AABB $lastBoundingBox;
+	public Vector3 $directionVector;
+	public int $ticksSinceMotion = 0;
+	public Vector3 $motion;
+	public bool $isCollidedVertically = false, $isCollidedHorizontally = false, $hasBlockAbove = false;
+	public int $ticksSinceInLiquid = 0, $ticksSinceInCobweb = 0, $ticksSinceInClimbable = 0;
+	public int $ticksSinceTeleport = 0;
+	public bool $isGliding = false;
+	public int $ticksSinceGlide = 0;
+	public bool $isInVoid = false;
+	public float $gravity = MovementConstants::NORMAL_GRAVITY;
+	public float $ySize = 0;
+	public bool $teleported = false;
+	public int $ticksSinceFlight = 0;
+	public bool $isFlying = false;
+	public bool $isClipping = false;
+	public int $ticksSinceJump = 0;
+	public bool $hasMovementSuppressed = false;
+	public bool $inLoadedChunk = false;
+	public Vector3 $chunkSendPosition;
+	public bool $immobile = false;
 	/** @var Block[] */
-	public $blocksBelow = [];
+	public array $blocksBelow = [];
 	/** @var Block[] */
-	public $lastBlocksBelow = [];
-	/** @var bool */
-	public $canPlaceBlocks = true;
-	/** @var float */
-	public $hitboxWidth = 0.0, $hitboxHeight = 0.0;
-	/** @var bool */
-	public $isAlive = true;
-	/** @var int - Amount of client ticks that have passed since the player has spawned. */
-	public $ticksSinceSpawn = 0;
-	/** @var int - Device OS of the player */
-	public $playerOS = DeviceOS::UNKNOWN;
-	/** @var int - Current gamemode of the player. */
-	public $gamemode = 0;
-	public $isSprinting = false;
-	public $isSneaking = false;
-	public $movementSpeed = 0.1;
-	public $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
-	public $jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
-	public $moveForward = 0.0, $moveStrafe = 0.0;
+	public array $lastBlocksBelow = [];
+	public bool $canPlaceBlocks = true;
+	public float $hitboxWidth = 0.0, $hitboxHeight = 0.0;
+	public bool $isAlive = true;
+	public int $ticksSinceSpawn = 0;
+	public int $playerOS = DeviceOS::UNKNOWN;
+	public int $gamemode = 0;
+	public bool $isSprinting = false;
+	public bool $isSneaking = false;
+	public float $movementSpeed = 0.1;
+	public float $jumpVelocity = MovementConstants::DEFAULT_JUMP_MOTION;
+	public float $jumpMovementFactor = MovementConstants::JUMP_MOVE_NORMAL;
+	public float $moveForward = 0.0, $moveStrafe = 0.0;
 	/** @var int[] */
-	public $clickSamples = [];
-	/** @var bool - Boolean value for if autoclicker checks should run. */
-	public $runClickChecks = false;
+	public array $clickSamples = [];
+	public bool $runClickChecks = false;
 	/** @var float - Statistical data for autoclicker checks. */
-	public $cps = 0.0, $kurtosis = 0.0, $skewness = 0.0, $deviation = 0.0, $outliers = 0.0, $variance = 0.0;
-	/** @var int - Last tick the client clicked. */
-	public $lastClickTick = 0;
-	/** @var bool */
-	public $isDataClosed = false;
-	/** @var Block|null */
-	public $blockBroken;
-	/** @var bool */
-	public $isFullKeyboardGameplay = true;
-	/** @var VirtualWorld */
-	public $world;
+	public float $cps = 0.0, $kurtosis = 0.0, $skewness = 0.0, $deviation = 0.0, $outliers = 0.0, $variance = 0.0;
+	public int $lastClickTick = 0;
+	public bool $isDataClosed = false;
+	public ?Block $blockBroken = null;
+	public bool $isFullKeyboardGameplay = true;
+	public VirtualWorld $world;
 	/** @var int[] */
-	private $ticks = [];
+	private array $ticks = [];
 
 	public function __construct(Player $player) {
 		if (self::$ZERO_VECTOR === null) {
@@ -225,7 +165,7 @@ final class PlayerData {
 
 		$this->entityLocationMap = new LocationMap();
 
-		$this->alertCooldown = Esoteric::getInstance()->getSettings()->getAlertCooldown();
+		$this->alertCooldown = 0;
 		$this->lastAlertTime = microtime(true);
 
 		$this->world = new VirtualWorld();
@@ -273,11 +213,11 @@ final class PlayerData {
 			$this->checks[$key] = null;
 			unset($this->checks[$key]);
 		}
-		$this->player = null;
-		$this->inboundProcessor = null;
-		$this->outboundProcessor = null;
-		$this->tickProcessor = null;
-		$this->entityLocationMap = null;
+		unset($this->player);
+		unset($this->inboundProcessor);
+		unset($this->outboundProcessor);
+		unset($this->tickProcessor);
+		unset($this->entityLocationMap);
 	}
 
 }
