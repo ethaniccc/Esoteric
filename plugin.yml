@@ -4,10 +4,10 @@ author: ethaniccc
 description: A loader for the Esoteric anti-cheat
 version: 1.0.0
 main: ethaniccc\Loader\Loader
-api: 3.19.0
-mcpe-protocol: [431, 440, 448, 465, 471, 475]
+api: 3.26.0
+mcpe-protocol: [475]
 extensions:
-  Core: ">=7.4"
+  Core: ">=8.0"
 permissions:
   ac:
     description: Gives all anticheat permissions
@@ -35,38 +35,12 @@ permissions:
           ac.command.banwave:
             description: Handle Esoteric ban waves
             default: op
-            children:
-              ac.command.banwave.add:
-                description: Create a new banwave in the Esoteric anti-cheat
-                default: op
-              ac.command.banwave.execute:
-                description: Execute a banwave in the Esoteric anti-cheat
-                default: op
-              ac.command.banwave.remove:
-                description: Remove an existing Esoteric banwave
-                default: op
-              ac.command.banwave.undo:
-                description: Undo the punishments executed from a specified banwave
-                default: op
           ac.command.timings:
             description: Enable timings for a certain period of time to see server performance with Esoteric
             default: op
           ac.command.exempt:
             description: Get access to exempt sub commands in Esoteric
             default: op
-            children:
-              ac.command.exempt.add:
-                description: Add a player to an exempt list
-                default: op
-              ac.command.exempt.all:
-                description: Get all the currently exempted players
-                default: op
-              ac.command.exempt.get:
-                description: Check if a target player is exempt or not
-                default: op
-              ac.command.exempt.remove:
-                description: Remove a player to an exempt list
-                default: op
           ac.command.debug:
             description: Get access to debugging commands in Esoteric
             default: op
